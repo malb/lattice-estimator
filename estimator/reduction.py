@@ -325,7 +325,7 @@ class BKZ:
             sage: f = a*beta*log(beta, 2.0) + b*beta + c
             sage: f = f.function(beta)
             sage: f.subs(find_fit(T, f, solution_dict=True))
-            beta |--> 0.2701888...*beta*log(beta) - 1.0192052...*beta + 16.1025378...
+            beta |--> 0.2701...*beta*log(beta) - 1.0192...*beta + 16.10...
 
         The estimation
 
