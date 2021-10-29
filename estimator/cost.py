@@ -79,11 +79,15 @@ class Cost:
         s = []
         for k in d:
             if k == "tag":
-                fmt = u"%%%ds" % keyword_width
-                if compact:
-                    s.append("%s: %s" % (fmt % k, d[k]))
+                if keyword_width:
+                    fmt = u"%%%ds" % keyword_width
+                    kk = fmt % k
                 else:
-                    s.append("%s: %8s" % (fmt % k, d[k]))
+                    kk = k
+                if compact:
+                    s.append("%s: %s" % (kk, d[k]))
+                else:
+                    s.append("%s: %8s" % (kk, d[k]))
                 continue
             v = d[k]
             kk = unicode_replacements.get(k, k)

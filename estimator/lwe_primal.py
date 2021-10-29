@@ -132,16 +132,43 @@ class PrimalUSVP:
         **kwds,
     ):
         """
+        Estimate cost of solving LWE via uSVP reduction.
 
+        The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
+        [AC:AGVW17,C:DDGR20,PKC:PosVir21]_. The treatment of small secrets is from
+        [ACISP:BaiGal14]_.
+
+        .. [ACISP:BaiGal14] Bai, S., & Galbraith, S. D. (2014). Lattice decoding attacks on binary
+           LWE. In W. Susilo, & Y. Mu, ACISP 14 (pp. 322–337). : Springer, Heidelberg.
+
+        .. [USENIX:ADPS16] Alkim, E., L\'eo Ducas, Thomas P\"oppelmann, & Schwabe, P. (2016).
+           Post-quantum key exchange - A new hope. In T. Holz, & S. Savage, USENIX Security 2016 (pp.
+           327–343). : USENIX Association.
+
+        .. [AC:AGVW17] Albrecht, M. R., Florian Göpfert, Virdia, F., & Wunderer, T. (2017).
+           Revisiting the expected cost of solving uSVP and applications to LWE. In T. Takagi, & T.
+           Peyrin, ASIACRYPT 2017, Part I (pp. 297–322). : Springer, Heidelberg.
+
+        .. [C:DDGR20] Dana Dachman-Soled, Léo Ducas, Gong, H., & M\'elissa Rossi (2020). LWE with
+           side information: Attacks and concrete security estimation. In D. Micciancio, & T.
+           Ristenpart, CRYPTO~2020, Part~II (pp. 329–358). : Springer, Heidelberg.
+
+        .. [PKC:PosVir21] Postlethwaite, E. W., & Virdia, F. (2021). On the success probability of
+           solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer,
+           Heidelberg.
 
         EXAMPLE::
 
             sage: from estimator import *
             sage: print(primal_usvp(Kyber512))
-            sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
-            sage: print(primal_usvp(params), bkz_model="cn11")
-            sage: print(primal_usvp(params), bkz_model=Simulator.CN11)
+            rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β:  382, d:  973, tag: usvp
 
+            sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
+            sage: print(primal_usvp(params, bkz_model="cn11"))
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
+
+            sage: print(primal_usvp(params, bkz_model=Simulator.CN11))
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
         """
 
         params = LWEParameters.normalize(params)
@@ -192,7 +219,6 @@ class PrimalUSVP:
 
 
 primal_usvp = PrimalUSVP()
-primal_usvp_cn11 = partial(primal_usvp, bkz_model="cn11")
 
 
 class PrimalHybrid:
