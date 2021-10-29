@@ -14,7 +14,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-  steps:
+    steps:
       - name: Check out
         uses: actions/checkout@v2
       - name: Install prerequisites
@@ -30,7 +30,6 @@ jobs:
           export DOT_SAGE=/home/sage/.sage/
           pip3 install flake8
           $SAGE_ROOT/local/bin/flake8 estimator.py
-
       - name: Test
         run: |
           export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
