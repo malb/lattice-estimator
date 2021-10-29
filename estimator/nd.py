@@ -7,13 +7,13 @@ from sage.all import parent, RR, RealField, sqrt, pi
 
 def stddevf(sigma):
     """
-    Gaussian width parameter σ → standard deviation
+    Gaussian width parameter σ → standard deviation.
 
     :param sigma: Gaussian width parameter σ
 
     EXAMPLE::
 
-        sage: from estimator import stddevf
+        sage: from estimator.nd import stddevf
         sage: stddevf(64.0)
         25.532...
 
@@ -38,13 +38,13 @@ def stddevf(sigma):
 
 def sigmaf(stddev):
     """
-    standard deviation → Gaussian width parameter σ
+    Standard deviation → Gaussian width parameter σ.
 
-    :param sigma: standard deviation
+    :param stddev: standard deviation
 
     EXAMPLE::
 
-        sage: from estimator import stddevf, sigmaf
+        sage: from estimator.nd import stddevf, sigmaf
         sage: n = 64.0
         sage: sigmaf(stddevf(n))
         64.000...
@@ -73,31 +73,88 @@ def sigmaf(stddev):
 class NoiseDistribution:
     """
     All noise distributions are instances of this class.
+
     """
 
     stddev: float
     mean: float = 0
-    hamming_fraction: float = 1.0  # Hamming weight divided by dimension.
+    density: float = 1.0  # Hamming weight / dimension.
+    tag: str = ""
 
     def __lt__(self, other):
+        """
+        We compare distributions by comparing their standard deviation.
+
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.DiscreteGaussian(2.0) < ND.CentredBinomial(18)
+            True
+            sage: ND.DiscreteGaussian(3.0) < ND.CentredBinomial(18)
+            False
+            sage: ND.DiscreteGaussian(4.0) < ND.CentredBinomial(18)
+            False
+
+        """
         try:
             return self.stddev < other.stddev
         except AttributeError:
             return self.stddev < other
 
     def __le__(self, other):
+        """
+        We compare distributions by comparing their standard deviation.
+
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.DiscreteGaussian(2.0) <= ND.CentredBinomial(18)
+            True
+            sage: ND.DiscreteGaussian(3.0) <= ND.CentredBinomial(18)
+            True
+            sage: ND.DiscreteGaussian(4.0) <= ND.CentredBinomial(18)
+            False
+
+        """
         try:
             return self.stddev <= other.stddev
         except AttributeError:
             return self.stddev <= other
 
     def __repr__(self):
+        """
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.DiscreteGaussianAlpha(0.01, 7681)
+            D(σ=30.64, μ=0.00)
+
+        """
         return f"D(σ={self.stddev:.2f}, μ={self.mean:.2f})"
 
     def __hash__(self):
+        """
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: hash(ND(3.0, 1.0)) == hash((3.0, 1.0))
+            True
+
+        """
         return hash((self.stddev, self.mean))
 
     def __len__(self):
+        """
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: D = ND.SparseTernary(1024, p=128, m=128)
+            sage: len(D)
+            1024
+            sage: round(len(D) * D.density)
+            256
+
+        """
         if hasattr(self, "n"):
             return self.n
         else:
@@ -106,14 +163,28 @@ class NoiseDistribution:
     @staticmethod
     def DiscreteGaussian(stddev, mean=0):
         """
-        A discrete Gaussian distribution with standard deviation `stddev`.
+        A discrete Gaussian distribution with standard deviation ``stddev``.
+
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.DiscreteGaussian(3.0, 1.0)
+            D(σ=3.00, μ=1.00)
+
         """
-        return NoiseDistribution(stddev=RR(stddev), mean=RR(mean))
+        return NoiseDistribution(stddev=RR(stddev), mean=RR(mean), tag="DiscreteGaussian")
 
     @staticmethod
     def DiscreteGaussianAlpha(alpha, q, mean=0):
         """
-        A discrete Gaussian distribution with standard deviation αq/√(2π).
+        A discrete Gaussian distribution with standard deviation α⋅q/√(2π).
+
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.DiscreteGaussianAlpha(0.001, 2048)
+            D(σ=0.82, μ=0.00)
+
         """
         stddev = stddevf(alpha * q)
         return NoiseDistribution.DiscreteGaussian(stddev=RR(stddev), mean=RR(mean))
@@ -122,14 +193,32 @@ class NoiseDistribution:
     def CentredBinomial(eta):
         """
         Sample a_1, …, a_η, b_1, …, b_η and return Σ(a_i - b_i).
+
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.CentredBinomial(8)
+            D(σ=2.00, μ=0.00)
+
         """
         stddev = sqrt(eta / 2.0)
-        # TODO: hamming_fraction
-        return NoiseDistribution(stddev=RR(stddev), mean=RR(0))
+        # TODO: density
+        return NoiseDistribution(stddev=RR(stddev), mean=RR(0), tag="CentredBinomial")
 
     @staticmethod
     def Uniform(a, b):
-        "Uniform distribution ∈ [a,b], endpoints inclusive."
+        """
+        Uniform distribution ∈ ``[a,b]``, endpoints inclusive.
+
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.Uniform(-3, 3)
+            D(σ=2.00, μ=0.00)
+            sage: ND.Uniform(-4, 3)
+            D(σ=2.29, μ=-0.50)
+
+        """
         if b < a:
             raise ValueError(f"upper limit must be larger than lower limit but got: {b} < {a}")
         n = b - a + 1
@@ -137,14 +226,27 @@ class NoiseDistribution:
         stddev = sqrt((n ** 2 - 1) / RR(12))
 
         if a <= 0 and 0 <= b:
-            hamming_fraction = 1.0 / n
+            density = 1.0 / n
         else:
-            hamming_fraction = 0.0
+            density = 0.0
 
-        return NoiseDistribution(stddev=stddev, mean=mean, hamming_fraction=hamming_fraction)
+        return NoiseDistribution(stddev=stddev, mean=mean, density=density, tag="Uniform")
 
     @staticmethod
     def UniformMod(q):
+        """
+        Uniform mod ``q``, with balanced representation.
+
+        EXAMPLE::
+
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.UniformMod(7)
+            D(σ=2.00, μ=0.00)
+            sage: ND.UniformMod(8)
+            D(σ=2.29, μ=-0.50)
+
+
+        """
         a = -(q // 2)
         b = q // 2
         if q % 2 == 0:
@@ -153,12 +255,25 @@ class NoiseDistribution:
 
     @staticmethod
     def SparseTernary(n, p, m=None):
+        """
+        Distribution of vectors of length ``n`` with ``p`` entries of 1 and ``m`` entries of -1, rest 0.
+
+        EXAMPLE::
+            sage: from estimator.nd import NoiseDistribution as ND
+            sage: ND.SparseTernary(100, p=10)
+            D(σ=0.45, μ=0.00)
+            sage: ND.SparseTernary(100, p=10, m=10)
+            D(σ=0.45, μ=0.00)
+            sage: ND.SparseTernary(100, p=10, m=8)
+            D(σ=0.42, μ=0.02)
+
+        """
         if m is None:
             m = p
         mean = RR(p / n - m / n)
         stddev = RR(sqrt((p + m) / n))
-        hamming_fraction = RR((p + m) / n)
-        D = NoiseDistribution(stddev=stddev, mean=mean, hamming_fraction=hamming_fraction)
+        density = RR((p + m) / n)
+        D = NoiseDistribution(stddev=stddev, mean=mean, density=density, tag="SparseTernary")
         D.h = p + m
         D.n = n
         return D

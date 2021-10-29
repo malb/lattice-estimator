@@ -49,7 +49,9 @@ class Cost:
         for k, v in kwds.items():
             self.data[k] = v
 
-    def str(self, keyword_width=None, newline=None, round_bound=2048, compact=False, unicode=True):
+    def str(  # noqa C901
+        self, keyword_width=None, newline=None, round_bound=2048, compact=False, unicode=True
+    ):
         """
 
         :param keyword_width:  keys are printed with this width
