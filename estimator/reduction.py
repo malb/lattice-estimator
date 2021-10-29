@@ -91,7 +91,7 @@ class BKZ:
 
         EXAMPLE::
 
-            sage: from estimator import BKZ
+            sage: from estimator.reduction import BKZ
             sage: 50 == BKZ._beta_secant(1.0121)
             True
             sage: 100 == BKZ._beta_secant(1.0093)
@@ -113,7 +113,7 @@ class BKZ:
         # doesn't make such a big difference.
         try:
             beta = newton(
-                lambda beta: RR(BKZ._delta_0f(beta) - delta),
+                lambda beta: RR(BKZ._delta(beta) - delta),
                 100,
                 fprime=None,
                 args=(),
@@ -137,8 +137,8 @@ class BKZ:
 
         TESTS::
 
-            sage: from estimator import betaf, delta_0f
-            sage: betaf(delta_0f(500))
+            sage: from estimator.reduction import BKZ
+            sage: BKZ.beta(BKZ.delta(500))
             500
 
         """
@@ -166,12 +166,12 @@ class BKZ:
 
         EXAMPLE::
 
-            sage: from estimator import betaf
-            sage: 50 == betaf(1.0121)
+            sage: from estimator.reduction import BKZ
+            sage: 50 == BKZ.beta(1.0121)
             True
-            sage: 100 == betaf(1.0093)
+            sage: 100 == BKZ.beta(1.0093)
             True
-            sage: betaf(1.0024) # Chen reports 800
+            sage: BKZ.beta(1.0024) # Chen reports 800
             808
 
         .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement
@@ -325,7 +325,7 @@ class BKZ:
             sage: f = a*beta*log(beta, 2.0) + b*beta + c
             sage: f = f.function(beta)
             sage: f.subs(find_fit(T, f, solution_dict=True))
-            beta |--> 0.270188776350190*beta*log(beta) - 1.0192050451318417*beta + 16.10253135200765
+            beta |--> 0.2701...*beta*log(beta) - 1.0192...*beta + 16.10...
 
         The estimation
 
@@ -379,21 +379,6 @@ class BKZ:
         :param beta: block size
         :param n: LWE dimension `n > 0`
         :param B: bit-size of entries
-
-        EXAMPLE::
-
-            sage: from estimator import BKZ, Param, dual, partial
-            sage: cost_model = partial(BKZ.ADPS16, mode="paranoid")
-            sage: dual(*Param.LindnerPeikert(128), reduction_cost_model=cost_model)
-                rop:   2^37.3
-                  m:      346
-                red:   2^37.3
-            delta_0: 1.008209
-               beta:      127
-                  d:      346
-                |v|:  284.363
-             repeat:     2000
-            epsilon: 0.062500
 
         ..  [ADPS16] Edem Alkim, Léo Ducas, Thomas Pöppelmann, & Peter Schwabe (2016).
             Post-quantum key exchange - A New Hope.  In T. Holz, & S. Savage, 25th USENIX

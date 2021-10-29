@@ -1,0 +1,41 @@
+name: Tests
+
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0' # weekly
+
+env:
+  JOBS: 2
+  DEPS: sagemath
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install $DEPS
+      - name: PEP8
+        run: |
+          export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
+          export PATH="$SAGE_ROOT/bin:$PATH"
+          export SAGE_LOCAL="$SAGE_ROOT/local"
+          export DOT_SAGE=$HOME/.sage/
+          pip install flake8
+          flake8 estimator/
+      - name: Test
+        run: |
+          export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
+          export PATH="$SAGE_ROOT/bin:$PATH"
+          export SAGE_LOCAL="$SAGE_ROOT/local"
+          export DOT_SAGE=$HOME/.sage/
+          sudo mkdir -p /usr/share/sagemath/build/pkgs
+          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests estimator
+          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests README.rst
+          

@@ -1,0 +1,7 @@
+[flake8]
+max-line-length = 120
+black-config = pyproject.toml
+max-complexity = 16
+extend-ignore =
+    # See https://github.com/PyCQA/pycodestyle/issues/373
+    E203,E22,E241

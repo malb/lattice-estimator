@@ -9,7 +9,7 @@ from .reduction import BKZ
 from .util import binary_search
 from .cost import Cost
 from .lwe import LWEParameters
-from .simulator import GSASimulator
+from .simulator import Simulator
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
@@ -124,13 +124,54 @@ class PrimalUSVP:
     def __call__(
         self,
         params: LWEParameters,
-        success_probability=0.99,
-        kannan_coeff=None,
-        d=None,
         reduction_cost_model=BKZ.default,
         bkz_model="gsa",
         **kwds,
     ):
+        """
+        Estimate cost of solving LWE via uSVP reduction.
+
+        :param params: LWE parameters
+        :param reduction_cost_model: How to cost BKZ
+        :param bkz_model: How to model the shape of a BKZ reduced basis
+
+        EXAMPLE::
+
+            sage: from estimator import *
+            sage: print(primal_usvp(Kyber512))
+            rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β:  382, d:  973, tag: usvp
+
+            sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
+            sage: print(primal_usvp(params, bkz_model="cn11"))
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
+
+            sage: print(primal_usvp(params, bkz_model=Simulator.CN11))
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
+
+        The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
+        [AC:AGVW17,C:DDGR20,PKC:PosVir21]_. The treatment of small secrets is from
+        [ACISP:BaiGal14]_.
+
+        .. [ACISP:BaiGal14] Bai, S., & Galbraith, S. D. (2014). Lattice decoding attacks on binary
+           LWE. In W. Susilo, & Y. Mu, ACISP 14 (pp. 322–337). : Springer, Heidelberg.
+
+        .. [USENIX:ADPS16] Alkim, E., L\'eo Ducas, Thomas P\"oppelmann, & Schwabe, P. (2016).
+           Post-quantum key exchange - A new hope. In T. Holz, & S. Savage, USENIX Security 2016 (pp.
+           327–343). : USENIX Association.
+
+        .. [AC:AGVW17] Albrecht, M. R., Florian Göpfert, Virdia, F., & Wunderer, T. (2017).
+           Revisiting the expected cost of solving uSVP and applications to LWE. In T. Takagi, & T.
+           Peyrin, ASIACRYPT 2017, Part I (pp. 297–322). : Springer, Heidelberg.
+
+        .. [C:DDGR20] Dana Dachman-Soled, Léo Ducas, Gong, H., & M\'elissa Rossi (2020). LWE with
+           side information: Attacks and concrete security estimation. In D. Micciancio, & T.
+           Ristenpart, CRYPTO~2020, Part~II (pp. 329–358). : Springer, Heidelberg.
+
+        .. [PKC:PosVir21] Postlethwaite, E. W., & Virdia, F. (2021). On the success probability of
+           solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer,
+           Heidelberg.
+        """
+
         params = LWEParameters.normalize(params)
 
         # allow for a larger embedding lattice dimension: Bai and Galbraith
@@ -141,9 +182,12 @@ class PrimalUSVP:
             start = 40
             stop = 2 * params.n
         elif str(bkz_model).lower() != "gsa":
+            try:
+                bkz_model = getattr(Simulator, str(bkz_model).upper())
+            except AttributeError:
+                pass
             cost_gsa = self(
                 params,
-                kannan_coeff=kannan_coeff,
                 reduction_cost_model=reduction_cost_model,
                 bkz_model="gsa",
                 **kwds,
@@ -161,10 +205,9 @@ class PrimalUSVP:
             param="beta",
             predicate=lambda x, best: x["red"] <= best["red"],
             params=params,
-            kannan_coeff=kannan_coeff,
-            d=d,
             m=m,
             reduction_cost_model=reduction_cost_model,
+            **kwds,
         )
 
         cost["tag"] = "usvp"
@@ -175,7 +218,6 @@ class PrimalUSVP:
 
 
 primal_usvp = PrimalUSVP()
-primal_usvp_cn11 = partial(primal_usvp, bkz_model="cn11")
 
 
 class PrimalHybrid:
@@ -206,7 +248,7 @@ class PrimalHybrid:
         tau: int = 0,
         babai=True,
         mitm=False,
-        simulator=GSASimulator,
+        simulator=Simulator.GSA,
         reduction_cost_model=BKZ.default,
     ):
         """
@@ -215,7 +257,7 @@ class PrimalHybrid:
         :param tau: guessing dimension τ
         :param mitm: simulate MITM approach (√ of search space)
         """
-        h = len(params.Xs) * params.Xs.hamming_fraction
+        h = len(params.Xs) * params.Xs.density
 
         d = (params.m + params.n if params.Xs <= params.Xe else params.m) - tau + 1
         scale = PrimalUSVP._scale_factor(params.Xs, params.Xe)
@@ -265,9 +307,8 @@ class PrimalHybrid:
         ret["beta"] = beta
         ret["eta"] = eta
         ret["|S|"] = search_space
+        ret["d"] = d
         ret["prob"] = probability
-        ret["scale"] = scale
-        ret["pp"] = hw
 
         # 4. Repeat whole experiment ~1/prob times
         ret = ret.repeat(
@@ -291,18 +332,23 @@ class PrimalHybrid:
     def __call__(
         self,
         params: LWEParameters,
-        success_probability=0.99,
         babai: bool = False,
         tau: int = None,
         mitm: bool = True,
-        simulator=GSASimulator,
+        bkz_model="gsa",
         reduction_cost_model=BKZ.default,
         **kwds,
     ):
+
+        try:
+            bkz_model = getattr(Simulator, str(bkz_model).upper())
+        except AttributeError:
+            pass
+
         if babai is False and tau == 0:
             cost = primal_usvp(
                 params,
-                bkz_model=simulator,
+                bkz_model=bkz_model,
                 reduction_cost_model=reduction_cost_model,
                 **kwds,
             )
@@ -314,7 +360,7 @@ class PrimalHybrid:
                     tau=tau,
                     babai=babai,
                     mitm=mitm,
-                    simulator=simulator,
+                    simulator=bkz_model,
                     reduction_cost_model=reduction_cost_model,
                 )
                 if cost_curr["rop"] < cost["rop"]:
@@ -322,6 +368,9 @@ class PrimalHybrid:
                 else:
                     break
             cost["tag"] = cost.data.get("tag", "bdd")
+            del cost.data["|S|"]
+            del cost.data["prob"]
+            del cost.data["repeat"]
             return cost
         else:
             raise NotImplementedError

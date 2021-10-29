@@ -9,30 +9,16 @@ class Cost:
 
     # TODO review this list
     _do_repeat = {
-        u"rop": True,
-        u"red": True,
-        u"babai": True,
-        u"babai_op": True,
-        u"epsilon": False,
-        u"mem": False,
-        u"delta": False,
-        u"beta": False,
-        u"k": False,
-        u"D_reg": False,
-        u"t": False,
-        u"m": True,
-        u"d": False,
-        u"|v|": False,
-        u"amplify": False,
-        u"repeat": False,  # we deal with it below
-        u"c": False,
-        u"b": False,
-        u"t1": False,
-        u"t2": False,
-        u"l": False,
-        u"ncod": False,
-        u"ntop": False,
-        u"ntest": False,
+        "rop": True,
+        "red": True,
+        "delta": False,
+        "beta": False,
+        "eta": False,
+        "epsilon": False,
+        "m": True,
+        "d": False,
+        "amplify": False,
+        "repeat": False,  # we deal with it below
     }
 
     def __init__(self, data=None, **kwds):
@@ -49,7 +35,9 @@ class Cost:
         for k, v in kwds.items():
             self.data[k] = v
 
-    def str(self, keyword_width=None, newline=None, round_bound=2048, compact=False, unicode=True):
+    def str(  # noqa C901
+        self, keyword_width=None, newline=None, round_bound=2048, compact=False, unicode=True
+    ):
         """
 
         :param keyword_width:  keys are printed with this width
@@ -60,18 +48,18 @@ class Cost:
 
         EXAMPLE::
 
-            sage: from estimator import Cost
-            sage: s = Cost({"delta_0":5, "bar":2})
+            sage: from estimator.cost import Cost
+            sage: s = Cost({"delta":5, "bar":2})
             sage: print(s)
-            delta_0: 5, bar: 2
+            δ: 5, bar: 2
 
-            sage: s = Cost([(u"delta_0", 5), ("bar",2)])
+            sage: s = Cost([(u"delta", 5), ("bar",2)])
             sage: print(s)
-            delta_0: 5, bar: 2
+            δ: 5, bar: 2
 
         """
         if unicode:
-            unicode_replacements = {"delta": u"δ", "beta": u"β", "epsilon": u"ε"}
+            unicode_replacements = {"delta": "δ", "beta": "β", "eta": "η", "epsilon": "ε"}
         else:
             unicode_replacements = {}
 
@@ -91,11 +79,15 @@ class Cost:
         s = []
         for k in d:
             if k == "tag":
-                fmt = u"%%%ds" % keyword_width
-                if compact:
-                    s.append("%s: %s" % (fmt % k, d[k]))
+                if keyword_width:
+                    fmt = u"%%%ds" % keyword_width
+                    kk = fmt % k
                 else:
-                    s.append("%s: %8s" % (fmt % k, d[k]))
+                    kk = k
+                if compact:
+                    s.append("%s: %s" % (kk, d[k]))
+                else:
+                    s.append("%s: %8s" % (kk, d[k]))
                 continue
             v = d[k]
             kk = unicode_replacements.get(k, k)
@@ -152,7 +144,7 @@ class Cost:
 
         EXAMPLE::
 
-            sage: from estimator import Cost
+            sage: from estimator.cost import Cost
             sage: d = Cost([("a",1),("b",2),("c",3)]); d
             a:        1
             b:        2
@@ -185,46 +177,18 @@ class Cost:
         return Cost(r)
 
     def repeat(self, times, select=None, lll=None):
-        u"""
-        Return a report with all costs multiplied by `times`.
+        """
+        Return a report with all costs multiplied by ``times``.
 
-        :param d:      a cost estimate
         :param times:  the number of times it should be run
-        :param select: toggle which fields ought to be repeated and which shouldn't
+        :param select: toggle which fields ought to be repeated and which should not
         :param lll:    if set amplify lattice reduction times assuming the LLL algorithm suffices and costs ``lll``
         :returns:      a new cost estimate
 
-        We maintain a local dictionary which decides if an entry is multiplied by `times` or not.
-        For example, δ would not be multiplied but "#bop" would be. This check is strict such that
+        We maintain a local dictionary which decides if an entry is multiplied by ``times`` or not.
+        For example, ``δ`` would not be multiplied but ``rop`` would be. This check is strict such that
         unknown entries raise an error. This is to enforce a decision on whether an entry should be
-        multiplied by `times` if the function `report` reports on is called `times` often.
-
-        EXAMPLE::
-
-            sage: from estimator import Param, dual
-            sage: n, alpha, q = Param.Regev(128)
-
-            sage: dual(n, alpha, q).repeat(2^10)
-                rop:   2^91.1
-                  m:   2^18.6
-                red:   2^91.1
-            delta_0: 1.008631
-               beta:      115
-                  d:      380
-                |v|:  688.951
-             repeat:   2^27.0
-            epsilon: 0.007812
-
-            sage: dual(n, alpha, q).repeat(1)
-                rop:   2^81.1
-                  m:      380
-                red:   2^81.1
-            delta_0: 1.008631
-               beta:      115
-                  d:      380
-                |v|:  688.951
-             repeat:   2^17.0
-            epsilon: 0.007812
+        multiplied by ``times`` if the function ``report`` reports on is called `times` often.
 
         """
 
@@ -289,10 +253,10 @@ class Cost:
         return self.data.values()
 
     def __str__(self):
-        return self.str(unicode=False, compact=True)
+        return self.str(unicode=True, compact=True)
 
     def __repr__(self):
-        return self.str(unicode=False, newline=True, keyword_width=12)
+        return self.str(unicode=True, newline=True, keyword_width=12)
 
     def __unicode__(self):
         return self.str(unicode=True)
