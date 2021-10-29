@@ -9,7 +9,7 @@ on:
 
 env:
   JOBS: 2
-  DEPS: sagemath python3-pip
+  DEPS: sagemath
 
 jobs:
   build:
@@ -25,18 +25,16 @@ jobs:
         run: |
           export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
           export PATH="$SAGE_ROOT/build/bin:$SAGE_ROOT/local/bin:$PATH"
-          export SAGE_PYTHON_VERSION=3
           export SAGE_LOCAL="$SAGE_ROOT/local"
-          export DOT_SAGE=/home/sage/.sage/
-          pip3 install flake8
+          export DOT_SAGE=$HOME/.sage/
+          pip install flake8
           $SAGE_ROOT/local/bin/flake8 estimator.py
       - name: Test
         run: |
           export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
           export PATH="$SAGE_ROOT/build/bin:$SAGE_ROOT/local/bin:$PATH"
-          export SAGE_PYTHON_VERSION=3
           export SAGE_LOCAL="$SAGE_ROOT/local"
-          export DOT_SAGE=/home/sage/.sage/
+          export DOT_SAGE=$HOME/.sage/
           PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests estimator
           PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests README.rst
           
