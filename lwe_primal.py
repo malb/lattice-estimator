@@ -3,12 +3,16 @@
 Estimate cost of solving LWE.
 """
 from functools import partial
-from multiprocessing import Pool
 
-from sage.all import oo, ceil, sqrt, log, RR
+from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial
 from .reduction import BKZ
 from .util import binary_search
+from .cost import Cost
 from .lwe import LWEParameters
+from .simulator import GSASimulator
+from .prob import drop as prob_drop
+from .prob import amplify as prob_amplify
+from .prob import babai as prob_babai
 
 
 class PrimalUSVP:
@@ -91,7 +95,7 @@ class PrimalUSVP:
         reduction_cost_model=BKZ.default,
     ):
         delta = BKZ.delta(beta)
-        m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
+        m = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         d = m + 1 if d is None else d
         scale = PrimalUSVP._scale_factor(params.Xe, params.Xs)
         kannan_coeff = params.Xe.stddev if kannan_coeff is None else kannan_coeff
@@ -163,6 +167,7 @@ class PrimalUSVP:
             reduction_cost_model=reduction_cost_model,
         )
 
+        cost["tag"] = "usvp"
         return cost
 
     def __repr__(self):
@@ -173,37 +178,153 @@ primal_usvp = PrimalUSVP()
 primal_usvp_cn11 = partial(primal_usvp, bkz_model="cn11")
 
 
-def _fpp(f, x):
-    y = f(x)
-    print(f)
-    print(x)
-    print(y)
-    print("")
-    return y
+class PrimalHybrid:
+    @classmethod
+    def babai_cost(cls, d):
+        return Cost(rop=d ** 2)
+
+    @classmethod
+    def svp_dimension(cls, r, D):
+        """
+        Return η for a given lattice shape and distance.
+
+        :param r: squared Gram-Schmidt norms
+
+        """
+        from fpylll.util import gaussian_heuristic
+
+        d = len(r)
+        for i, _ in enumerate(r):
+            if gaussian_heuristic(r[i:]) < D.stddev ** 2 * (d - i):
+                return ZZ(d - (i - 1))
+        return ZZ(2)
+
+    @staticmethod
+    def cost(
+        beta: int,
+        params: LWEParameters,
+        tau: int = 0,
+        babai=True,
+        mitm=False,
+        simulator=GSASimulator,
+        reduction_cost_model=BKZ.default,
+    ):
+        """
+        Cost of the hybrid attack.
+
+        :param tau: guessing dimension τ
+        :param mitm: simulate MITM approach (√ of search space)
+        """
+        h = len(params.Xs) * params.Xs.hamming_fraction
+
+        d = (params.m + params.n if params.Xs <= params.Xe else params.m) - tau + 1
+        scale = PrimalUSVP._scale_factor(params.Xs, params.Xe)
+
+        # 1. Simulate BKZ-β
+        r = simulator(d, params.n - tau, params.q, beta, scale=scale)
+        bkz_cost = BKZ.cost(reduction_cost_model, beta, d)
+
+        # 2. Required SVP dimension η
+        if babai:
+            eta = 2
+            svp_cost = PrimalHybrid.babai_cost(d)
+        else:
+            # we scaled the lattice so that χ_e is what we want
+            eta = PrimalHybrid.svp_dimension(r, params.Xe)
+            svp_cost = BKZ.cost(reduction_cost_model, eta, eta)
+            svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
+
+        # 3. Search
+        # We need to do one BDD call at least
+        search_space, probability, hw = ZZ(1), 1.0, 0
+
+        # MITM or no MITM
+        ssf = sqrt if mitm else lambda x: x
+
+        if tau:
+            probability = prob_drop(params.n, h, tau)
+            hw = 1
+            while hw < h and hw < tau:
+                new_search_space = search_space + binomial(tau, hw) * 2 ** hw
+                if svp_cost.repeat(ssf(new_search_space))["rop"] < bkz_cost["rop"]:
+                    search_space = new_search_space
+                    probability += prob_drop(params.n, h, tau, fail=hw)
+                    hw += 1
+                else:
+                    break
+
+            svp_cost = svp_cost.repeat(ssf(search_space))
+
+        if babai is True:
+            probability *= prob_babai(r, sqrt(d) * params.Xe.stddev)
+
+        ret = Cost()
+        ret["rop"] = bkz_cost["rop"] + svp_cost["rop"]
+        ret["pre"] = bkz_cost["rop"]
+        ret["svp"] = svp_cost["rop"]
+        ret["beta"] = beta
+        ret["eta"] = eta
+        ret["|S|"] = search_space
+        ret["prob"] = probability
+        ret["scale"] = scale
+        ret["pp"] = hw
+
+        # 4. Repeat whole experiment ~1/prob times
+        ret = ret.repeat(
+            prob_amplify(0.99, probability),
+            select={
+                "rop": True,
+                "pre": True,
+                "svp": True,
+                "beta": False,
+                "eta": False,
+                "d": False,
+                "|S|": False,
+                "scale": False,
+                "prob": False,
+                "pp": False,
+            },
+        )
+
+        return ret
+
+    def __call__(
+        self,
+        params: LWEParameters,
+        success_probability=0.99,
+        babai: bool = False,
+        tau: int = None,
+        mitm: bool = True,
+        simulator=GSASimulator,
+        reduction_cost_model=BKZ.default,
+        **kwds,
+    ):
+        if babai is False and tau == 0:
+            cost = primal_usvp(
+                params,
+                bkz_model=simulator,
+                reduction_cost_model=reduction_cost_model,
+                **kwds,
+            )
+
+            for b in range(40, cost["beta"])[::-1]:
+                cost_curr = self.cost(
+                    b,
+                    params,
+                    tau=tau,
+                    babai=babai,
+                    mitm=mitm,
+                    simulator=simulator,
+                    reduction_cost_model=reduction_cost_model,
+                )
+                if cost_curr["rop"] < cost["rop"]:
+                    cost = cost_curr
+                else:
+                    break
+            cost["tag"] = cost.data.get("tag", "bdd")
+            return cost
+        else:
+            raise NotImplementedError
 
 
-def batch_estimate(params, algorithm, jobs=1, **kwds):
-    if isinstance(params, LWEParameters):
-        params = (params,)
-    try:
-        iter(algorithm)
-    except TypeError:
-        algorithm = (algorithm,)
-
-    tasks = []
-
-    for x in params:
-        for f in algorithm:
-            tasks.append((partial(f, **kwds), x))
-
-    if jobs == 1:
-        res = {}
-        for f, x in tasks:
-            y = _fpp(x)
-            res[(f, x)] = y
-    else:
-        pool = Pool(jobs)
-        res = pool.starmap(_fpp, tasks)
-        res = dict([((f, x), res[i]) for i, (f, x) in enumerate(tasks)])
-
-    return res
+primal_bdd = partial(PrimalHybrid(), tau=0, mitm=False, babai=False)

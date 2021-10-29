@@ -16,7 +16,7 @@ Kyber512 = LWEParameters(
     q=3329,
     Xs=NoiseDistribution.CentredBinomial(3),
     Xe=NoiseDistribution.CentredBinomial(2),
-    m=2 * 256,
+    m=4 * 256,
     tag="Kyber 512",
 )
 

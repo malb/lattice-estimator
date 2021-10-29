@@ -1,5 +1,8 @@
-from sage.all import ceil, floor
+from multiprocessing import Pool
 import logging
+from functools import partial
+
+from sage.all import ceil, floor
 
 
 def binary_search(f, start, stop, param, predicate=lambda x, best: x <= best, *args, **kwds):
@@ -58,4 +61,43 @@ def binary_search(f, start, stop, param, predicate=lambda x, best: x <= best, *a
         if not predicate(D[b], best):
             break
         best = D[b]
+        logging.getLogger("binsearch").debug("%s: %4d || %s" % (param, b, best))
     return best
+
+
+def _batch_estimatef(f, x):
+    y = f(x)
+    print(f)
+    print(x)
+    print(y)
+    print("")
+    return y
+
+
+def batch_estimate(params, algorithm, jobs=1, **kwds):
+    from .lwe import LWEParameters
+
+    if isinstance(params, LWEParameters):
+        params = (params,)
+    try:
+        iter(algorithm)
+    except TypeError:
+        algorithm = (algorithm,)
+
+    tasks = []
+
+    for x in params:
+        for f in algorithm:
+            tasks.append((partial(f, **kwds), x))
+
+    if jobs == 1:
+        res = {}
+        for f, x in tasks:
+            y = _batch_estimatef(x)
+            res[(f, x)] = y
+    else:
+        pool = Pool(jobs)
+        res = pool.starmap(_batch_estimatef, tasks)
+        res = dict([((f, x), res[i]) for i, (f, x) in enumerate(tasks)])
+
+    return res

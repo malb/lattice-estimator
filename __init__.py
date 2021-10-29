@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from .nd import NoiseDistribution  # noqa
 from .lwe import LWEParameters  # noqa
-from .lwe_primal import primal_usvp, primal_usvp_cn11  # noqa
+from .lwe_primal import primal_usvp, primal_bdd  # noqa
+from .simulator import GSASimulator, CN11Simulator  # noqa
+from .logging import Logging  # noqa
 
 from .schemes import (  # noqa
     Kyber512,

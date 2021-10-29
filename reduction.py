@@ -211,7 +211,10 @@ class BKZ:
         .. note :: loosely based on experiments in [PhD:Chen13]
 
         """
-        return 8 * d
+        if beta < d:
+            return 8 * d
+        else:
+            return 1
 
     @staticmethod
     def LLL(d, B=None):

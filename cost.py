@@ -76,8 +76,8 @@ class Cost:
             unicode_replacements = {}
 
         format_strings = {
-            u"beta": u"%s: %4d",
-            u"d": u"%s: %4d",
+            "beta": "%s: %4d",
+            "d": "%s: %4d",
             "b": "%s: %3d",
             "t1": "%s: %3d",
             "t2": "%s: %3d",
@@ -90,6 +90,13 @@ class Cost:
         d = self.data
         s = []
         for k in d:
+            if k == "tag":
+                fmt = u"%%%ds" % keyword_width
+                if compact:
+                    s.append("%s: %s" % (fmt % k, d[k]))
+                else:
+                    s.append("%s: %8s" % (fmt % k, d[k]))
+                continue
             v = d[k]
             kk = unicode_replacements.get(k, k)
             if keyword_width:
