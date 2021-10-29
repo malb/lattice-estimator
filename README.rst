@@ -91,7 +91,6 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Rachel Player
 - Sam Scott
 
-x
 Citing
 ------
 
