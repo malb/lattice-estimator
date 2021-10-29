@@ -130,7 +130,7 @@ class NoiseDistribution:
             D(σ=30.64, μ=0.00)
 
         """
-        return f"D(σ={self.stddev:.2f}, μ={self.mean:.2f})"
+        return f"D(σ={float(self.stddev):.2f}, μ={float(self.mean):.2f})"
 
     def __hash__(self):
         """

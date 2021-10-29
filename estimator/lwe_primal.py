@@ -124,15 +124,29 @@ class PrimalUSVP:
     def __call__(
         self,
         params: LWEParameters,
-        success_probability=0.99,
-        kannan_coeff=None,
-        d=None,
         reduction_cost_model=BKZ.default,
         bkz_model="gsa",
         **kwds,
     ):
         """
         Estimate cost of solving LWE via uSVP reduction.
+
+        :param params: LWE parameters
+        :param reduction_cost_model: How to cost BKZ
+        :param bkz_model: How to model the shape of a BKZ reduced basis
+
+        EXAMPLE::
+
+            sage: from estimator import *
+            sage: print(primal_usvp(Kyber512))
+            rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β:  382, d:  973, tag: usvp
+
+            sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
+            sage: print(primal_usvp(params, bkz_model="cn11"))
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
+
+            sage: print(primal_usvp(params, bkz_model=Simulator.CN11))
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
         [AC:AGVW17,C:DDGR20,PKC:PosVir21]_. The treatment of small secrets is from
@@ -156,19 +170,6 @@ class PrimalUSVP:
         .. [PKC:PosVir21] Postlethwaite, E. W., & Virdia, F. (2021). On the success probability of
            solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer,
            Heidelberg.
-
-        EXAMPLE::
-
-            sage: from estimator import *
-            sage: print(primal_usvp(Kyber512))
-            rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β:  382, d:  973, tag: usvp
-
-            sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
-            sage: print(primal_usvp(params, bkz_model="cn11"))
-            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
-
-            sage: print(primal_usvp(params, bkz_model=Simulator.CN11))
-            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
         """
 
         params = LWEParameters.normalize(params)
@@ -187,7 +188,6 @@ class PrimalUSVP:
                 pass
             cost_gsa = self(
                 params,
-                kannan_coeff=kannan_coeff,
                 reduction_cost_model=reduction_cost_model,
                 bkz_model="gsa",
                 **kwds,
@@ -205,10 +205,9 @@ class PrimalUSVP:
             param="beta",
             predicate=lambda x, best: x["red"] <= best["red"],
             params=params,
-            kannan_coeff=kannan_coeff,
-            d=d,
             m=m,
             reduction_cost_model=reduction_cost_model,
+            **kwds,
         )
 
         cost["tag"] = "usvp"
@@ -333,7 +332,6 @@ class PrimalHybrid:
     def __call__(
         self,
         params: LWEParameters,
-        success_probability=0.99,
         babai: bool = False,
         tau: int = None,
         mitm: bool = True,
