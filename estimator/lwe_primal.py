@@ -93,6 +93,7 @@ class PrimalUSVP:
         kannan_coeff=None,
         d=None,
         reduction_cost_model=BKZ.default,
+        optimize_d=False,
     ):
         delta = BKZ.delta(beta)
         m = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
@@ -109,7 +110,8 @@ class PrimalUSVP:
                 cost = BKZ.cost(reduction_cost_model, beta, d, predicate=False)
             return cost
 
-        if f(d)["red"] < oo:
+        cost = f(d)
+        if optimize_d and cost["red"] < oo:
             cost = binary_search(
                 f,
                 start=params.n,
@@ -117,9 +119,7 @@ class PrimalUSVP:
                 param="d",
                 predicate=lambda x, best: x["red"] <= best["red"],
             )
-            return cost
-        else:
-            return f(d)
+        return cost
 
     def __call__(
         self,
@@ -190,7 +190,6 @@ class PrimalUSVP:
                 params,
                 reduction_cost_model=reduction_cost_model,
                 bkz_model="gsa",
-                **kwds,
             )
             start = cost_gsa["beta"] - 32
             stop = cost_gsa["beta"] + 128
