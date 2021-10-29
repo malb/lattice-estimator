@@ -28,7 +28,7 @@ jobs:
           export SAGE_LOCAL="$SAGE_ROOT/local"
           export DOT_SAGE=$HOME/.sage/
           pip install flake8
-          flake8 estimator.py
+          flake8 estimator/
       - name: Test
         run: |
           export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
