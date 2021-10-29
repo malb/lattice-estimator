@@ -9,7 +9,7 @@ from .reduction import BKZ
 from .util import binary_search
 from .cost import Cost
 from .lwe import LWEParameters
-from .simulator import GSASimulator
+from .simulator import Simulator
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
@@ -131,6 +131,19 @@ class PrimalUSVP:
         bkz_model="gsa",
         **kwds,
     ):
+        """
+
+
+        EXAMPLE::
+
+            sage: from estimator import *
+            sage: print(primal_usvp(Kyber512))
+            sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
+            sage: print(primal_usvp(params), bkz_model="cn11")
+            sage: print(primal_usvp(params), bkz_model=Simulator.CN11)
+
+        """
+
         params = LWEParameters.normalize(params)
 
         # allow for a larger embedding lattice dimension: Bai and Galbraith
@@ -141,6 +154,10 @@ class PrimalUSVP:
             start = 40
             stop = 2 * params.n
         elif str(bkz_model).lower() != "gsa":
+            try:
+                bkz_model = getattr(Simulator, str(bkz_model).upper())
+            except AttributeError:
+                pass
             cost_gsa = self(
                 params,
                 kannan_coeff=kannan_coeff,
@@ -206,7 +223,7 @@ class PrimalHybrid:
         tau: int = 0,
         babai=True,
         mitm=False,
-        simulator=GSASimulator,
+        simulator=Simulator.GSA,
         reduction_cost_model=BKZ.default,
     ):
         """
@@ -215,7 +232,7 @@ class PrimalHybrid:
         :param tau: guessing dimension τ
         :param mitm: simulate MITM approach (√ of search space)
         """
-        h = len(params.Xs) * params.Xs.hamming_fraction
+        h = len(params.Xs) * params.Xs.density
 
         d = (params.m + params.n if params.Xs <= params.Xe else params.m) - tau + 1
         scale = PrimalUSVP._scale_factor(params.Xs, params.Xe)
@@ -265,9 +282,8 @@ class PrimalHybrid:
         ret["beta"] = beta
         ret["eta"] = eta
         ret["|S|"] = search_space
+        ret["d"] = d
         ret["prob"] = probability
-        ret["scale"] = scale
-        ret["pp"] = hw
 
         # 4. Repeat whole experiment ~1/prob times
         ret = ret.repeat(
@@ -295,14 +311,20 @@ class PrimalHybrid:
         babai: bool = False,
         tau: int = None,
         mitm: bool = True,
-        simulator=GSASimulator,
+        bkz_model="gsa",
         reduction_cost_model=BKZ.default,
         **kwds,
     ):
+
+        try:
+            bkz_model = getattr(Simulator, str(bkz_model).upper())
+        except AttributeError:
+            pass
+
         if babai is False and tau == 0:
             cost = primal_usvp(
                 params,
-                bkz_model=simulator,
+                bkz_model=bkz_model,
                 reduction_cost_model=reduction_cost_model,
                 **kwds,
             )
@@ -314,7 +336,7 @@ class PrimalHybrid:
                     tau=tau,
                     babai=babai,
                     mitm=mitm,
-                    simulator=simulator,
+                    simulator=bkz_model,
                     reduction_cost_model=reduction_cost_model,
                 )
                 if cost_curr["rop"] < cost["rop"]:
@@ -322,6 +344,9 @@ class PrimalHybrid:
                 else:
                     break
             cost["tag"] = cost.data.get("tag", "bdd")
+            del cost.data["|S|"]
+            del cost.data["prob"]
+            del cost.data["repeat"]
             return cost
         else:
             raise NotImplementedError
