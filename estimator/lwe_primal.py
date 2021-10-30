@@ -16,15 +16,19 @@ from .prob import babai as prob_babai
 
 
 class PrimalUSVP:
-    @staticmethod
-    def _scale_factor(Xs, Xe):
-        scale = RR(1)
-        if Xs < Xe:
-            scale = Xe.stddev / Xs.stddev
-        return scale
+    """
+    Estimate cost of solving LWE via uSVP reduction.
+    """
 
     @staticmethod
-    def _solve_for_d(params, m, beta, kannan_coeff, scale):
+    def _xi_factor(Xs, Xe):
+        xi = RR(1)
+        if Xs < Xe:
+            xi = Xe.stddev / Xs.stddev
+        return xi
+
+    @staticmethod
+    def _solve_for_d(params, m, beta, tau, xi):
         """
         Find smallest d ∈ [n,m] to satisfy uSVP condition.
 
@@ -33,9 +37,9 @@ class PrimalUSVP:
         # Find the smallest d ∈ [n,m] s.t. a*d^2 + b*d + c >= 0
         delta = BKZ.delta(beta)
         a = -log(delta)
-        C = log(params.Xe.stddev ** 2 * (beta - 1) + kannan_coeff ** 2) / 2.0
+        C = log(params.Xe.stddev ** 2 * (beta - 1) + tau ** 2) / 2.0
         b = log(delta) * (2 * beta - 1) + log(params.q) - C
-        c = log(kannan_coeff) + params.n * log(scale) - (params.n + 1) * log(params.q)
+        c = log(tau) + params.n * log(xi) - (params.n + 1) * log(params.q)
         n = params.n
         if a * n * n + b * n + c >= 0:  # trivial case
             return n
@@ -64,22 +68,22 @@ class PrimalUSVP:
         beta: int,
         params: LWEParameters,
         m: int = oo,
-        kannan_coeff=None,
+        tau=None,
         d=None,
         reduction_cost_model=BKZ.default,
     ):
 
         delta = BKZ.delta(beta)
-        scale = PrimalUSVP._scale_factor(params.Xs, params.Xe)
+        xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
-        kannan_coeff = params.Xe.stddev if kannan_coeff is None else kannan_coeff
-        d = PrimalUSVP._solve_for_d(params, m, beta, kannan_coeff, scale) if d is None else d
+        tau = params.Xe.stddev if tau is None else tau
+        d = PrimalUSVP._solve_for_d(params, m, beta, tau, xi) if d is None else d
         assert d <= m + 1
 
-        lhs = log(sqrt(params.Xe.stddev ** 2 * (beta - 1) + kannan_coeff ** 2))
+        lhs = log(sqrt(params.Xe.stddev ** 2 * (beta - 1) + tau ** 2))
         rhs = RR(
             log(delta) * (2 * beta - d - 1)
-            + (log(kannan_coeff) + log(scale) * params.n + log(params.q) * (d - params.n - 1)) / d
+            + (log(tau) + log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
         )
 
         return BKZ.cost(reduction_cost_model, beta, d, predicate=lhs <= rhs)
@@ -90,18 +94,18 @@ class PrimalUSVP:
         params: LWEParameters,
         simulator,
         m: int = oo,
-        kannan_coeff=None,
+        tau=None,
         d=None,
         reduction_cost_model=BKZ.default,
     ):
         delta = BKZ.delta(beta)
         if d is None:
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
-        scale = PrimalUSVP._scale_factor(params.Xe, params.Xs)
-        kannan_coeff = params.Xe.stddev if kannan_coeff is None else kannan_coeff
+        xi = PrimalUSVP._xi_factor(params.Xe, params.Xs)
+        tau = params.Xe.stddev if tau is None else tau
 
-        r = simulator(d, params.n, params.q, beta=beta, scale=scale, kannan_coeff=kannan_coeff)
-        lhs = params.Xe.stddev ** 2 * (beta - 1) + kannan_coeff ** 2
+        r = simulator(d, params.n, params.q, beta=beta, xi=xi, tau=tau)
+        lhs = params.Xe.stddev ** 2 * (beta - 1) + tau ** 2
         if r[d - beta] > lhs:
             cost = BKZ.cost(reduction_cost_model, beta, d)
         else:
@@ -113,6 +117,7 @@ class PrimalUSVP:
         params: LWEParameters,
         reduction_cost_model=BKZ.default,
         bkz_model="gsa",
+        optimize_d=True,
         **kwds,
     ):
         """
@@ -121,6 +126,7 @@ class PrimalUSVP:
         :param params: LWE parameters
         :param reduction_cost_model: How to cost BKZ
         :param bkz_model: How to model the shape of a BKZ reduced basis
+        :param optimzed_d: Attempt to find minimal d, too
 
         EXAMPLE::
 
@@ -134,6 +140,9 @@ class PrimalUSVP:
 
             sage: print(primal_usvp(params, bkz_model=Simulator.CN11))
             rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
+
+            sage: print(primal_usvp(params, bkz_model=Simulator.CN11, optimize_d=False))
+            rop: ≈2^89.1, red: ≈2^89.1, δ: 1.006114, β:  209, d:  400, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
         [AC:AGVW17,C:DDGR20,PKC:PosVir21]_. The treatment of small secrets is from
@@ -209,16 +218,18 @@ class PrimalUSVP:
             **kwds,
         )
 
-        # step 2. find d
-        cost = binary_search(
-            f,
-            param="d",
-            start=params.n,
-            stop=cost["d"],
-            predicate=lambda x, best: x["red"] <= best["red"],
-            beta=cost["beta"],
-            **kwds,
-        )
+        if cost and optimize_d:
+            # step 2. find d
+            cost = binary_search(
+                f,
+                param="d",
+                start=params.n,
+                stop=cost["d"],
+                predicate=lambda x, best: x["red"] <= best["red"],
+                beta=cost["beta"],
+                **kwds,
+            )
+
         cost["tag"] = "usvp"
         return cost
 
@@ -269,10 +280,10 @@ class PrimalHybrid:
         h = len(params.Xs) * params.Xs.density
 
         d = (params.m + params.n if params.Xs <= params.Xe else params.m) - tau + 1
-        scale = PrimalUSVP._scale_factor(params.Xs, params.Xe)
+        xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
 
         # 1. Simulate BKZ-β
-        r = simulator(d, params.n - tau, params.q, beta, scale=scale)
+        r = simulator(d, params.n - tau, params.q, beta, xi=xi)
         bkz_cost = BKZ.cost(reduction_cost_model, beta, d)
 
         # 2. Required SVP dimension η
@@ -280,7 +291,7 @@ class PrimalHybrid:
             eta = 2
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
-            # we scaled the lattice so that χ_e is what we want
+            # we xid the lattice so that χ_e is what we want
             eta = PrimalHybrid.svp_dimension(r, params.Xe)
             svp_cost = BKZ.cost(reduction_cost_model, eta, eta)
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
@@ -330,7 +341,7 @@ class PrimalHybrid:
                 "eta": False,
                 "d": False,
                 "|S|": False,
-                "scale": False,
+                "xi": False,
                 "prob": False,
                 "pp": False,
             },
