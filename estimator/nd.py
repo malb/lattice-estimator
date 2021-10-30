@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from sage.all import parent, RR, RealField, sqrt, pi
+from sage.all import parent, RR, RealField, sqrt, pi, oo
 
 
 def stddevf(sigma):
@@ -79,6 +79,7 @@ class NoiseDistribution:
     stddev: float
     mean: float = 0
     n: int = None
+    bounds: tuple = None
     density: float = 1.0  # Hamming weight / dimension.
     tag: str = ""
 
@@ -176,7 +177,9 @@ class NoiseDistribution:
             D(σ=3.00, μ=1.00)
 
         """
-        return NoiseDistribution(stddev=RR(stddev), mean=RR(mean), n=n, tag="DiscreteGaussian")
+        return NoiseDistribution(
+            stddev=RR(stddev), mean=RR(mean), n=n, bounds=(-oo, oo), tag="DiscreteGaussian"
+        )
 
     @staticmethod
     def DiscreteGaussianAlpha(alpha, q, mean=0, n=None):
@@ -207,7 +210,9 @@ class NoiseDistribution:
         """
         stddev = sqrt(eta / 2.0)
         # TODO: density
-        return NoiseDistribution(stddev=RR(stddev), mean=RR(0), n=n, tag="CentredBinomial")
+        return NoiseDistribution(
+            stddev=RR(stddev), mean=RR(0), n=n, bounds=(-eta, eta), tag="CentredBinomial"
+        )
 
     @staticmethod
     def Uniform(a, b, n=None):
@@ -234,7 +239,9 @@ class NoiseDistribution:
         else:
             density = 0.0
 
-        return NoiseDistribution(n=n, stddev=stddev, mean=mean, density=density, tag="Uniform")
+        return NoiseDistribution(
+            n=n, stddev=stddev, mean=mean, bounds=(a, b), density=density, tag="Uniform"
+        )
 
     @staticmethod
     def UniformMod(q, n=None):
@@ -277,6 +284,8 @@ class NoiseDistribution:
         mean = RR(p / n - m / n)
         stddev = RR(sqrt((p + m) / n))
         density = RR((p + m) / n)
-        D = NoiseDistribution(stddev=stddev, mean=mean, density=density, tag="SparseTernary", n=n)
+        D = NoiseDistribution(
+            stddev=stddev, mean=mean, density=density, bounds=(-1, 1), tag="SparseTernary", n=n
+        )
         D.h = p + m
         return D

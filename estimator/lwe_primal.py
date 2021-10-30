@@ -357,11 +357,14 @@ class PrimalHybrid:
             else:
                 return x
 
+        # e.g. (-1, 1) -> two non-zero per entry
+        base = params.Xs.bounds[1] - params.Xs.bounds[0] - 1
+
         if zeta:
             probability = RR(prob_drop(params.n, h, zeta))
             hw = 1
-            while hw < h and hw < zeta:
-                new_search_space = search_space + binomial(zeta, hw) * 2 ** hw
+            while hw < h and hw < zeta and base < oo:
+                new_search_space = search_space + binomial(zeta, hw) * base ** hw
                 if svp_cost.repeat(ssf(new_search_space))["rop"] < bkz_cost["rop"]:
                     search_space = new_search_space
                     probability += prob_drop(params.n, h, zeta, fail=hw)
