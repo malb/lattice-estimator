@@ -387,10 +387,10 @@ class PrimalHybrid:
                     cost = cost_curr
                 else:
                     break
-            cost["tag"] = cost.data.get("tag", "bdd")
-            del cost.data["|S|"]
-            del cost.data["prob"]
-            del cost.data["repeat"]
+            cost["tag"] = cost.get("tag", "bdd")
+            del cost["|S|"]
+            del cost["prob"]
+            del cost["repeat"]
             return cost
         else:
             raise NotImplementedError

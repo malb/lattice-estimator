@@ -415,10 +415,8 @@ class BKZ:
 
         cost = cost_model(beta, d, B)
         delta = cls.delta(beta)
-        cost = Cost(
-            [("rop", cost), ("red", cost), ("delta", delta), ("beta", beta), ("d", d)]
-            + list(kwds.items())
-        )
+        cost = Cost(rop=cost, red=cost, delta=delta, beta=beta, d=d, **kwds)
+        Cost.register_impermanent(rop=True, red=True, delta=False, beta=False, d=False)
         if predicate is not None and not predicate:
             cost["red"] = oo
             cost["rop"] = oo
