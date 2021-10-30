@@ -46,3 +46,9 @@ class Simulator:
         r_log = [(d - 1 - 2 * i) * RR(log(delta, 2)) + log_vol / d for i in range(d)]
         r = [2 ** (2 * r_) for r_ in r_log]
         return r
+
+
+def plot_gso(r, *args, **kwds):
+    from sage.all import line
+
+    return line([(i, log(r_, 2) / 2.0) for i, r_ in enumerate(r)], *args, **kwds)

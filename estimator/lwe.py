@@ -14,6 +14,11 @@ class LWEParameters:
     m: int = oo
     tag: str = None
 
+    def __post_init__(self, **kwds):
+        self.Xs.n = self.n
+        if self.m < oo:
+            self.Xe.n = self.m
+
     def normalize(self):
         if self.m < 1:
             raise InsufficientSamplesError(f"m={self.m} < 1")

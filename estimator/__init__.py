@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .nd import NoiseDistribution as ND  # noqa
 from .lwe import LWEParameters  # noqa
-from .lwe_primal import primal_usvp, primal_bdd  # noqa
+from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid  # noqa
 from .simulator import Simulator  # noqa
 from .logging import Logging  # noqa
 

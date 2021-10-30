@@ -3,6 +3,7 @@
 Estimate cost of solving LWE.
 """
 from functools import partial
+import logging
 
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial
 from .reduction import BKZ
@@ -101,10 +102,10 @@ class PrimalUSVP:
         delta = BKZ.delta(beta)
         if d is None:
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
-        xi = PrimalUSVP._xi_factor(params.Xe, params.Xs)
+        xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         tau = params.Xe.stddev if tau is None else tau
 
-        r = simulator(d, params.n, params.q, beta=beta, xi=xi, tau=tau)
+        r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
         lhs = params.Xe.stddev ** 2 * (beta - 1) + tau ** 2
         if r[d - beta] > lhs:
             cost = BKZ.cost(reduction_cost_model, beta, d)
@@ -126,7 +127,7 @@ class PrimalUSVP:
         :param params: LWE parameters
         :param reduction_cost_model: How to cost BKZ
         :param bkz_model: How to model the shape of a BKZ reduced basis
-        :param optimzed_d: Attempt to find minimal d, too
+        :param optimize_d: Attempt to find minimal d, too
 
         EXAMPLE::
 
@@ -199,6 +200,7 @@ class PrimalUSVP:
             reduction_cost_model=reduction_cost_model,
             bkz_model="gsa",
         )
+        logging.getLogger("primal").info(f"U0: {repr(cost_gsa)}")
 
         f = partial(
             self.cost_simulator,
@@ -217,6 +219,7 @@ class PrimalUSVP:
             predicate=lambda x, best: x["rop"] <= best["rop"],
             **kwds,
         )
+        logging.getLogger("primal").info(f"U1: {repr(cost)}")
 
         if cost and optimize_d:
             # step 2. find d
@@ -229,6 +232,7 @@ class PrimalUSVP:
                 beta=cost["beta"],
                 **kwds,
             )
+            logging.getLogger("primal").info(f"U2: {repr(cost)}")
 
         cost["tag"] = "usvp"
         return cost
@@ -268,6 +272,7 @@ class PrimalHybrid:
         zeta: int = 0,
         babai=True,
         mitm=False,
+        m: int = oo,
         d: int = None,
         simulator=Simulator.GSA,
         reduction_cost_model=BKZ.default,
@@ -278,10 +283,11 @@ class PrimalHybrid:
         :param zeta: guessing dimension ζ
         :param mitm: simulate MITM approach (√ of search space)
         """
-        h = len(params.Xs) * params.Xs.density
+        h = ceil(len(params.Xs) * params.Xs.density)
 
         if d is None:
-            d = (params.m + params.n if params.Xs <= params.Xe else params.m) + 1
+            delta = BKZ.delta(beta)
+            d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         d -= zeta
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
 
@@ -304,10 +310,14 @@ class PrimalHybrid:
         search_space, probability, hw = ZZ(1), 1.0, 0
 
         # MITM or no MITM
-        ssf = sqrt if mitm else lambda x: x
+        def ssf(x):
+            if mitm:
+                return RR(sqrt(x))
+            else:
+                return x
 
         if zeta:
-            probability = prob_drop(params.n, h, zeta)
+            probability = RR(prob_drop(params.n, h, zeta))
             hw = 1
             while hw < h and hw < zeta:
                 new_search_space = search_space + binomial(zeta, hw) * 2 ** hw
@@ -321,7 +331,7 @@ class PrimalHybrid:
             svp_cost = svp_cost.repeat(ssf(search_space))
 
         if babai is True:
-            probability *= prob_babai(r, sqrt(d) * params.Xe.stddev)
+            probability *= RR(prob_babai(r, sqrt(d) * params.Xe.stddev))
 
         ret = Cost()
         ret["rop"] = bkz_cost["rop"] + svp_cost["rop"]
@@ -329,53 +339,59 @@ class PrimalHybrid:
         ret["svp"] = svp_cost["rop"]
         ret["beta"] = beta
         ret["eta"] = eta
+        ret["zeta"] = zeta
         ret["|S|"] = search_space
         ret["d"] = d
         ret["prob"] = probability
 
         # 4. Repeat whole experiment ~1/prob times
+        Cost.register_impermanent(
+            {"|S|": False},
+            rop=True,
+            red=True,
+            svp=True,
+            eta=False,
+            zeta=False,
+            prob=False,
+        )
         ret = ret.repeat(
             prob_amplify(0.99, probability),
-            select={
-                "rop": True,
-                "pre": True,
-                "svp": True,
-                "beta": False,
-                "eta": False,
-                "d": False,
-                "|S|": False,
-                "xi": False,
-                "prob": False,
-                "pp": False,
-            },
         )
 
         return ret
 
-    def call_bdd(
+    def cost_zeta(
         self,
         params: LWEParameters,
-        bkz_model="gsa",
+        bkz_model=Simulator.GSA,
         reduction_cost_model=BKZ.default,
+        zeta: int = 0,
+        m: int = oo,
+        babai: bool = False,
+        mitm: bool = True,
         optimize_d=True,
         **kwds,
     ):
+
         # step 0. establish baseline
         cost = primal_usvp(
             params,
             bkz_model=bkz_model,
             reduction_cost_model=reduction_cost_model,
+            optimize_d=False,
             **kwds,
         )
+        logging.getLogger("primal").info(f"H0: {repr(cost)}")
 
         f = partial(
             self.cost,
             params=params,
-            zeta=0,
-            babai=False,
-            mitm=False,
+            zeta=zeta,
+            babai=babai,
+            mitm=mitm,
             simulator=bkz_model,
             reduction_cost_model=reduction_cost_model,
+            m=m,
         )
 
         # step 1. optimize β
@@ -386,8 +402,10 @@ class PrimalHybrid:
             else:
                 break
 
+        logging.getLogger("primal").info(f"H1: {repr(cost)}")
+
         # step 2. optimize d
-        if cost and cost.get("tag", "bdd") == "bdd" and optimize_d:
+        if cost and cost.get("tag", "XXX") != "usvp" and optimize_d:
             cost = binary_search(
                 f,
                 param="d",
@@ -397,11 +415,19 @@ class PrimalHybrid:
                 beta=cost["beta"],
                 **kwds,
             )
+            logging.getLogger("primal").info(f"H2: {repr(cost)}")
 
-        cost["tag"] = cost.get("tag", "bdd")
-        del cost["|S|"]
-        del cost["prob"]
-        del cost["repeat"]
+        if zeta == 0:
+            cost["tag"] = cost.get("tag", "bdd")
+            try:
+                del cost["|S|"]
+                del cost["prob"]
+                del cost["repeat"]
+                del cost["zeta"]
+            except KeyError:
+                pass
+        else:
+            cost["tag"] = cost.get("tag", "hybrid")
         return cost
 
     def __call__(
@@ -415,17 +441,44 @@ class PrimalHybrid:
         **kwds,
     ):
 
+        params = LWEParameters.normalize(params)
+
+        # allow for a larger embedding lattice dimension: Bai and Galbraith
+        m = params.m + params.n if params.Xs <= params.Xe else params.m
+
         try:
             bkz_model = getattr(Simulator, str(bkz_model).upper())
         except AttributeError:
             pass
 
-        if babai is False and zeta == 0:
-            return self.call_bdd(
-                params, bkz_model=bkz_model, reduction_cost_model=reduction_cost_model, **kwds
-            )
+        f = partial(
+            self.cost_zeta,
+            params=params,
+            bkz_model=bkz_model,
+            reduction_cost_model=reduction_cost_model,
+            babai=babai,
+            mitm=mitm,
+            m=m,
+            **kwds,
+        )
+
+        if babai is False:
+            if zeta is None:
+                cost_0 = f(zeta=0)
+                cost = binary_search(
+                    f,
+                    start=0,
+                    stop=params.n,
+                    param="zeta",
+                    predicate=lambda x, best: x <= best,
+                    optimize_d=False,
+                )
+                return min(cost, cost_0)
+            else:
+                return f(zeta=zeta)
         else:
             raise NotImplementedError
 
 
 primal_bdd = partial(PrimalHybrid(), zeta=0, mitm=False, babai=False)
+primal_hybrid = partial(PrimalHybrid(), zeta=None, mitm=True, babai=False)

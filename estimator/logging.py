@@ -13,14 +13,14 @@ class Logging:
     detail_logger = logging.StreamHandler()
     detail_logger.setFormatter(logging.Formatter("%(levelname)s:%(name)s: %(message)s"))
 
-    logging.getLogger("estimator").handlers = [plain_logger]
-    logging.getLogger("estimator").setLevel(logging.INFO)
+    logging.getLogger("est").handlers = [plain_logger]
+    logging.getLogger("est").setLevel(logging.INFO)
 
-    loggers = ("binsearch", "repeat", "guess")
+    loggers = ("binsearch", "repeat", "guess", "primal", "dual")
 
     for logger in loggers:
         logging.getLogger(logger).handlers = [detail_logger]
-        logging.getLogger(logger).setLevel(logging.INFO)
+        logging.getLogger(logger).setLevel(logging.WARNING)
 
     CRITICAL = logging.CRITICAL
     ERROR = logging.ERROR

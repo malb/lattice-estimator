@@ -78,8 +78,8 @@ FireSaber = LWEParameters(
 NTRUHPS2048509Enc = LWEParameters(
     n=508,
     q=2048,
-    Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.SparseTernary(508, 2048 / 16 - 1),
+    Xs=NoiseDistribution.UniformMod(3),
     m=508,
     tag="NTRUHPS2048509Enc",
 )

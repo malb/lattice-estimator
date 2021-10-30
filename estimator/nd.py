@@ -78,6 +78,7 @@ class NoiseDistribution:
 
     stddev: float
     mean: float = 0
+    n: int = None
     density: float = 1.0  # Hamming weight / dimension.
     tag: str = ""
 
@@ -130,18 +131,21 @@ class NoiseDistribution:
             D(σ=30.64, μ=0.00)
 
         """
-        return f"D(σ={float(self.stddev):.2f}, μ={float(self.mean):.2f})"
+        if self.n:
+            return f"D(σ={float(self.stddev):.2f}, μ={float(self.mean):.2f}, n={int(self.n)})"
+        else:
+            return f"D(σ={float(self.stddev):.2f}, μ={float(self.mean):.2f})"
 
     def __hash__(self):
         """
         EXAMPLE::
 
             sage: from estimator.nd import NoiseDistribution as ND
-            sage: hash(ND(3.0, 1.0)) == hash((3.0, 1.0))
+            sage: hash(ND(3.0, 1.0)) == hash((3.0, 1.0, None))
             True
 
         """
-        return hash((self.stddev, self.mean))
+        return hash((self.stddev, self.mean, self.n))
 
     def __len__(self):
         """
@@ -155,15 +159,15 @@ class NoiseDistribution:
             256
 
         """
-        if hasattr(self, "n"):
+        if self.n is not None:
             return self.n
         else:
-            return 0
+            raise ValueError("Distribution has no length.")
 
     @staticmethod
-    def DiscreteGaussian(stddev, mean=0):
+    def DiscreteGaussian(stddev, mean=0, n=None):
         """
-        A discrete Gaussian distribution with standard deviation ``stddev``.
+        A discrete Gaussian distribution with standard deviation ``stddev`` per component.
 
         EXAMPLE::
 
@@ -172,12 +176,12 @@ class NoiseDistribution:
             D(σ=3.00, μ=1.00)
 
         """
-        return NoiseDistribution(stddev=RR(stddev), mean=RR(mean), tag="DiscreteGaussian")
+        return NoiseDistribution(stddev=RR(stddev), mean=RR(mean), n=n, tag="DiscreteGaussian")
 
     @staticmethod
-    def DiscreteGaussianAlpha(alpha, q, mean=0):
+    def DiscreteGaussianAlpha(alpha, q, mean=0, n=None):
         """
-        A discrete Gaussian distribution with standard deviation α⋅q/√(2π).
+        A discrete Gaussian distribution with standard deviation α⋅q/√(2π) per component.
 
         EXAMPLE::
 
@@ -187,10 +191,10 @@ class NoiseDistribution:
 
         """
         stddev = stddevf(alpha * q)
-        return NoiseDistribution.DiscreteGaussian(stddev=RR(stddev), mean=RR(mean))
+        return NoiseDistribution.DiscreteGaussian(stddev=RR(stddev), mean=RR(mean), n=n)
 
     @staticmethod
-    def CentredBinomial(eta):
+    def CentredBinomial(eta, n=None):
         """
         Sample a_1, …, a_η, b_1, …, b_η and return Σ(a_i - b_i).
 
@@ -203,10 +207,10 @@ class NoiseDistribution:
         """
         stddev = sqrt(eta / 2.0)
         # TODO: density
-        return NoiseDistribution(stddev=RR(stddev), mean=RR(0), tag="CentredBinomial")
+        return NoiseDistribution(stddev=RR(stddev), mean=RR(0), n=n, tag="CentredBinomial")
 
     @staticmethod
-    def Uniform(a, b):
+    def Uniform(a, b, n=None):
         """
         Uniform distribution ∈ ``[a,b]``, endpoints inclusive.
 
@@ -221,19 +225,19 @@ class NoiseDistribution:
         """
         if b < a:
             raise ValueError(f"upper limit must be larger than lower limit but got: {b} < {a}")
-        n = b - a + 1
+        m = b - a + 1
         mean = (a + b) / RR(2)
-        stddev = sqrt((n ** 2 - 1) / RR(12))
+        stddev = sqrt((m ** 2 - 1) / RR(12))
 
         if a <= 0 and 0 <= b:
-            density = 1.0 / n
+            density = 1.0 / m
         else:
             density = 0.0
 
-        return NoiseDistribution(stddev=stddev, mean=mean, density=density, tag="Uniform")
+        return NoiseDistribution(n=n, stddev=stddev, mean=mean, density=density, tag="Uniform")
 
     @staticmethod
-    def UniformMod(q):
+    def UniformMod(q, n=None):
         """
         Uniform mod ``q``, with balanced representation.
 
@@ -251,7 +255,7 @@ class NoiseDistribution:
         b = q // 2
         if q % 2 == 0:
             b -= 1
-        return NoiseDistribution.Uniform(a, b)
+        return NoiseDistribution.Uniform(a, b, n=n)
 
     @staticmethod
     def SparseTernary(n, p, m=None):
@@ -261,11 +265,11 @@ class NoiseDistribution:
         EXAMPLE::
             sage: from estimator.nd import NoiseDistribution as ND
             sage: ND.SparseTernary(100, p=10)
-            D(σ=0.45, μ=0.00)
+            D(σ=0.45, μ=0.00, n=100)
             sage: ND.SparseTernary(100, p=10, m=10)
-            D(σ=0.45, μ=0.00)
+            D(σ=0.45, μ=0.00, n=100)
             sage: ND.SparseTernary(100, p=10, m=8)
-            D(σ=0.42, μ=0.02)
+            D(σ=0.42, μ=0.02, n=100)
 
         """
         if m is None:
@@ -273,7 +277,6 @@ class NoiseDistribution:
         mean = RR(p / n - m / n)
         stddev = RR(sqrt((p + m) / n))
         density = RR((p + m) / n)
-        D = NoiseDistribution(stddev=stddev, mean=mean, density=density, tag="SparseTernary")
+        D = NoiseDistribution(stddev=stddev, mean=mean, density=density, tag="SparseTernary", n=n)
         D.h = p + m
-        D.n = n
         return D

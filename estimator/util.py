@@ -36,7 +36,7 @@ def binary_search(f, start, stop, param, predicate=lambda x, best: x <= best, *a
                 b = floor((start + b) / 2)
         else:
             best = D[b]
-            logging.getLogger("binsearch").debug("%s: %4d || %s" % (param, b, best))
+            logging.getLogger("binsearch").debug("%s: %4d || %r" % (param, b, repr(best)))
             if b - 1 not in D:
                 kwds[param] = b - 1
                 D[b - 1] = f(*args, **kwds)
@@ -55,13 +55,13 @@ def binary_search(f, start, stop, param, predicate=lambda x, best: x <= best, *a
                     b = ceil((stop + b) / 2)
                     direction = 1
 
-    for b in range(40, best[param])[::-1]:
+    for b in range(0, best[param])[::-1]:
         kwds[param] = b
         D[b] = f(*args, **kwds)
         if not predicate(D[b], best):
             break
         best = D[b]
-        logging.getLogger("binsearch").debug("%s: %4d || %s" % (param, b, best))
+        logging.getLogger("binsearch").debug("%s: %4d || %s" % (param, b, repr(best)))
     return best
 
 

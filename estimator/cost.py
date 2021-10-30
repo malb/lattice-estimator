@@ -22,13 +22,19 @@ class Cost:
     }
 
     @classmethod
-    def register_impermanent(cls, **kwds):
+    def register_impermanent(cls, data=None, **kwds):
+        if data is not None:
+            for k, v in data.items():
+                if cls.impermanents.get(k, v) != v:
+                    raise ValueError(f"Attempting to overwrite {k}:{cls.impermanents[k]} with {v}")
+                cls.impermanents[k] = v
+
         for k, v in kwds.items():
             if cls.impermanents.get(k, v) != v:
                 raise ValueError(f"Attempting to overwrite {k}:{cls.impermanents[k]} with {v}")
             cls.impermanents[k] = v
 
-    key_map = {"delta": "δ", "beta": "β", "eta": "η", "epsilon": "ε"}
+    key_map = {"delta": "δ", "beta": "β", "eta": "η", "epsilon": "ε", "zeta": "ζ"}
     val_map = {"beta": "%8d", "d": "%8d", "delta": "%8.6f"}
 
     def __init__(self, **kwds):
@@ -65,7 +71,7 @@ class Cost:
             kk = wfmtf(self.key_map.get(k, k))
             try:
                 if 1 / round_bound < abs(v) < round_bound:
-                    if abs(v) % 1 < 0.00001:
+                    if abs(v % 1) < 0.0000001:
                         vv = self.val_map.get(k, "%8d") % round(v)
                     else:
                         vv = self.val_map.get(k, "%8.3f") % v
@@ -201,3 +207,15 @@ class Cost:
 
     def __str__(self):
         return self.str(newline=True, keyword_width=12)
+
+    def __lt__(self, other):
+        try:
+            return self["rop"] < other["rop"]
+        except AttributeError:
+            return self["rop"] < other
+
+    def __le__(self, other):
+        try:
+            return self["rop"] <= other["rop"]
+        except AttributeError:
+            return self["rop"] <= other
