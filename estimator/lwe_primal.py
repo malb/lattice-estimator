@@ -93,32 +93,19 @@ class PrimalUSVP:
         kannan_coeff=None,
         d=None,
         reduction_cost_model=BKZ.default,
-        optimize_d=False,
     ):
         delta = BKZ.delta(beta)
-        m = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
-        d = m + 1 if d is None else d
+        if d is None:
+            d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         scale = PrimalUSVP._scale_factor(params.Xe, params.Xs)
         kannan_coeff = params.Xe.stddev if kannan_coeff is None else kannan_coeff
 
-        def f(d):
-            r = simulator(d, params.n, params.q, beta=beta, scale=scale, kannan_coeff=kannan_coeff)
-            lhs = params.Xe.stddev ** 2 * (beta - 1) + kannan_coeff ** 2
-            if r[d - beta] > lhs:
-                cost = BKZ.cost(reduction_cost_model, beta, d)
-            else:
-                cost = BKZ.cost(reduction_cost_model, beta, d, predicate=False)
-            return cost
-
-        cost = f(d)
-        if optimize_d and cost["red"] < oo:
-            cost = binary_search(
-                f,
-                start=params.n,
-                stop=d,
-                param="d",
-                predicate=lambda x, best: x["red"] <= best["red"],
-            )
+        r = simulator(d, params.n, params.q, beta=beta, scale=scale, kannan_coeff=kannan_coeff)
+        lhs = params.Xe.stddev ** 2 * (beta - 1) + kannan_coeff ** 2
+        if r[d - beta] > lhs:
+            cost = BKZ.cost(reduction_cost_model, beta, d)
+        else:
+            cost = BKZ.cost(reduction_cost_model, beta, d, predicate=False)
         return cost
 
     def __call__(
@@ -143,10 +130,10 @@ class PrimalUSVP:
 
             sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             sage: print(primal_usvp(params, bkz_model="cn11"))
-            rop: ≈2^89.1, red: ≈2^89.1, δ: 1.006114, β:  209, d:  400, tag: usvp
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
 
             sage: print(primal_usvp(params, bkz_model=Simulator.CN11))
-            rop: ≈2^89.1, red: ≈2^89.1, δ: 1.006114, β:  209, d:  400, tag: usvp
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
         [AC:AGVW17,C:DDGR20,PKC:PosVir21]_. The treatment of small secrets is from
@@ -178,37 +165,60 @@ class PrimalUSVP:
         m = params.m + params.n if params.Xs <= params.Xe else params.m
 
         if bkz_model == "gsa":
-            f = self.cost_gsa
-            start = 40
-            stop = 2 * params.n
-        elif str(bkz_model).lower() != "gsa":
-            try:
-                bkz_model = getattr(Simulator, str(bkz_model).upper())
-            except AttributeError:
-                pass
-            cost_gsa = self(
-                params,
+            cost = binary_search(
+                self.cost_gsa,
+                start=40,
+                stop=2 * params.n,
+                param="beta",
+                predicate=lambda x, best: x["red"] <= best["red"],
+                params=params,
+                m=m,
                 reduction_cost_model=reduction_cost_model,
-                bkz_model="gsa",
+                **kwds,
             )
-            start = cost_gsa["beta"] - 32
-            stop = cost_gsa["beta"] + 128
-            f = partial(self.cost_simulator, simulator=bkz_model)
-        else:
-            raise NotImplementedError(f"{bkz_model} unknown")
+            cost["tag"] = "usvp"
+            return cost
 
+        try:
+            bkz_model = getattr(Simulator, str(bkz_model).upper())
+        except AttributeError:
+            pass
+
+        # step 0. establish baseline
+        cost_gsa = self(
+            params,
+            reduction_cost_model=reduction_cost_model,
+            bkz_model="gsa",
+        )
+
+        f = partial(
+            self.cost_simulator,
+            simulator=bkz_model,
+            reduction_cost_model=reduction_cost_model,
+            m=m,
+            params=params,
+        )
+
+        # step 1. find β
         cost = binary_search(
             f,
-            start=start,
-            stop=stop,
             param="beta",
+            start=cost_gsa["beta"] - 32,
+            stop=cost_gsa["beta"] + 128,
             predicate=lambda x, best: x["red"] <= best["red"],
-            params=params,
-            m=m,
-            reduction_cost_model=reduction_cost_model,
             **kwds,
         )
 
+        # step 2. find d
+        cost = binary_search(
+            f,
+            param="d",
+            start=params.n,
+            stop=cost["d"],
+            predicate=lambda x, best: x["red"] <= best["red"],
+            beta=cost["beta"],
+            **kwds,
+        )
         cost["tag"] = "usvp"
         return cost
 
