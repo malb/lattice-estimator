@@ -36,6 +36,6 @@ jobs:
           export SAGE_LOCAL="$SAGE_ROOT/local"
           export DOT_SAGE=$HOME/.sage/
           sudo mkdir -p /usr/share/sagemath/build/pkgs
-          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests estimator
-          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests README.rst
+          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests --long estimator
+          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests --long README.rst
           
