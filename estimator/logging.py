@@ -16,7 +16,7 @@ class Logging:
     logging.getLogger("est").handlers = [plain_logger]
     logging.getLogger("est").setLevel(logging.INFO)
 
-    loggers = ("binsearch", "repeat", "guess", "primal", "dual")
+    loggers = ("batch", "binsearch", "repeat", "guess", "primal", "dual")
 
     for logger in loggers:
         logging.getLogger(logger).handlers = [detail_logger]

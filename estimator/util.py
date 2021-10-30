@@ -67,10 +67,10 @@ def binary_search(f, start, stop, param, predicate=lambda x, best: x <= best, *a
 
 def _batch_estimatef(f, x):
     y = f(x)
-    print(f)
-    print(x)
-    print(y)
-    print("")
+    logging.getLogger("batch").info(f"f: {f}")
+    logging.getLogger("batch").info(f"x: {x}")
+    logging.getLogger("batch").info(f"f(x): {repr(y)}")
+    logging.getLogger("batch").info("")
     return y
 
 
@@ -93,7 +93,7 @@ def batch_estimate(params, algorithm, jobs=1, **kwds):
     if jobs == 1:
         res = {}
         for f, x in tasks:
-            y = _batch_estimatef(x)
+            y = _batch_estimatef(f, x)
             res[(f, x)] = y
     else:
         pool = Pool(jobs)
