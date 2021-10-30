@@ -1,11 +1,49 @@
 # -*- coding: utf-8 -*-
 """
-Estimate cost of solving LWE.
+Estimate cost of solving LWE using primal attacks.
+
+We construct an example LWE instance::
+
+    sage: from estimator import *
+    sage: params = LWEParameters(n=384, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CentredBinomial(4))
+    sage: params
+    LWEParameters(n=384, q=7981, Xs=D(σ=0.29, μ=0.00, n=384), Xe=D(σ=1.41, μ=0.00), m=+Infinity, tag=None)
+
+The simplest (and quickest to estimate) model is solving via uSVP and assuming the Geometric Series
+Assumption (GSA)::
+
+    sage: primal_usvp(params, bkz_model="gsa")
+    rop: ≈2^86.5, red: ≈2^86.5, δ: 1.006322, β: 198, d: 642, tag: usvp
+
+We get a similar result if we use the ``GSA`` simulator. We do not get the identical result because
+we optimize β and d separately::
+
+    sage: primal_usvp(params, bkz_model=Simulator.GSA)
+    rop: ≈2^87.3, red: ≈2^87.3, δ: 1.006263, β: 201, d: 603, tag: usvp
+
+To get a more precise answer we may use the CN11 simulator::
+
+    sage: primal_usvp(params, bkz_model=Simulator.CN11)
+    rop: ≈2^87.7, red: ≈2^87.7, δ: 1.006244, β: 202, d: 648, tag: usvp
+
+We can then improve on this result by first preprocessing the basis with blocksize β followed by a
+single SVP call in dimension η. We call this the BDD approach since this is essentially the same
+strategy as preprocessing a basis and then running a CVP solver::
+
+    sage: primal_bdd(params, bkz_model=Simulator.CN11)
+    rop: ≈2^83.3, red: ≈2^82.5, svp: ≈2^82.1, β: 184, η: 225, d: 651, tag: bdd
+
+We can improve these results further by exploiting the sparse secret in the hybrid attack, guessing ζ
+positions of the secret::
+
+    sage: primal_hybrid(params, bkz_model=Simulator.CN11) # long time
+    rop: ≈2^82.8, red: ≈2^82.3, svp: ≈2^81.0, β: 183, η: 186, ζ: 24, |S|: ≈2^20.6, d: 700, prob: 0.991, repeat: 1, ...
+
 """
 from functools import partial
 import logging
 
-from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial
+from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
 from .reduction import BKZ
 from .util import binary_search
 from .cost import Cost
@@ -65,6 +103,7 @@ class PrimalUSVP:
         return m
 
     @staticmethod
+    @cached_function
     def cost_gsa(
         beta: int,
         params: LWEParameters,
@@ -90,6 +129,7 @@ class PrimalUSVP:
         return BKZ.cost(reduction_cost_model, beta, d, predicate=lhs <= rhs)
 
     @staticmethod
+    @cached_function
     def cost_simulator(
         beta: int,
         params: LWEParameters,
@@ -266,6 +306,7 @@ class PrimalHybrid:
         return ZZ(2)
 
     @staticmethod
+    @cached_function
     def cost(
         beta: int,
         params: LWEParameters,
