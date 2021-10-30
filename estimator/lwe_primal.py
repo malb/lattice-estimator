@@ -358,7 +358,7 @@ class PrimalHybrid:
                 return x
 
         # e.g. (-1, 1) -> two non-zero per entry
-        base = params.Xs.bounds[1] - params.Xs.bounds[0] - 1
+        base = params.Xs.bounds[1] - params.Xs.bounds[0]
 
         if zeta:
             probability = RR(prob_drop(params.n, h, zeta))
