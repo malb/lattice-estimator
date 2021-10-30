@@ -37,7 +37,7 @@ We can improve these results further by exploiting the sparse secret in the hybr
 positions of the secret::
 
     sage: primal_hybrid(params, bkz_model=Simulator.CN11) # long time
-    rop: ≈2^82.8, red: ≈2^82.3, svp: ≈2^81.0, β: 183, η: 186, ζ: 24, |S|: ≈2^20.6, d: 700, prob: 0.991, repeat: 1, ...
+    rop: ≈2^64.8, red: ≈2^63.9, svp: ≈2^63.8, β: 122, η: 2, ζ: 182, |S|: ≈2^90.7, d: 463, prob: 0.991, repeat: 1, ...
 
 """
 from functools import partial
