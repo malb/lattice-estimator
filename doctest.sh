@@ -11,7 +11,11 @@ then
     export DOT_SAGE=$HOME/.sage/
 fi
 
+RESULT=0
 
 for file in "$@"; do
     PYTHONIOENCODING=UTF-8 PYTHONPATH=$(pwd) sage-runtests "$file"
+    RESULT=$(( RESULT + $? ))
 done
+
+exit $RESULT
