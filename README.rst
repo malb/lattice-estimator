@@ -18,30 +18,14 @@ Usage Examples
     LWEParameters(n=512, q=3329, Xs=D(σ=1.22, μ=0.00), Xe=D(σ=1.00, μ=0.00), m=1024, tag='Kyber 512')
 
     sage: primal_usvp(Kyber512)
-         rop: ≈2^140.9
-         red: ≈2^140.9
-           δ: 1.004111
-           β:      382
-           d:      973
-         tag:     usvp
-         
+    rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β: 382, d: 973, tag: usvp
+    
     sage: primal_bdd(Kyber512)
-         rop: ≈2^135.9
-         pre: ≈2^134.8
-         svp: ≈2^135.0
-           β:      361
-           η:      406
-           d:     1025           
-         tag:      bdd
+    rop: ≈2^135.8, red: ≈2^134.7, svp: ≈2^135.0, β: 361, η: 406, d: 948, tag: bdd
 
     sage: params = LWEParameters(n=512, q=3329, Xs=ND.UniformMod(3), Xe=ND.CentredBinomial(eta=8), m=1024)
     sage: primal_usvp(params)
-         rop: ≈2^149.0
-         red: ≈2^149.0
-           δ: 1.003914
-           β:      410
-           d:      944
-         tag:     usvp
+    rop: ≈2^149.0, red: ≈2^149.0, δ: 1.003914, β: 410, d: 944, tag: usvp
          
 Status
 ------

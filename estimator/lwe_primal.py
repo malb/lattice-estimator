@@ -131,17 +131,17 @@ class PrimalUSVP:
         EXAMPLE::
 
             sage: from estimator import *
-            sage: print(primal_usvp(Kyber512))
+            sage: primal_usvp(Kyber512)
             rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β:  382, d:  973, tag: usvp
 
             sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
-            sage: print(primal_usvp(params, bkz_model="cn11"))
+            sage: primal_usvp(params, bkz_model="cn11")
             rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
 
-            sage: print(primal_usvp(params, bkz_model=Simulator.CN11))
+            sage: primal_usvp(params, bkz_model=Simulator.CN11)
             rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
 
-            sage: print(primal_usvp(params, bkz_model=Simulator.CN11, optimize_d=False))
+            sage: primal_usvp(params, bkz_model=Simulator.CN11, optimize_d=False)
             rop: ≈2^89.1, red: ≈2^89.1, δ: 1.006114, β:  209, d:  400, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
@@ -214,7 +214,7 @@ class PrimalUSVP:
             param="beta",
             start=cost_gsa["beta"] - 32,
             stop=cost_gsa["beta"] + 128,
-            predicate=lambda x, best: x["red"] <= best["red"],
+            predicate=lambda x, best: x["rop"] <= best["rop"],
             **kwds,
         )
 
@@ -225,7 +225,7 @@ class PrimalUSVP:
                 param="d",
                 start=params.n,
                 stop=cost["d"],
-                predicate=lambda x, best: x["red"] <= best["red"],
+                predicate=lambda x, best: x["rop"] <= best["rop"],
                 beta=cost["beta"],
                 **kwds,
             )
@@ -265,25 +265,28 @@ class PrimalHybrid:
     def cost(
         beta: int,
         params: LWEParameters,
-        tau: int = 0,
+        zeta: int = 0,
         babai=True,
         mitm=False,
+        d: int = None,
         simulator=Simulator.GSA,
         reduction_cost_model=BKZ.default,
     ):
         """
         Cost of the hybrid attack.
 
-        :param tau: guessing dimension τ
+        :param zeta: guessing dimension ζ
         :param mitm: simulate MITM approach (√ of search space)
         """
         h = len(params.Xs) * params.Xs.density
 
-        d = (params.m + params.n if params.Xs <= params.Xe else params.m) - tau + 1
+        if d is None:
+            d = (params.m + params.n if params.Xs <= params.Xe else params.m) + 1
+        d -= zeta
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
 
         # 1. Simulate BKZ-β
-        r = simulator(d, params.n - tau, params.q, beta, xi=xi)
+        r = simulator(d, params.n - zeta, params.q, beta, xi=xi)
         bkz_cost = BKZ.cost(reduction_cost_model, beta, d)
 
         # 2. Required SVP dimension η
@@ -303,14 +306,14 @@ class PrimalHybrid:
         # MITM or no MITM
         ssf = sqrt if mitm else lambda x: x
 
-        if tau:
-            probability = prob_drop(params.n, h, tau)
+        if zeta:
+            probability = prob_drop(params.n, h, zeta)
             hw = 1
-            while hw < h and hw < tau:
-                new_search_space = search_space + binomial(tau, hw) * 2 ** hw
+            while hw < h and hw < zeta:
+                new_search_space = search_space + binomial(zeta, hw) * 2 ** hw
                 if svp_cost.repeat(ssf(new_search_space))["rop"] < bkz_cost["rop"]:
                     search_space = new_search_space
-                    probability += prob_drop(params.n, h, tau, fail=hw)
+                    probability += prob_drop(params.n, h, zeta, fail=hw)
                     hw += 1
                 else:
                     break
@@ -322,7 +325,7 @@ class PrimalHybrid:
 
         ret = Cost()
         ret["rop"] = bkz_cost["rop"] + svp_cost["rop"]
-        ret["pre"] = bkz_cost["rop"]
+        ret["red"] = bkz_cost["rop"]
         ret["svp"] = svp_cost["rop"]
         ret["beta"] = beta
         ret["eta"] = eta
@@ -349,11 +352,63 @@ class PrimalHybrid:
 
         return ret
 
+    def call_bdd(
+        self,
+        params: LWEParameters,
+        bkz_model="gsa",
+        reduction_cost_model=BKZ.default,
+        optimize_d=True,
+        **kwds,
+    ):
+        # step 0. establish baseline
+        cost = primal_usvp(
+            params,
+            bkz_model=bkz_model,
+            reduction_cost_model=reduction_cost_model,
+            **kwds,
+        )
+
+        f = partial(
+            self.cost,
+            params=params,
+            zeta=0,
+            babai=False,
+            mitm=False,
+            simulator=bkz_model,
+            reduction_cost_model=reduction_cost_model,
+        )
+
+        # step 1. optimize β
+        for b in range(40, cost["beta"])[::-1]:
+            cost_curr = f(b)
+            if cost_curr["rop"] < cost["rop"]:
+                cost = cost_curr
+            else:
+                break
+
+        # step 2. optimize d
+        if cost and cost.get("tag", "bdd") == "bdd" and optimize_d:
+            cost = binary_search(
+                f,
+                param="d",
+                start=params.n,
+                stop=cost["d"],
+                predicate=lambda x, best: x["rop"] <= best["rop"],
+                beta=cost["beta"],
+                **kwds,
+            )
+
+        cost["tag"] = cost.get("tag", "bdd")
+        del cost["|S|"]
+        del cost["prob"]
+        del cost["repeat"]
+        return cost
+
     def __call__(
         self,
         params: LWEParameters,
         babai: bool = False,
-        tau: int = None,
+        zeta: int = None,
         mitm: bool = True,
         bkz_model="gsa",
         reduction_cost_model=BKZ.default,
@@ -365,35 +420,12 @@ class PrimalHybrid:
         except AttributeError:
             pass
 
-        if babai is False and tau == 0:
-            cost = primal_usvp(
-                params,
-                bkz_model=bkz_model,
-                reduction_cost_model=reduction_cost_model,
-                **kwds,
+        if babai is False and zeta == 0:
+            return self.call_bdd(
+                params, bkz_model=bkz_model, reduction_cost_model=reduction_cost_model, **kwds
             )
-
-            for b in range(40, cost["beta"])[::-1]:
-                cost_curr = self.cost(
-                    b,
-                    params,
-                    tau=tau,
-                    babai=babai,
-                    mitm=mitm,
-                    simulator=bkz_model,
-                    reduction_cost_model=reduction_cost_model,
-                )
-                if cost_curr["rop"] < cost["rop"]:
-                    cost = cost_curr
-                else:
-                    break
-            cost["tag"] = cost.get("tag", "bdd")
-            del cost["|S|"]
-            del cost["prob"]
-            del cost["repeat"]
-            return cost
         else:
             raise NotImplementedError
 
 
-primal_bdd = partial(PrimalHybrid(), tau=0, mitm=False, babai=False)
+primal_bdd = partial(PrimalHybrid(), zeta=0, mitm=False, babai=False)

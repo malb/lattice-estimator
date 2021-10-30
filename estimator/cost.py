@@ -47,7 +47,7 @@ class Cost:
 
             sage: from estimator.cost import Cost
             sage: s = Cost(delta=5, bar=2)
-            sage: print(s)
+            sage: s
             δ: 5.000000, bar: 2
 
         """
@@ -94,14 +94,11 @@ class Cost:
 
             sage: from estimator.cost import Cost
             sage: d = Cost(a=1,b=2,c=3); d
-            a:        1
-            b:        2
-            c:        3
+            a: 1, b: 2, c: 3
 
             sage: d.reorder("b","c","a")
-            b:        2
-            c:        3
-            a:        1
+            b: 2, c: 3, a: 1
+
         """
         keys = list(self.__dict__.keys())
         for key in args:
@@ -175,6 +172,9 @@ class Cost:
             cost[key] = right.__dict__[key]
         return Cost(**cost)
 
+    def __bool__(self):
+        return self.__dict__.get("rop", oo) < oo
+
     def __add__(self, other):
         return self.combine(self, other)
 
@@ -196,8 +196,8 @@ class Cost:
     def values(self):
         return self.__dict__.values()
 
-    def __str__(self):
+    def __repr__(self):
         return self.str(compact=True)
 
-    def __repr__(self):
+    def __str__(self):
         return self.str(newline=True, keyword_width=12)
