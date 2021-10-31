@@ -1,11 +1,14 @@
 from multiprocessing import Pool
-import logging
 from functools import partial
 
 from sage.all import ceil, floor
 
+from .logging import Logging
 
-def binary_search(f, start, stop, param, predicate=lambda x, best: x <= best, *args, **kwds):
+
+def binary_search(
+    f, start, stop, param, predicate=lambda x, best: x <= best, log_level=5, *args, **kwds
+):
     """
     Searches for the best value in the interval [start,stop] depending on the given predicate.
 
@@ -36,7 +39,7 @@ def binary_search(f, start, stop, param, predicate=lambda x, best: x <= best, *a
                 b = floor((start + b) / 2)
         else:
             best = D[b]
-            logging.getLogger("binsearch").debug("%s: %4d || %r" % (param, b, repr(best)))
+            Logging.log("bins", log_level, f"{param}: {b:4d} || {repr(best)}")
             if b - 1 not in D:
                 kwds[param] = b - 1
                 D[b - 1] = f(*args, **kwds)
@@ -61,16 +64,15 @@ def binary_search(f, start, stop, param, predicate=lambda x, best: x <= best, *a
         if not predicate(D[b], best):
             break
         best = D[b]
-        logging.getLogger("binsearch").debug("%s: %4d || %s" % (param, b, repr(best)))
+        Logging.log("bins", log_level, f"{param}: {b:4d} || {repr(best)}")
     return best
 
 
-def _batch_estimatef(f, x):
+def _batch_estimatef(f, x, log_level=0):
     y = f(x)
-    logging.getLogger("batch").info(f"f: {f}")
-    logging.getLogger("batch").info(f"x: {x}")
-    logging.getLogger("batch").info(f"f(x): {repr(y)}")
-    logging.getLogger("batch").info("")
+    Logging.log("batch", log_level + 1, f"f: {f}")
+    Logging.log("batch", log_level, f"x: {x}")
+    Logging.log("batch", log_level, f"f(x): {y}")
     return y
 
 

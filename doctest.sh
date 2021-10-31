@@ -12,10 +12,7 @@ then
 fi
 
 RESULT=0
-
-for file in "$@"; do
-    PYTHONIOENCODING=UTF-8 PYTHONPATH=$(pwd) sage-runtests "$file"
-    RESULT=$(( RESULT + $? ))
-done
+PYTHONIOENCODING=UTF-8 PYTHONPATH=$(pwd) sage-runtests $@
+RESULT=$(( RESULT + $? ))
 
 exit $RESULT

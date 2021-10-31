@@ -12,36 +12,35 @@ We construct an example LWE instance::
 The simplest (and quickest to estimate) model is solving via uSVP and assuming the Geometric Series
 Assumption (GSA)::
 
-    sage: primal_usvp(params, bkz_model="gsa")
+    sage: primal_usvp(params, red_shape_model="gsa")
     rop: ≈2^86.5, red: ≈2^86.5, δ: 1.006322, β: 198, d: 642, tag: usvp
 
 We get a similar result if we use the ``GSA`` simulator. We do not get the identical result because
 we optimize β and d separately::
 
-    sage: primal_usvp(params, bkz_model=Simulator.GSA)
+    sage: primal_usvp(params, red_shape_model=Simulator.GSA)
     rop: ≈2^87.3, red: ≈2^87.3, δ: 1.006263, β: 201, d: 603, tag: usvp
 
 To get a more precise answer we may use the CN11 simulator::
 
-    sage: primal_usvp(params, bkz_model=Simulator.CN11)
+    sage: primal_usvp(params, red_shape_model=Simulator.CN11)
     rop: ≈2^87.7, red: ≈2^87.7, δ: 1.006244, β: 202, d: 648, tag: usvp
 
 We can then improve on this result by first preprocessing the basis with blocksize β followed by a
 single SVP call in dimension η. We call this the BDD approach since this is essentially the same
 strategy as preprocessing a basis and then running a CVP solver::
 
-    sage: primal_bdd(params, bkz_model=Simulator.CN11)
-    rop: ≈2^83.3, red: ≈2^82.5, svp: ≈2^82.1, β: 184, η: 225, d: 651, tag: bdd
+    sage: primal_bdd(params, red_shape_model=Simulator.CN11)
+    rop: ≈2^83.4, red: ≈2^82.1, svp: ≈2^82.7, β: 183, η: 227, d: 633, tag: bdd
 
 We can improve these results further by exploiting the sparse secret in the hybrid attack, guessing ζ
 positions of the secret::
 
-    sage: primal_hybrid(params, bkz_model=Simulator.CN11) # long time
+    sage: primal_hybrid(params, red_shape_model=Simulator.CN11) # long time
     rop: ≈2^82.8, red: ≈2^82.3, svp: ≈2^81.0, β: 183, η: 186, ζ: 24, |S|: ≈2^20.6, d: 700, prob: 0.991, repeat: 1, ...
 
 """
 from functools import partial
-import logging
 
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
 from .reduction import BKZ
@@ -52,6 +51,7 @@ from .simulator import Simulator
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
+from .logging import Logging
 
 
 class PrimalUSVP:
@@ -110,7 +110,7 @@ class PrimalUSVP:
         m: int = oo,
         tau=None,
         d=None,
-        reduction_cost_model=BKZ.default,
+        red_cost_model=BKZ.default,
     ):
 
         delta = BKZ.delta(beta)
@@ -126,7 +126,7 @@ class PrimalUSVP:
             + (log(tau) + log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
         )
 
-        return BKZ.cost(reduction_cost_model, beta, d, predicate=lhs <= rhs)
+        return BKZ.cost(red_cost_model, beta, d, predicate=lhs <= rhs)
 
     @staticmethod
     @cached_function
@@ -137,7 +137,7 @@ class PrimalUSVP:
         m: int = oo,
         tau=None,
         d=None,
-        reduction_cost_model=BKZ.default,
+        red_cost_model=BKZ.default,
     ):
         delta = BKZ.delta(beta)
         if d is None:
@@ -148,25 +148,26 @@ class PrimalUSVP:
         r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
         lhs = params.Xe.stddev ** 2 * (beta - 1) + tau ** 2
         if r[d - beta] > lhs:
-            cost = BKZ.cost(reduction_cost_model, beta, d)
+            cost = BKZ.cost(red_cost_model, beta, d)
         else:
-            cost = BKZ.cost(reduction_cost_model, beta, d, predicate=False)
+            cost = BKZ.cost(red_cost_model, beta, d, predicate=False)
         return cost
 
     def __call__(
         self,
         params: LWEParameters,
-        reduction_cost_model=BKZ.default,
-        bkz_model="gsa",
+        red_cost_model=BKZ.default,
+        red_shape_model="gsa",
         optimize_d=True,
+        log_level=1,
         **kwds,
     ):
         """
         Estimate cost of solving LWE via uSVP reduction.
 
         :param params: LWE parameters
-        :param reduction_cost_model: How to cost BKZ
-        :param bkz_model: How to model the shape of a BKZ reduced basis
+        :param red_cost_model: How to cost BKZ
+        :param red_shape_model: How to model the shape of a BKZ reduced basis
         :param optimize_d: Attempt to find minimal d, too
 
         EXAMPLE::
@@ -176,13 +177,13 @@ class PrimalUSVP:
             rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β:  382, d:  973, tag: usvp
 
             sage: params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
-            sage: primal_usvp(params, bkz_model="cn11")
+            sage: primal_usvp(params, red_shape_model="cn11")
             rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
 
-            sage: primal_usvp(params, bkz_model=Simulator.CN11)
+            sage: primal_usvp(params, red_shape_model=Simulator.CN11)
             rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
 
-            sage: primal_usvp(params, bkz_model=Simulator.CN11, optimize_d=False)
+            sage: primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
             rop: ≈2^89.1, red: ≈2^89.1, δ: 1.006114, β:  209, d:  400, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
@@ -208,13 +209,12 @@ class PrimalUSVP:
            solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer,
            Heidelberg.
         """
-
         params = LWEParameters.normalize(params)
 
         # allow for a larger embedding lattice dimension: Bai and Galbraith
         m = params.m + params.n if params.Xs <= params.Xe else params.m
 
-        if bkz_model == "gsa":
+        if red_shape_model == "gsa":
             cost = binary_search(
                 self.cost_gsa,
                 start=40,
@@ -223,29 +223,30 @@ class PrimalUSVP:
                 predicate=lambda x, best: x["red"] <= best["red"],
                 params=params,
                 m=m,
-                reduction_cost_model=reduction_cost_model,
+                red_cost_model=red_cost_model,
                 **kwds,
             )
             cost["tag"] = "usvp"
             return cost
 
         try:
-            bkz_model = getattr(Simulator, str(bkz_model).upper())
+            red_shape_model = getattr(Simulator, str(red_shape_model).upper())
         except AttributeError:
             pass
 
         # step 0. establish baseline
         cost_gsa = self(
             params,
-            reduction_cost_model=reduction_cost_model,
-            bkz_model="gsa",
+            red_cost_model=red_cost_model,
+            red_shape_model="gsa",
         )
-        logging.getLogger("primal").info(f"U0: {repr(cost_gsa)}")
+
+        Logging.log("usvp", log_level + 1, f"U0: {repr(cost_gsa)}")
 
         f = partial(
             self.cost_simulator,
-            simulator=bkz_model,
-            reduction_cost_model=reduction_cost_model,
+            simulator=red_shape_model,
+            red_cost_model=red_cost_model,
             m=m,
             params=params,
         )
@@ -259,7 +260,7 @@ class PrimalUSVP:
             predicate=lambda x, best: x["rop"] <= best["rop"],
             **kwds,
         )
-        logging.getLogger("primal").info(f"U1: {repr(cost)}")
+        Logging.log("usvp", log_level, f"U1: {repr(cost)}")
 
         if cost and optimize_d:
             # step 2. find d
@@ -272,7 +273,7 @@ class PrimalUSVP:
                 beta=cost["beta"],
                 **kwds,
             )
-            logging.getLogger("primal").info(f"U2: {repr(cost)}")
+            Logging.log("usvp", log_level + 1, f"U1: {repr(cost)}")
 
         cost["tag"] = "usvp"
         return cost
@@ -316,14 +317,23 @@ class PrimalHybrid:
         m: int = oo,
         d: int = None,
         simulator=Simulator.GSA,
-        reduction_cost_model=BKZ.default,
+        red_cost_model=BKZ.default,
+        log_level=5,
     ):
         """
         Cost of the hybrid attack.
 
-        :param zeta: guessing dimension ζ
+        :param zeta: guessing dimension ζ ≥ 0
+        :param babai: insist on Babai's algorithm for finding close vectors
         :param mitm: simulate MITM approach (√ of search space)
+        :param m: We accept the number of samples to consider from the calling function
+        :param d: We optionally accept the dimension to pick
+
+        .. note :: This is the lowest level function that runs no optimization, it merely reports
+           costs.
+
         """
+        # the number of non-zero entries
         h = ceil(len(params.Xs) * params.Xs.density)
 
         if d is None:
@@ -333,17 +343,19 @@ class PrimalHybrid:
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
 
         # 1. Simulate BKZ-β
+        # TODO: pick τ
         r = simulator(d, params.n - zeta, params.q, beta, xi=xi)
-        bkz_cost = BKZ.cost(reduction_cost_model, beta, d)
+        bkz_cost = BKZ.cost(red_cost_model, beta, d)
 
         # 2. Required SVP dimension η
         if babai:
             eta = 2
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
-            # we xid the lattice so that χ_e is what we want
+            # we scaled the lattice so that χ_e is what we want
             eta = PrimalHybrid.svp_dimension(r, params.Xe)
-            svp_cost = BKZ.cost(reduction_cost_model, eta, eta)
+            svp_cost = BKZ.cost(red_cost_model, eta, eta)
+            # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
 
         # 3. Search
@@ -352,6 +364,7 @@ class PrimalHybrid:
 
         # MITM or no MITM
         def ssf(x):
+            # TODO: this is rather clumsy as a model
             if mitm:
                 return RR(sqrt(x))
             else:
@@ -377,6 +390,16 @@ class PrimalHybrid:
         if babai is True:
             probability *= RR(prob_babai(r, sqrt(d) * params.Xe.stddev))
 
+        Cost.register_impermanent(
+            {"|S|": False},
+            rop=True,
+            red=True,
+            svp=True,
+            eta=False,
+            zeta=False,
+            prob=False,
+        )
+
         ret = Cost()
         ret["rop"] = bkz_cost["rop"] + svp_cost["rop"]
         ret["red"] = bkz_cost["rop"]
@@ -389,15 +412,6 @@ class PrimalHybrid:
         ret["prob"] = probability
 
         # 4. Repeat whole experiment ~1/prob times
-        Cost.register_impermanent(
-            {"|S|": False},
-            rop=True,
-            red=True,
-            svp=True,
-            eta=False,
-            zeta=False,
-            prob=False,
-        )
         ret = ret.repeat(
             prob_amplify(0.99, probability),
         )
@@ -406,26 +420,33 @@ class PrimalHybrid:
 
     def cost_zeta(
         self,
+        zeta: int,
         params: LWEParameters,
-        bkz_model=Simulator.GSA,
-        reduction_cost_model=BKZ.default,
-        zeta: int = 0,
+        red_shape_model=Simulator.GSA,
+        red_cost_model=BKZ.default,
         m: int = oo,
         babai: bool = False,
         mitm: bool = True,
         optimize_d=True,
+        baseline_cost=None,
+        log_level=5,
         **kwds,
     ):
+        """
+        This function optimizes costs for a fixed guessing dimension ζ.
+        """
 
         # step 0. establish baseline
-        cost = primal_usvp(
-            params,
-            bkz_model=bkz_model,
-            reduction_cost_model=reduction_cost_model,
-            optimize_d=False,
-            **kwds,
-        )
-        logging.getLogger("primal").info(f"H0: {repr(cost)}")
+        if baseline_cost is None:
+            baseline_cost = primal_usvp(
+                params,
+                red_shape_model=red_shape_model,
+                red_cost_model=red_cost_model,
+                optimize_d=False,
+                log_level=log_level + 1,
+                **kwds,
+            )
+            Logging.log("bdd", log_level + 1, f"H0: {repr(baseline_cost)}")
 
         f = partial(
             self.cost,
@@ -433,20 +454,20 @@ class PrimalHybrid:
             zeta=zeta,
             babai=babai,
             mitm=mitm,
-            simulator=bkz_model,
-            reduction_cost_model=reduction_cost_model,
+            simulator=red_shape_model,
+            red_cost_model=red_cost_model,
             m=m,
         )
 
         # step 1. optimize β
-        for b in range(40, cost["beta"])[::-1]:
-            cost_curr = f(b)
-            if cost_curr["rop"] < cost["rop"]:
-                cost = cost_curr
+        for b in range(40, baseline_cost["beta"])[::-1]:
+            cost = f(b)
+            if cost["rop"] < baseline_cost["rop"]:
+                baseline_cost = cost
             else:
                 break
 
-        logging.getLogger("primal").info(f"H1: {repr(cost)}")
+        Logging.log("bdd", log_level, f"H1: {repr(cost)}")
 
         # step 2. optimize d
         if cost and cost.get("tag", "XXX") != "usvp" and optimize_d:
@@ -459,19 +480,8 @@ class PrimalHybrid:
                 beta=cost["beta"],
                 **kwds,
             )
-            logging.getLogger("primal").info(f"H2: {repr(cost)}")
+            Logging.log("bdd", log_level + 1, f"H2: {repr(cost)}")
 
-        if zeta == 0:
-            cost["tag"] = cost.get("tag", "bdd")
-            try:
-                del cost["|S|"]
-                del cost["prob"]
-                del cost["repeat"]
-                del cost["zeta"]
-            except KeyError:
-                pass
-        else:
-            cost["tag"] = cost.get("tag", "hybrid")
         return cost
 
     def __call__(
@@ -480,8 +490,9 @@ class PrimalHybrid:
         babai: bool = False,
         zeta: int = None,
         mitm: bool = True,
-        bkz_model="gsa",
-        reduction_cost_model=BKZ.default,
+        red_shape_model="gsa",
+        red_cost_model=BKZ.default,
+        log_level=1,
         **kwds,
     ):
 
@@ -491,18 +502,19 @@ class PrimalHybrid:
         m = params.m + params.n if params.Xs <= params.Xe else params.m
 
         try:
-            bkz_model = getattr(Simulator, str(bkz_model).upper())
+            red_shape_model = getattr(Simulator, str(red_shape_model).upper())
         except AttributeError:
             pass
 
         f = partial(
             self.cost_zeta,
             params=params,
-            bkz_model=bkz_model,
-            reduction_cost_model=reduction_cost_model,
+            red_shape_model=red_shape_model,
+            red_cost_model=red_cost_model,
             babai=babai,
             mitm=mitm,
             m=m,
+            log_level=log_level,
             **kwds,
         )
 
@@ -517,11 +529,24 @@ class PrimalHybrid:
                     predicate=lambda x, best: x <= best,
                     optimize_d=False,
                 )
-                return min(cost, cost_0)
+                cost = min(cost, cost_0)
             else:
-                return f(zeta=zeta)
+                cost = f(zeta=zeta)
         else:
             raise NotImplementedError
+
+        if cost.get("zeta", 0) == 0:
+            cost["tag"] = cost.get("tag", "bdd")
+            try:
+                del cost["|S|"]
+                del cost["prob"]
+                del cost["repeat"]
+                del cost["zeta"]
+            except KeyError:
+                pass
+        else:
+            cost["tag"] = cost.get("tag", "hybrid")
+        return cost
 
 
 primal_bdd = partial(PrimalHybrid(), zeta=0, mitm=False, babai=False)

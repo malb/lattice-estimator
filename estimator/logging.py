@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import inspect
 
 
 class Logging:
@@ -11,29 +12,35 @@ class Logging:
     plain_logger.setFormatter(logging.Formatter("%(message)s"))
 
     detail_logger = logging.StreamHandler()
-    detail_logger.setFormatter(logging.Formatter("%(levelname)s:%(name)s: %(message)s"))
+    detail_logger.setFormatter(logging.Formatter("[%(name)8s] %(message)s"))
 
-    logging.getLogger("est").handlers = [plain_logger]
-    logging.getLogger("est").setLevel(logging.INFO)
+    logging.getLogger("estimator").handlers = [plain_logger]
+    logging.getLogger("estimator").setLevel(logging.INFO)
 
-    loggers = ("batch", "binsearch", "repeat", "guess", "primal", "dual")
-
-    for logger in loggers:
-        logging.getLogger(logger).handlers = [detail_logger]
-        logging.getLogger(logger).setLevel(logging.WARNING)
+    loggers = ("batch", "bdd", "usvp", "repeat", "guess", "bins")
 
     CRITICAL = logging.CRITICAL
     ERROR = logging.ERROR
     WARNING = logging.WARNING
     INFO = logging.INFO
+    LEVEL0 = logging.INFO
+    LEVEL1 = logging.INFO - 2
+    LEVEL2 = logging.INFO - 4
+    LEVEL3 = logging.INFO - 6
+    LEVEL4 = logging.INFO - 8
+    LEVEL5 = logging.DEBUG
     DEBUG = logging.DEBUG
     NOTSET = logging.NOTSET
+
+    for logger in loggers:
+        logging.getLogger(logger).handlers = [detail_logger]
+        logging.getLogger(logger).setLevel(logging.INFO)
 
     @staticmethod
     def set_level(lvl, loggers=None):
         """Set logging level
 
-        :param lvl: one of `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`, `NOTSET`
+        :param lvl: one of `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `LEVELX`, `DEBUG`, `NOTSET` with `X` ∈ [0,5]
         :param loggers: one of `Logging.loggers`, if `None` all loggers are used.
 
         """
@@ -42,3 +49,9 @@ class Logging:
 
         for logger in loggers:
             logging.getLogger(logger).setLevel(lvl)
+
+    @classmethod
+    def log(cls, logger, level, msg, *args, **kwds):
+        return logging.getLogger(logger).log(
+            cls.INFO - 2 * level, f"{{{level}}} " + msg[:96], *args, **kwds
+        )

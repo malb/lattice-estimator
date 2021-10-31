@@ -21,7 +21,7 @@ Usage Examples
     rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β: 382, d: 973, tag: usvp
     
     sage: primal_bdd(Kyber512)
-    rop: ≈2^135.7, red: ≈2^134.7, svp: ≈2^134.7, β: 361, η: 405, d: 963, tag: bdd
+    rop: ≈2^135.7, red: ≈2^134.4, svp: ≈2^135.0, β: 360, η: 406, d: 964, tag: bdd
 
     sage: params = LWEParameters(n=512, q=3329, Xs=ND.UniformMod(3), Xe=ND.CentredBinomial(eta=8), m=1024)
     sage: primal_usvp(params)
