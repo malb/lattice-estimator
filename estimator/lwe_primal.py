@@ -51,7 +51,7 @@ from .simulator import Simulator
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
-from .logging import Logging
+from .io import Logging
 
 
 class PrimalUSVP:

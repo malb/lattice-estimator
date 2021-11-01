@@ -3,7 +3,7 @@ from functools import partial
 
 from sage.all import ceil, floor
 
-from .logging import Logging
+from .io import Logging
 
 
 def binary_search(
