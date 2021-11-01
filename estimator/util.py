@@ -70,9 +70,9 @@ def binary_search(
 
 def _batch_estimatef(f, x, log_level=0):
     y = f(x)
-    Logging.log("batch", log_level + 1, f"f: {f}")
+    Logging.log("batch", log_level, f"f: {f}")
     Logging.log("batch", log_level, f"x: {x}")
-    Logging.log("batch", log_level, f"f(x): {y}")
+    Logging.log("batch", log_level, f"f(x): {repr(y)}")
     return y
 
 
