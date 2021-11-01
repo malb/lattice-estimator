@@ -17,6 +17,8 @@ def binary_search(
     :param param: the parameter to modify when calling `f`
     :param predicate: comparison is performed by evaluating ``predicate(current, best)``
     """
+    bounds = (start, stop)
+
     kwds[param] = stop
     D = {}
     D[stop] = f(*args, **kwds)
@@ -58,7 +60,7 @@ def binary_search(
                     b = ceil((stop + b) / 2)
                     direction = 1
 
-    for b in range(0, best[param])[::-1]:
+    for b in range(bounds[0], best[param])[::-1]:
         kwds[param] = b
         D[b] = f(*args, **kwds)
         if not predicate(D[b], best):
