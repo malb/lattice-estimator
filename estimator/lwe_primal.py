@@ -548,6 +548,9 @@ class PrimalHybrid:
             cost["tag"] = cost.get("tag", "hybrid")
         return cost
 
+    def __repr__(self):
+        return "primal_hybrid"
+
 
 primal_bdd = partial(PrimalHybrid(), zeta=0, mitm=False, babai=False)
-primal_hybrid = partial(PrimalHybrid(), zeta=None, mitm=True, babai=False)
+primal_hybrid = PrimalHybrid()
