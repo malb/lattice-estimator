@@ -77,7 +77,7 @@ class BKZ:
     @classmethod
     def delta(cls, beta):
         """
-        Compute root-Hermite factor δ from block size `β`.
+        Compute root-Hermite factor δ from block size β.
         """
         beta = ZZ(round(beta))
         return cls._delta(beta)
@@ -85,9 +85,9 @@ class BKZ:
     @staticmethod
     def _beta_secant(delta):
         """
-        Estimate required blocksize `beta` for a given root-hermite factor δ based on [PhD:Chen13]_
+        Estimate required block size β for a given root-Hermite factor δ based on [PhD:Chen13]_.
 
-        :param delta: root-hermite factor
+        :param delta: root-Hermite factor
 
         EXAMPLE::
 
@@ -124,7 +124,7 @@ class BKZ:
             if beta < 40:
                 # newton may output beta < 40. The old beta method wouldn't do this. For
                 # consistency, call the old beta method, i.e. consider this try as "failed".
-                raise RuntimeError("beta < 40")
+                raise RuntimeError("β < 40")
             return beta
         except (RuntimeError, TypeError):
             # if something fails, use old beta method
@@ -134,11 +134,10 @@ class BKZ:
     @classmethod
     def _beta_find_root(cls, delta):
         """
-
         TESTS::
 
             sage: from estimator.reduction import BKZ
-            sage: BKZ.beta(BKZ.delta(500))
+            sage: BKZ._beta_find_root(BKZ.delta(500))
             500
 
         """
@@ -159,24 +158,6 @@ class BKZ:
 
     @classmethod
     def _beta_simple(cls, delta):
-        """
-        Estimate required blocksize β for a given root-hermite factor δ based on [PhD:Chen13]_
-
-        :param delta: root-hermite factor
-
-        EXAMPLE::
-
-            sage: from estimator.reduction import BKZ
-            sage: 50 == BKZ.beta(1.0121)
-            True
-            sage: 100 == BKZ.beta(1.0093)
-            True
-            sage: BKZ.beta(1.0024) # Chen reports 800
-            808
-
-        .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement
-                        complètement homomorphe. PhD thesis, Paris 7, 2013.
-        """
         beta = ZZ(40)
 
         while cls._deltaf(2 * beta) > delta:
@@ -193,7 +174,22 @@ class BKZ:
     @classmethod
     def beta(cls, delta):
         """
-        Compute block size `β` from root-Hermite factor `δ_0`.
+        Estimate required blocksize β for a given root-hermite factor δ based on [PhD:Chen13]_.
+
+        :param delta: root-hermite factor
+
+        EXAMPLE::
+
+            sage: from estimator.reduction import BKZ
+            sage: 50 == BKZ.beta(1.0121)
+            True
+            sage: 100 == BKZ.beta(1.0093)
+            True
+            sage: BKZ.beta(1.0024) # Chen reports 800
+            808
+
+        .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement
+                        complètement homomorphe. PhD thesis, Paris 7, 2013.
         """
         # TODO: decide for one strategy (secant, find_root, old) and its error handling
         beta = cls._beta_find_root(delta)
@@ -203,7 +199,8 @@ class BKZ:
 
     @staticmethod
     def svp_repeat(beta, d):
-        """Return number of SVP calls in BKZ-β
+        """
+        Return number of SVP calls in BKZ-β.
 
         :param beta: block size
         :param d: dimension
@@ -219,7 +216,7 @@ class BKZ:
     @staticmethod
     def LLL(d, B=None):
         """
-        Runtime estimation for LLL algorithm
+        Runtime estimation for LLL algorithm.
 
         :param d: lattice dimension
         :param B: bit-size of entries
@@ -235,8 +232,8 @@ class BKZ:
 
     @staticmethod
     def _BDGL16_small(beta, d, B=None):
-        u"""
-         Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle for small dimensions.
+        """
+         Runtime estimation given β and assuming sieving is used to realise the SVP oracle for small dimensions.
 
          :param beta: block size
          :param d: lattice dimension
@@ -287,7 +284,7 @@ class BKZ:
 
     @staticmethod
     def LaaMosPol14(beta, d, B=None):
-        u"""
+        """
         Runtime estimation for quantum sieving.
 
         :param beta: block size
@@ -306,8 +303,8 @@ class BKZ:
 
     @staticmethod
     def CheNgu12(beta, d, B=None):
-        u"""
-        Runtime estimation given `β` and assuming [CheNgu12]_ estimates are correct.
+        """
+        Runtime estimation given β and assuming [CheNgu12]_ estimates are correct.
 
         :param beta: block size
         :param d: lattice dimension
@@ -332,7 +329,7 @@ class BKZ:
         2^(0.270188776350190*beta*log(beta) - 1.0192050451318417*beta + 16.10253135200765)
 
         is of the number of enumeration nodes, hence we need to multiply by the number of
-        cycles to process one node.  This cost per node is typically estimated as 100 [FPLLL].
+        cycles to process one node.  This cost per node is typically estimated as 100 [FPLLL]_.
 
         ..  [CheNgu12] Yuanmi Chen and Phong Q.  Nguyen.  BKZ 2.0: Better lattice security
         estimates (Full Version). 2012. http://www.di.ens.fr/~ychen/research/Full_BKZ.pdf
@@ -340,7 +337,6 @@ class BKZ:
         ..  [FPLLL] The FPLLL development team.  fplll, a lattice reduction library.  2016.
         Available at https://github.com/fplll/fplll
         """
-        # TODO replace these by fplll timings
         repeat = BKZ.svp_repeat(beta, d)
         cost = RR(
             0.270188776350190 * beta * log(beta)
@@ -373,11 +369,11 @@ class BKZ:
 
     @staticmethod
     def ADPS16(beta, d, B=None, mode="classical"):
-        u"""
+        """
         Runtime estimation from [ADPS16]_.
 
         :param beta: block size
-        :param n: LWE dimension `n > 0`
+        :param d: lattice dimension
         :param B: bit-size of entries
 
         ..  [ADPS16] Edem Alkim, Léo Ducas, Thomas Pöppelmann, & Peter Schwabe (2016).
@@ -386,7 +382,7 @@ class BKZ:
         """
 
         if mode not in ("classical", "quantum", "paranoid"):
-            raise ValueError("Mode '%s' not understood" % mode)
+            raise ValueError(f"Mode {mode} not understood.")
 
         c = {
             "classical": 0.2920,
@@ -401,7 +397,7 @@ class BKZ:
     @classmethod
     def cost(cls, cost_model, beta, d, B=None, predicate=None, **kwds):
         """
-        Return cost dictionary for returning vector of norm` δ_0^d Vol(Λ)^{1/d}` using provided lattice
+        Return cost dictionary for returning vector of norm` δ_0^{d-1} Vol(Λ)^{1/d}` using provided lattice
         reduction algorithm.
 
         :param lattice_reduction_estimate:
@@ -424,3 +420,4 @@ class BKZ:
 
 
 BKZ.default = BKZ.BDGL16
+BKZ.classical_poly_space = BKZ.ABFKSW20
