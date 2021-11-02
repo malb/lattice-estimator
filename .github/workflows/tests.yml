@@ -27,7 +27,7 @@ jobs:
           export PATH="$SAGE_ROOT/bin:$PATH"
           export SAGE_LOCAL="$SAGE_ROOT/local"
           export DOT_SAGE=$HOME/.sage/
-          pip install flake8
+          pip install pyproject-flake8
           flake8 estimator/
       - name: Test
         run: |

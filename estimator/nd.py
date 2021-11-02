@@ -154,7 +154,7 @@ class NoiseDistribution:
             >>> D = ND.SparseTernary(1024, p=128, m=128)
             >>> len(D)
             1024
-            >>> round(len(D) * D.density)
+            >>> int(round(len(D) * float(D.density)))
             256
 
         """

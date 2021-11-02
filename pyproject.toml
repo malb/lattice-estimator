@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 120
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --doctest-glob=\"*.rst\""
+
+[tool.flake8]
+max-line-length = 120
+max-complexity = 16
+extend-ignore = "E203,E22,E241"

@@ -174,17 +174,17 @@ class PrimalUSVP:
 
             >>> from estimator import *
             >>> primal_usvp(Kyber512)
-            rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β:  382, d:  973, tag: usvp
+            rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β: 382, d: 973, tag: usvp
 
             >>> params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> primal_usvp(params, red_shape_model="cn11")
-            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> primal_usvp(params, red_shape_model=Simulator.CN11)
-            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β:  209, d:  388, tag: usvp
+            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
-            rop: ≈2^89.1, red: ≈2^89.1, δ: 1.006114, β:  209, d:  400, tag: usvp
+            rop: ≈2^89.1, red: ≈2^89.1, δ: 1.006114, β: 209, d: 400, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
         [AC:AGVW17,C:DDGR20,PKC:PosVir21]_. The treatment of small secrets is from
