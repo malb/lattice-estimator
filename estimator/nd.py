@@ -13,14 +13,14 @@ def stddevf(sigma):
 
     EXAMPLE::
 
-        sage: from estimator.nd import stddevf
-        sage: stddevf(64.0)
+        >>> from estimator.nd import stddevf
+        >>> stddevf(64.0)
         25.532...
 
-        sage: stddevf(64)
+        >>> stddevf(64)
         25.532...
 
-        sage: stddevf(RealField(256)(64)).prec()
+        >>> stddevf(RealField(256)(64)).prec()
         256
 
     """
@@ -44,19 +44,17 @@ def sigmaf(stddev):
 
     EXAMPLE::
 
-        sage: from estimator.nd import stddevf, sigmaf
-        sage: n = 64.0
-        sage: sigmaf(stddevf(n))
+        >>> from estimator.nd import stddevf, sigmaf
+        >>> n = 64.0
+        >>> sigmaf(stddevf(n))
         64.000...
 
-        sage: sigmaf(RealField(128)(1.0))
+        >>> sigmaf(RealField(128)(1.0))
         2.5066282746310005024157652848110452530
-        sage: sigmaf(1.0)
-        2.50662827463100
-        sage: sigmaf(1)
-        2.50662827463100
-        sage: sigmaf(1r)
-        2.50662827463100
+        >>> sigmaf(1.0)
+        2.506628274631...
+        >>> sigmaf(1)
+        2.506628274631...
 
     """
     RR = parent(stddev)
@@ -89,12 +87,12 @@ class NoiseDistribution:
 
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.DiscreteGaussian(2.0) < ND.CentredBinomial(18)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.DiscreteGaussian(2.0) < ND.CentredBinomial(18)
             True
-            sage: ND.DiscreteGaussian(3.0) < ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(3.0) < ND.CentredBinomial(18)
             False
-            sage: ND.DiscreteGaussian(4.0) < ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(4.0) < ND.CentredBinomial(18)
             False
 
         """
@@ -109,12 +107,12 @@ class NoiseDistribution:
 
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.DiscreteGaussian(2.0) <= ND.CentredBinomial(18)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.DiscreteGaussian(2.0) <= ND.CentredBinomial(18)
             True
-            sage: ND.DiscreteGaussian(3.0) <= ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(3.0) <= ND.CentredBinomial(18)
             True
-            sage: ND.DiscreteGaussian(4.0) <= ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(4.0) <= ND.CentredBinomial(18)
             False
 
         """
@@ -127,8 +125,8 @@ class NoiseDistribution:
         """
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.DiscreteGaussianAlpha(0.01, 7681)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.DiscreteGaussianAlpha(0.01, 7681)
             D(σ=30.64, μ=0.00)
 
         """
@@ -141,8 +139,8 @@ class NoiseDistribution:
         """
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: hash(ND(3.0, 1.0)) == hash((3.0, 1.0, None))
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> hash(ND(3.0, 1.0)) == hash((3.0, 1.0, None))
             True
 
         """
@@ -152,11 +150,11 @@ class NoiseDistribution:
         """
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: D = ND.SparseTernary(1024, p=128, m=128)
-            sage: len(D)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> D = ND.SparseTernary(1024, p=128, m=128)
+            >>> len(D)
             1024
-            sage: round(len(D) * D.density)
+            >>> round(len(D) * D.density)
             256
 
         """
@@ -172,8 +170,8 @@ class NoiseDistribution:
 
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.DiscreteGaussian(3.0, 1.0)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.DiscreteGaussian(3.0, 1.0)
             D(σ=3.00, μ=1.00)
 
         """
@@ -188,8 +186,8 @@ class NoiseDistribution:
 
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.DiscreteGaussianAlpha(0.001, 2048)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.DiscreteGaussianAlpha(0.001, 2048)
             D(σ=0.82, μ=0.00)
 
         """
@@ -203,8 +201,8 @@ class NoiseDistribution:
 
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.CentredBinomial(8)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.CentredBinomial(8)
             D(σ=2.00, μ=0.00)
 
         """
@@ -221,10 +219,10 @@ class NoiseDistribution:
 
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.Uniform(-3, 3)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.Uniform(-3, 3)
             D(σ=2.00, μ=0.00)
-            sage: ND.Uniform(-4, 3)
+            >>> ND.Uniform(-4, 3)
             D(σ=2.29, μ=-0.50)
 
         """
@@ -250,10 +248,10 @@ class NoiseDistribution:
 
         EXAMPLE::
 
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.UniformMod(7)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.UniformMod(7)
             D(σ=2.00, μ=0.00)
-            sage: ND.UniformMod(8)
+            >>> ND.UniformMod(8)
             D(σ=2.29, μ=-0.50)
 
 
@@ -270,12 +268,12 @@ class NoiseDistribution:
         Distribution of vectors of length ``n`` with ``p`` entries of 1 and ``m`` entries of -1, rest 0.
 
         EXAMPLE::
-            sage: from estimator.nd import NoiseDistribution as ND
-            sage: ND.SparseTernary(100, p=10)
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> ND.SparseTernary(100, p=10)
             D(σ=0.45, μ=0.00, n=100)
-            sage: ND.SparseTernary(100, p=10, m=10)
+            >>> ND.SparseTernary(100, p=10, m=10)
             D(σ=0.45, μ=0.00, n=100)
-            sage: ND.SparseTernary(100, p=10, m=8)
+            >>> ND.SparseTernary(100, p=10, m=8)
             D(σ=0.42, μ=0.02, n=100)
 
         """

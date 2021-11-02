@@ -91,12 +91,12 @@ class BKZ:
 
         EXAMPLE::
 
-            sage: from estimator.reduction import BKZ
-            sage: 50 == BKZ._beta_secant(1.0121)
+            >>> from estimator.reduction import BKZ
+            >>> 50 == BKZ._beta_secant(1.0121)
             True
-            sage: 100 == BKZ._beta_secant(1.0093)
+            >>> 100 == BKZ._beta_secant(1.0093)
             True
-            sage: BKZ._beta_secant(1.0024) # Chen reports 800
+            >>> BKZ._beta_secant(1.0024) # Chen reports 800
             808
 
         .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement
@@ -136,8 +136,8 @@ class BKZ:
         """
         TESTS::
 
-            sage: from estimator.reduction import BKZ
-            sage: BKZ._beta_find_root(BKZ.delta(500))
+            >>> from estimator.reduction import BKZ
+            >>> BKZ._beta_find_root(BKZ.delta(500))
             500
 
         """
@@ -180,12 +180,12 @@ class BKZ:
 
         EXAMPLE::
 
-            sage: from estimator.reduction import BKZ
-            sage: 50 == BKZ.beta(1.0121)
+            >>> from estimator.reduction import BKZ
+            >>> 50 == BKZ.beta(1.0121)
             True
-            sage: 100 == BKZ.beta(1.0093)
+            >>> 100 == BKZ.beta(1.0093)
             True
-            sage: BKZ.beta(1.0024) # Chen reports 800
+            >>> BKZ.beta(1.0024) # Chen reports 800
             808
 
         .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement
@@ -313,15 +313,16 @@ class BKZ:
         The constants in this function were derived as follows based on Table 4 in
         [CheNgu12]_::
 
-            sage: dim = [100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250]
-            sage: nodes = [39.0, 44.0, 49.0, 54.0, 60.0, 66.0, 72.0, 78.0, 84.0, 96.0, 99.0, 105.0, 111.0, 120.0, 127.0, 134.0]  # noqa
-            sage: times = [c + log(200,2).n() for c in nodes]
-            sage: T = list(zip(dim, nodes))
-            sage: var("a,b,c,beta")
+            >>> from sage.all import var, find_fit
+            >>> dim = [100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250]
+            >>> nodes = [39.0, 44.0, 49.0, 54.0, 60.0, 66.0, 72.0, 78.0, 84.0, 96.0, 99.0, 105.0, 111.0, 120.0, 127.0, 134.0]  # noqa
+            >>> times = [c + log(200,2).n() for c in nodes]
+            >>> T = list(zip(dim, nodes))
+            >>> var("a,b,c,beta")
             (a, b, c, beta)
-            sage: f = a*beta*log(beta, 2.0) + b*beta + c
-            sage: f = f.function(beta)
-            sage: f.subs(find_fit(T, f, solution_dict=True))
+            >>> f = a*beta*log(beta, 2.0) + b*beta + c
+            >>> f = f.function(beta)
+            >>> f.subs(find_fit(T, f, solution_dict=True))
             beta |--> 0.2701...*beta*log(beta) - 1.0192...*beta + 16.10...
 
         The estimation

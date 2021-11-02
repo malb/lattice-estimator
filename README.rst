@@ -13,18 +13,18 @@ Usage Examples
 
 ::
 
-    sage: from estimator import *
-    sage: Kyber512
+    >>> from estimator import *
+    >>> Kyber512
     LWEParameters(n=512, q=3329, Xs=D(σ=1.22, μ=0.00, n=512), Xe=D(σ=1.00, μ=0.00, n=1024), m=1024, tag='Kyber 512')
 
-    sage: primal_usvp(Kyber512)
+    >>> primal_usvp(Kyber512)
     rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β: 382, d: 973, tag: usvp
     
-    sage: primal_bdd(Kyber512)
+    >>> primal_bdd(Kyber512)
     rop: ≈2^135.7, red: ≈2^134.4, svp: ≈2^135.0, β: 360, η: 406, d: 964, tag: bdd
 
-    sage: params = LWEParameters(n=512, q=3329, Xs=ND.UniformMod(3), Xe=ND.CentredBinomial(eta=8), m=1024)
-    sage: primal_usvp(params)
+    >>> params = LWEParameters(n=512, q=3329, Xs=ND.UniformMod(3), Xe=ND.CentredBinomial(eta=8), m=1024)
+    >>> primal_usvp(params)
     rop: ≈2^149.0, red: ≈2^149.0, δ: 1.003914, β: 410, d: 944, tag: usvp
          
 Status

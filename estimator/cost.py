@@ -51,9 +51,9 @@ class Cost:
 
         EXAMPLE::
 
-            sage: from estimator.cost import Cost
-            sage: s = Cost(delta=5, bar=2)
-            sage: s
+            >>> from estimator.cost import Cost
+            >>> s = Cost(delta=5, bar=2)
+            >>> s
             δ: 5.000000, bar: 2
 
         """
@@ -98,11 +98,11 @@ class Cost:
 
         EXAMPLE::
 
-            sage: from estimator.cost import Cost
-            sage: d = Cost(a=1,b=2,c=3); d
+            >>> from estimator.cost import Cost
+            >>> d = Cost(a=1,b=2,c=3); d
             a: 1, b: 2, c: 3
 
-            sage: d.reorder("b","c","a")
+            >>> d.reorder("b","c","a")
             b: 2, c: 3, a: 1
 
         """
