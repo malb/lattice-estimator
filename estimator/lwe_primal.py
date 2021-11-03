@@ -54,7 +54,7 @@ from .prob import babai as prob_babai
 from .io import Logging
 
 
-class primal_usvp:
+class PrimalUSVP:
     """
     Estimate cost of solving LWE via uSVP reduction.
     """
@@ -114,10 +114,10 @@ class primal_usvp:
     ):
 
         delta = BKZ.delta(beta)
-        xi = primal_usvp._xi_factor(params.Xs, params.Xe)
+        xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         tau = params.Xe.stddev if tau is None else tau
-        d = primal_usvp._solve_for_d(params, m, beta, tau, xi) if d is None else d
+        d = PrimalUSVP._solve_for_d(params, m, beta, tau, xi) if d is None else d
         assert d <= m + 1
 
         lhs = log(sqrt(params.Xe.stddev ** 2 * (beta - 1) + tau ** 2))
@@ -142,7 +142,7 @@ class primal_usvp:
         delta = BKZ.delta(beta)
         if d is None:
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
-        xi = primal_usvp._xi_factor(params.Xs, params.Xe)
+        xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         tau = params.Xe.stddev if tau is None else tau
 
         r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
@@ -281,10 +281,10 @@ class primal_usvp:
     __name__ = "primal_usvp"
 
 
-primal_usvp = primal_usvp()
+primal_usvp = PrimalUSVP()
 
 
-class primal_hybrid:
+class PrimalHybrid:
     @classmethod
     def babai_cost(cls, d):
         return Cost(rop=d ** 2)
@@ -339,7 +339,7 @@ class primal_hybrid:
             delta = BKZ.delta(beta)
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         d -= zeta
-        xi = primal_usvp._xi_factor(params.Xs, params.Xe)
+        xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
 
         # 1. Simulate BKZ-β
         # TODO: pick τ
@@ -349,13 +349,13 @@ class primal_hybrid:
         # 2. Required SVP dimension η
         if babai:
             eta = 2
-            svp_cost = primal_hybrid.babai_cost(d)
+            svp_cost = PrimalHybrid.babai_cost(d)
         else:
             # we scaled the lattice so that χ_e is what we want
-            eta = primal_hybrid.svp_dimension(r, params.Xe)
+            eta = PrimalHybrid.svp_dimension(r, params.Xe)
             svp_cost = BKZ.cost(red_cost_model, eta, eta)
             # when η ≪ β, lifting may be a bigger cost
-            svp_cost["rop"] += primal_hybrid.babai_cost(d - eta)["rop"]
+            svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
 
         # 3. Search
         # We need to do one BDD call at least
@@ -550,7 +550,7 @@ class primal_hybrid:
     __name__ = "primal_hybrid"
 
 
-primal_hybrid = primal_hybrid()
+primal_hybrid = PrimalHybrid()
 
 
 def primal_bdd(
