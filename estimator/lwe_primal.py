@@ -255,8 +255,8 @@ class PrimalUSVP:
         cost = binary_search(
             f,
             param="beta",
-            start=cost_gsa["beta"] - 32,
-            stop=cost_gsa["beta"] + 128,
+            start=cost_gsa["beta"] - ceil(0.10 * cost_gsa["beta"]),
+            stop=cost_gsa["beta"] + ceil(0.20 * cost_gsa["beta"]),
             predicate=lambda x, best: x["rop"] <= best["rop"],
             **kwds,
         )
