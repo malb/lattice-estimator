@@ -94,7 +94,10 @@ def batch_estimate(params, algorithm, jobs=1, **kwds):
 
     for x in params:
         for f in algorithm:
-            f_repr = f.__name__
+            try:
+                f_repr = f.__name__
+            except AttributeError:
+                f_repr = repr(f)
             tasks.append((partial(f, **kwds), x, 0, f_repr))
 
     if jobs == 1:
