@@ -7,7 +7,7 @@ We construct an example LWE instance::
     >>> from estimator import *
     >>> params = LWEParameters(n=384, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CentredBinomial(4))
     >>> params
-    LWEParameters(n=384, q=7981, Xs=D(σ=0.29, μ=0.00, n=384), Xe=D(σ=1.41, μ=0.00), m=+Infinity, tag=None)
+    LWEParameters(n=384, q=7981, Xs=D(σ=0.29), Xe=D(σ=1.41), m=+Infinity, tag=None)
 
 The simplest (and quickest to estimate) model is solving via uSVP and assuming the Geometric Series
 Assumption (GSA)::

@@ -14,4 +14,4 @@ then
     export DOT_SAGE=$HOME/.sage/
 fi
 
-PYTHONIOENCODING=UTF-8 PYTHONPATH=$(pwd) sage-fixdoctests "$@"
+PYTHONIOENCODING=UTF-8 PYTHONPATH=$(pwd) sage-fixdoctests $@

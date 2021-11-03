@@ -15,7 +15,7 @@ Usage Examples
 
     >>> from estimator import *
     >>> Kyber512
-    LWEParameters(n=512, q=3329, Xs=D(σ=1.22, μ=0.00, n=512), Xe=D(σ=1.00, μ=0.00, n=1024), m=1024, tag='Kyber 512')
+    LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
 
     >>> primal_usvp(Kyber512)
     rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β: 382, d: 973, tag: usvp

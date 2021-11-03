@@ -127,7 +127,7 @@ class NoiseDistribution:
 
             >>> from estimator.nd import NoiseDistribution as ND
             >>> ND.DiscreteGaussianAlpha(0.01, 7681)
-            D(σ=30.64, μ=0.00)
+            D(σ=30.64)
 
         """
         if self.n:
@@ -194,7 +194,7 @@ class NoiseDistribution:
 
             >>> from estimator.nd import NoiseDistribution as ND
             >>> ND.DiscreteGaussianAlpha(0.001, 2048)
-            D(σ=0.82, μ=0.00)
+            D(σ=0.82)
 
         """
         stddev = stddevf(alpha * q)
@@ -209,7 +209,7 @@ class NoiseDistribution:
 
             >>> from estimator.nd import NoiseDistribution as ND
             >>> ND.CentredBinomial(8)
-            D(σ=2.00, μ=0.00)
+            D(σ=2.00)
 
         """
         stddev = sqrt(eta / 2.0)
@@ -227,7 +227,7 @@ class NoiseDistribution:
 
             >>> from estimator.nd import NoiseDistribution as ND
             >>> ND.Uniform(-3, 3)
-            D(σ=2.00, μ=0.00)
+            D(σ=2.00)
             >>> ND.Uniform(-4, 3)
             D(σ=2.29, μ=-0.50)
 
@@ -256,7 +256,7 @@ class NoiseDistribution:
 
             >>> from estimator.nd import NoiseDistribution as ND
             >>> ND.UniformMod(7)
-            D(σ=2.00, μ=0.00)
+            D(σ=2.00)
             >>> ND.UniformMod(8)
             D(σ=2.29, μ=-0.50)
 
@@ -276,11 +276,11 @@ class NoiseDistribution:
         EXAMPLE::
             >>> from estimator.nd import NoiseDistribution as ND
             >>> ND.SparseTernary(100, p=10)
-            D(σ=0.45, μ=0.00, n=100)
+            D(σ=0.45)
             >>> ND.SparseTernary(100, p=10, m=10)
-            D(σ=0.45, μ=0.00, n=100)
+            D(σ=0.45)
             >>> ND.SparseTernary(100, p=10, m=8)
-            D(σ=0.42, μ=0.02, n=100)
+            D(σ=0.42, μ=0.02)
 
         """
         if m is None:
