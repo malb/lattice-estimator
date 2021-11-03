@@ -233,11 +233,11 @@ class BKZ:
     @staticmethod
     def _BDGL16_small(beta, d, B=None):
         """
-         Runtime estimation given β and assuming sieving is used to realise the SVP oracle for small dimensions.
+        Runtime estimation given β and assuming sieving is used to realise the SVP oracle for small dimensions.
 
-         :param beta: block size
-         :param d: lattice dimension
-         :param B: bit-size of entries
+        :param beta: block size
+        :param d: lattice dimension
+        :param B: bit-size of entries
 
         ..  [BDGL16] Becker, A., Ducas, L., Gama, N., & Laarhoven, T.  (2016).  New directions in
         nearest neighbor searching with applications to lattice sieving.  In SODA 2016, (pp.
