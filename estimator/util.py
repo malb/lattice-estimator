@@ -94,7 +94,8 @@ def batch_estimate(params, algorithm, jobs=1, **kwds):
 
     for x in params:
         for f in algorithm:
-            tasks.append((partial(f, **kwds), x, 0, repr(f)))
+            f_repr = f.__name__
+            tasks.append((partial(f, **kwds), x, 0, f_repr))
 
     if jobs == 1:
         res = {}

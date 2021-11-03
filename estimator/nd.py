@@ -121,7 +121,7 @@ class NoiseDistribution:
         except AttributeError:
             return self.stddev <= other
 
-    def __repr__(self):
+    def __str__(self):
         """
         EXAMPLE::
 
@@ -132,6 +132,12 @@ class NoiseDistribution:
         """
         if self.n:
             return f"D(σ={float(self.stddev):.2f}, μ={float(self.mean):.2f}, n={int(self.n)})"
+        else:
+            return f"D(σ={float(self.stddev):.2f}, μ={float(self.mean):.2f})"
+
+    def __repr__(self):
+        if self.mean == 0.0:
+            return f"D(σ={float(self.stddev):.2f})"
         else:
             return f"D(σ={float(self.stddev):.2f}, μ={float(self.mean):.2f})"
 
