@@ -241,7 +241,7 @@ class PrimalUSVP:
             red_shape_model="gsa",
         )
 
-        Logging.log("usvp", log_level + 1, f"U0: {repr(cost_gsa)}")
+        Logging.log("usvp", log_level + 1, f"GSA: {repr(cost_gsa)}")
 
         f = partial(
             self.cost_simulator,
@@ -260,7 +260,7 @@ class PrimalUSVP:
             predicate=lambda x, best: x["rop"] <= best["rop"],
             **kwds,
         )
-        Logging.log("usvp", log_level, f"U1: {repr(cost)}")
+        Logging.log("usvp", log_level, f"Opt-β: {repr(cost)}")
 
         if cost and optimize_d:
             # step 2. find d
@@ -273,7 +273,7 @@ class PrimalUSVP:
                 beta=cost["beta"],
                 **kwds,
             )
-            Logging.log("usvp", log_level + 1, f"U1: {repr(cost)}")
+            Logging.log("usvp", log_level + 1, f"Opt-d: {repr(cost)}")
 
         cost["tag"] = "usvp"
         return cost
