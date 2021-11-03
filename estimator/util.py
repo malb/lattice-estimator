@@ -70,9 +70,11 @@ def binary_search(
     return best
 
 
-def _batch_estimatef(f, x, log_level=0):
+def _batch_estimatef(f, x, log_level=0, f_repr=None):
     y = f(x)
-    Logging.log("batch", log_level, f"f: {f}")
+    if f_repr is None:
+        f_repr = repr(f)
+    Logging.log("batch", log_level, f"f: {f_repr}")
     Logging.log("batch", log_level, f"x: {x}")
     Logging.log("batch", log_level, f"f(x): {repr(y)}")
     return y
@@ -92,16 +94,21 @@ def batch_estimate(params, algorithm, jobs=1, **kwds):
 
     for x in params:
         for f in algorithm:
-            tasks.append((partial(f, **kwds), x))
+            tasks.append((partial(f, **kwds), x, 0, repr(f)))
 
     if jobs == 1:
         res = {}
-        for f, x in tasks:
-            y = _batch_estimatef(f, x)
-            res[(f, x)] = y
+        for f, x, lvl, f_repr in tasks:
+            y = _batch_estimatef(f, x, lvl, f_repr)
+            res[(f_repr, x)] = y
     else:
         pool = Pool(jobs)
         res = pool.starmap(_batch_estimatef, tasks)
-        res = dict([((f, x), res[i]) for i, (f, x) in enumerate(tasks)])
+        res = dict([((f_repr, x), res[i]) for i, (f, x, _, f_repr) in enumerate(tasks)])
 
-    return res
+    ret = dict()
+    for f, x in res:
+        ret[x] = ret.get(x, dict())
+        ret[x][f] = res[f, x]
+
+    return ret
