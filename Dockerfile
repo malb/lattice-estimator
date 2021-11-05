@@ -1,4 +1,4 @@
-FROM sagemath/sagemath:latest
+FROM sagemathinc/cocalc:latest
 
 SHELL ["/bin/bash", "-c"]
 RUN SAGE_ROOT=`pwd`/sage && \
