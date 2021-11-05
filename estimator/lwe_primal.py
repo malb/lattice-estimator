@@ -2,42 +2,42 @@
 """
 Estimate cost of solving LWE using primal attacks.
 
-We construct an example LWE instance::
+We construct an (easy) example LWE instance::
 
     >>> from estimator import *
-    >>> params = LWEParameters(n=384, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CentredBinomial(4))
+    >>> params = LWEParameters(n=200, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CentredBinomial(4))
     >>> params
-    LWEParameters(n=384, q=7981, Xs=D(σ=0.29), Xe=D(σ=1.41), m=+Infinity, tag=None)
+    LWEParameters(n=200, q=7981, Xs=D(σ=0.29), Xe=D(σ=1.41), m=+Infinity, tag=None)
 
 The simplest (and quickest to estimate) model is solving via uSVP and assuming the Geometric Series
 Assumption (GSA)::
 
     >>> primal_usvp(params, red_shape_model="gsa")
-    rop: ≈2^86.5, red: ≈2^86.5, δ: 1.006322, β: 198, d: 642, tag: usvp
+    rop: ≈2^55.0, red: ≈2^55.0, δ: 1.010838, β: 70, d: 362, tag: usvp
 
 We get a similar result if we use the ``GSA`` simulator. We do not get the identical result because
 we optimize β and d separately::
 
     >>> primal_usvp(params, red_shape_model=Simulator.GSA)
-    rop: ≈2^87.3, red: ≈2^87.3, δ: 1.006263, β: 201, d: 603, tag: usvp
+    rop: ≈2^55.6, red: ≈2^55.6, δ: 1.010720, β: 72, d: 331, tag: usvp
 
 To get a more precise answer we may use the CN11 simulator::
 
     >>> primal_usvp(params, red_shape_model=Simulator.CN11)
-    rop: ≈2^87.7, red: ≈2^87.7, δ: 1.006244, β: 202, d: 648, tag: usvp
+    rop: ≈2^55.4, red: ≈2^55.4, δ: 1.010779, β: 71, d: 358, tag: usvp
 
 We can then improve on this result by first preprocessing the basis with blocksize β followed by a
 single SVP call in dimension η. We call this the BDD approach since this is essentially the same
 strategy as preprocessing a basis and then running a CVP solver::
 
     >>> primal_bdd(params, red_shape_model=Simulator.CN11)
-    rop: ≈2^83.4, red: ≈2^82.1, svp: ≈2^82.7, β: 183, η: 227, d: 633, tag: bdd
+    rop: ≈2^47.6, red: ≈2^46.0, svp: ≈2^47.1, β: 47, η: 105, d: 335, tag: bdd
 
 We can improve these results further by exploiting the sparse secret in the hybrid attack, guessing ζ
 positions of the secret::
 
-    >>> primal_hybrid(params, red_shape_model=Simulator.CN11) # long time
-    rop: ≈2^72.4, red: ≈2^72.0, svp: ≈2^70.3, β: 146, η: 2, ζ: 168, |S|: ≈2^101.3, d: 510, prob: 0.979, repeat: 2, ...
+    >>> primal_hybrid(params, red_shape_model=Simulator.CN11)
+    rop: ≈2^45.7, red: ≈2^44.8, svp: ≈2^44.6, β: 44, η: 25, ζ: 50, |S|: ≈2^37.1, d: 334, prob: 0.991, repeat: 1, tag: hybrid
 
 """
 from functools import partial
