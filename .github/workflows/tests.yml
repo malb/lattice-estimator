@@ -27,7 +27,7 @@ jobs:
           export PATH="$SAGE_ROOT/bin:$PATH"
           export SAGE_LOCAL="$SAGE_ROOT/local"
           export DOT_SAGE=$HOME/.sage/
-          pip install pyproject-flake8
+          pip install pyproject-flake8 pytest nbmake
           flake8 estimator/
       - name: Test
         run: |
@@ -36,6 +36,5 @@ jobs:
           export SAGE_LOCAL="$SAGE_ROOT/local"
           export DOT_SAGE=$HOME/.sage/
           sudo mkdir -p /usr/share/sagemath/build/pkgs
-          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests --long estimator
-          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` sage-runtests --long README.rst
+          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` pytest
           
