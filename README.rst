@@ -40,10 +40,10 @@ We do not have feature parity with the old estimator yet:
 
 - [X] primal attack on LWE via uSVP using BKZ simulators or assuming the GSA
 - [X] primal attack on LWE (effectively) via BDD using BKZ simulators or assuming the GSA
+- [X] Coded-BKW attack on LWE
 - [ ] hybrid primal attack on LWE
 - [ ] dual attack on LWE
 - [ ] Aroroa-GB attack on LWE
-- [ ] Coded-BKW attack on LWE
 
 We also plan:
 

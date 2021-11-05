@@ -2,6 +2,7 @@
 from .nd import NoiseDistribution as ND  # noqa
 from .lwe import LWEParameters  # noqa
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid  # noqa
+from .lwe_bkw import coded_bkw
 from .lwe_primal import RC  # noqa, this is a silly hack
 from .simulator import Simulator  # noqa
 from .io import Logging  # noqa

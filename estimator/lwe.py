@@ -35,5 +35,24 @@ class LWEParameters:
         # nothing to do
         return self
 
+    def updated(self, **kwds):
+        """
+        Return a new set of parameters updated according to ``kwds``.
+
+        :params **kwds: We set ``key`` to ``value`` in the new set of parameters.
+
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> Kyber512
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
+            >>> Kyber512.updated(m=1337)
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1337, tag='Kyber 512')
+
+        """
+        d = dict(self.__dict__)
+        d.update(kwds)
+        return LWEParameters(**d)
+
     def __hash__(self):
         return hash((self.n, self.q, self.Xs, self.Xe, self.m, self.tag))
