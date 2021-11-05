@@ -37,7 +37,7 @@ We can improve these results further by exploiting the sparse secret in the hybr
 positions of the secret::
 
     >>> primal_hybrid(params, red_shape_model=Simulator.CN11)
-    rop: ≈2^45.7, red: ≈2^44.8, svp: ≈2^44.6, β: 44, η: 25, ζ: 50, |S|: ≈2^37.1, d: 334, prob: 0.991, repeat: 1, tag: hybrid
+    rop: ≈2^45.7, red: ≈2^44.8, svp: ≈2^44.6, β: 44, η: 25, ζ: 50, |S|: ≈2^37.1, d: 334, prob: 0.991, …
 
 """
 from functools import partial
