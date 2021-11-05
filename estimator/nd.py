@@ -88,11 +88,11 @@ class NoiseDistribution:
         EXAMPLE::
 
             >>> from estimator.nd import NoiseDistribution as ND
-            >>> ND.DiscreteGaussian(2.0) < ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(2.0) < ND.CenteredBinomial(18)
             True
-            >>> ND.DiscreteGaussian(3.0) < ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(3.0) < ND.CenteredBinomial(18)
             False
-            >>> ND.DiscreteGaussian(4.0) < ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(4.0) < ND.CenteredBinomial(18)
             False
 
         """
@@ -108,11 +108,11 @@ class NoiseDistribution:
         EXAMPLE::
 
             >>> from estimator.nd import NoiseDistribution as ND
-            >>> ND.DiscreteGaussian(2.0) <= ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(2.0) <= ND.CenteredBinomial(18)
             True
-            >>> ND.DiscreteGaussian(3.0) <= ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(3.0) <= ND.CenteredBinomial(18)
             True
-            >>> ND.DiscreteGaussian(4.0) <= ND.CentredBinomial(18)
+            >>> ND.DiscreteGaussian(4.0) <= ND.CenteredBinomial(18)
             False
 
         """
@@ -169,6 +169,10 @@ class NoiseDistribution:
         else:
             raise ValueError("Distribution has no length.")
 
+    @property
+    def is_Gaussian_like(self):
+        return ("Gaussian" in self.tag) or ("CenteredBinomial" in self.tag)
+
     @staticmethod
     def DiscreteGaussian(stddev, mean=0, n=None):
         """
@@ -201,21 +205,21 @@ class NoiseDistribution:
         return NoiseDistribution.DiscreteGaussian(stddev=RR(stddev), mean=RR(mean), n=n)
 
     @staticmethod
-    def CentredBinomial(eta, n=None):
+    def CenteredBinomial(eta, n=None):
         """
         Sample a_1, …, a_η, b_1, …, b_η and return Σ(a_i - b_i).
 
         EXAMPLE::
 
             >>> from estimator.nd import NoiseDistribution as ND
-            >>> ND.CentredBinomial(8)
+            >>> ND.CenteredBinomial(8)
             D(σ=2.00)
 
         """
         stddev = sqrt(eta / 2.0)
         # TODO: density
         return NoiseDistribution(
-            stddev=RR(stddev), mean=RR(0), n=n, bounds=(-eta, eta), tag="CentredBinomial"
+            stddev=RR(stddev), mean=RR(0), n=n, bounds=(-eta, eta), tag="CenteredBinomial"
         )
 
     @staticmethod

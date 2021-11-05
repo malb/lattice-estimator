@@ -5,7 +5,7 @@ Estimate cost of solving LWE using primal attacks.
 We construct an (easy) example LWE instance::
 
     >>> from estimator import *
-    >>> params = LWEParameters(n=200, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CentredBinomial(4))
+    >>> params = LWEParameters(n=200, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CenteredBinomial(4))
     >>> params
     LWEParameters(n=200, q=7981, Xs=D(σ=0.29), Xe=D(σ=1.41), m=+Infinity, tag=None)
 

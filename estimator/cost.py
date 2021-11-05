@@ -34,7 +34,7 @@ class Cost:
                 raise ValueError(f"Attempting to overwrite {k}:{cls.impermanents[k]} with {v}")
             cls.impermanents[k] = v
 
-    key_map = {"delta": "δ", "beta": "β", "eta": "η", "epsilon": "ε", "zeta": "ζ"}
+    key_map = {"delta": "δ", "beta": "β", "eta": "η", "epsilon": "ε", "zeta": "ζ", "ell": "ℓ"}
     val_map = {"beta": "%8d", "d": "%8d", "delta": "%8.6f"}
 
     def __init__(self, **kwds):
@@ -70,7 +70,7 @@ class Cost:
         for k, v in d.items():
             kk = wfmtf(self.key_map.get(k, k))
             try:
-                if 1 / round_bound < abs(v) < round_bound:
+                if 1 / round_bound < abs(v) < round_bound or not v:
                     if abs(v % 1) < 0.0000001:
                         vv = self.val_map.get(k, "%8d") % round(v)
                     else:

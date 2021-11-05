@@ -26,7 +26,7 @@ Quick Start
     >>> primal_bdd(Kyber512)
     rop: ≈2^137.8, red: ≈2^136.5, svp: ≈2^137.1, β: 365, η: 400, d: 981, tag: bdd
 
-    >>> params = LWEParameters(n=512, q=3329, Xs=ND.UniformMod(3), Xe=ND.CentredBinomial(eta=8), m=1024)
+    >>> params = LWEParameters(n=512, q=3329, Xs=ND.UniformMod(3), Xe=ND.CenteredBinomial(eta=8), m=1024)
     >>> primal_usvp(params)
     rop: ≈2^148.9, red: ≈2^148.9, δ: 1.003914, β: 410, d: 944, tag: usvp
 
