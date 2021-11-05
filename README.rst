@@ -2,7 +2,7 @@ Security Estimates for Lattice Problems
 =======================================
 
 .. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/malb/lattice-estimator/binder?labpath=..%2F..%2Ftree%2Fnotebooks%2FPlain.ipynb
+ :target: https://mybinder.org/v2/gh/malb/lattice-estimator/main?labpath=..%2F..%2Ftree%2Fnotebooks%2FPlain.ipynb
 
 This `Sage <http://sagemath.org>`__ module provides functions for estimating the concrete security
 of `Learning with Errors <https://en.wikipedia.org/wiki/Learning_with_errors>`__ instances.
@@ -11,8 +11,8 @@ The main intend of this estimator is to give designers an easy way to choose par
 known attacks and to enable cryptanalysts to compare their results and ideas with other techniques
 known in the literature.
 
-Usage Examples
---------------
+Quick Start
+-----------
 
 ::
 
@@ -29,7 +29,10 @@ Usage Examples
     >>> params = LWEParameters(n=512, q=3329, Xs=ND.UniformMod(3), Xe=ND.CentredBinomial(eta=8), m=1024)
     >>> primal_usvp(params)
     rop: ≈2^149.0, red: ≈2^149.0, δ: 1.003914, β: 410, d: 944, tag: usvp
-         
+
+You can try/use the estimator on `Binder
+<https://mybinder.org/v2/gh/malb/lattice-estimator/main?labpath=..%2F..%2Ftree%2Fnotebooks%2FPlain.ipynb>`__.
+    
 Status
 ------
 
@@ -51,8 +54,8 @@ Evolution
 ---------
 
 This code is evolving, new results are added and bugs are fixed. Hence, estimations from earlier
-versions might not match current estimations. This is annoying but unavoidable at present. We
-recommend to also state the commit that was used when referencing this project.
+versions might not match current estimations. This is annoying but unavoidable. We recommend to also
+state the commit that was used when referencing this project.
 
 Contributions
 -------------
