@@ -13,37 +13,37 @@ The simplest (and quickest to estimate) model is solving via uSVP and assuming t
 Assumption (GSA)::
 
     >>> primal_usvp(params, red_shape_model="gsa")
-    rop: ≈2^55.0, red: ≈2^55.0, δ: 1.010838, β: 70, d: 362, tag: usvp
+    rop: ≈2^53.3, red: ≈2^53.3, δ: 1.010838, β: 70, d: 362, tag: usvp
 
 We get a similar result if we use the ``GSA`` simulator. We do not get the identical result because
 we optimize β and d separately::
 
     >>> primal_usvp(params, red_shape_model=Simulator.GSA)
-    rop: ≈2^55.6, red: ≈2^55.6, δ: 1.010720, β: 72, d: 331, tag: usvp
+    rop: ≈2^53.7, red: ≈2^53.7, δ: 1.010720, β: 72, d: 331, tag: usvp
 
 To get a more precise answer we may use the CN11 simulator::
 
     >>> primal_usvp(params, red_shape_model=Simulator.CN11)
-    rop: ≈2^55.4, red: ≈2^55.4, δ: 1.010779, β: 71, d: 358, tag: usvp
+    rop: ≈2^53.6, red: ≈2^53.6, δ: 1.010779, β: 71, d: 358, tag: usvp
 
 We can then improve on this result by first preprocessing the basis with blocksize β followed by a
 single SVP call in dimension η. We call this the BDD approach since this is essentially the same
 strategy as preprocessing a basis and then running a CVP solver::
 
     >>> primal_bdd(params, red_shape_model=Simulator.CN11)
-    rop: ≈2^47.6, red: ≈2^46.0, svp: ≈2^47.1, β: 47, η: 105, d: 335, tag: bdd
+    rop: ≈2^51.5, red: ≈2^49.9, svp: ≈2^51.0, β: 58, η: 91, d: 345, tag: bdd
 
 We can improve these results further by exploiting the sparse secret in the hybrid attack, guessing ζ
 positions of the secret::
 
     >>> primal_hybrid(params, red_shape_model=Simulator.CN11)
-    rop: ≈2^45.7, red: ≈2^44.8, svp: ≈2^44.6, β: 44, η: 25, ζ: 50, |S|: ≈2^37.1, d: 334, prob: 0.991, ...
+    rop: ≈2^45.9, red: ≈2^45.5, svp: ≈2^43.8, β: 40, η: 2, ζ: 62, |S|: ≈2^43.4, d: 313, prob: 0.988, repeat: 2, tag: hybrid
 
 """
 from functools import partial
 
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
-from .reduction import BKZ
+import estimator.reduction as RC
 from .util import binary_search
 from .cost import Cost
 from .lwe import LWEParameters
@@ -74,7 +74,7 @@ class PrimalUSVP:
         If no such d exists, return the upper bound m.
         """
         # Find the smallest d ∈ [n,m] s.t. a*d^2 + b*d + c >= 0
-        delta = BKZ.delta(beta)
+        delta = RC.delta(beta)
         a = -log(delta)
         C = log(params.Xe.stddev ** 2 * (beta - 1) + tau ** 2) / 2.0
         b = log(delta) * (2 * beta - 1) + log(params.q) - C
@@ -110,10 +110,10 @@ class PrimalUSVP:
         m: int = oo,
         tau=None,
         d=None,
-        red_cost_model=BKZ.default,
+        red_cost_model=RC.default,
     ):
 
-        delta = BKZ.delta(beta)
+        delta = RC.delta(beta)
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         tau = params.Xe.stddev if tau is None else tau
@@ -126,7 +126,7 @@ class PrimalUSVP:
             + (log(tau) + log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
         )
 
-        return BKZ.cost(red_cost_model, beta, d, predicate=lhs <= rhs)
+        return RC.cost(red_cost_model, beta, d, predicate=lhs <= rhs)
 
     @staticmethod
     @cached_function
@@ -137,9 +137,9 @@ class PrimalUSVP:
         m: int = oo,
         tau=None,
         d=None,
-        red_cost_model=BKZ.default,
+        red_cost_model=RC.default,
     ):
-        delta = BKZ.delta(beta)
+        delta = RC.delta(beta)
         if d is None:
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
@@ -148,15 +148,15 @@ class PrimalUSVP:
         r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
         lhs = params.Xe.stddev ** 2 * (beta - 1) + tau ** 2
         if r[d - beta] > lhs:
-            cost = BKZ.cost(red_cost_model, beta, d)
+            cost = RC.cost(red_cost_model, beta, d)
         else:
-            cost = BKZ.cost(red_cost_model, beta, d, predicate=False)
+            cost = RC.cost(red_cost_model, beta, d, predicate=False)
         return cost
 
     def __call__(
         self,
         params: LWEParameters,
-        red_cost_model=BKZ.default,
+        red_cost_model=RC.default,
         red_shape_model="gsa",
         optimize_d=True,
         log_level=1,
@@ -166,25 +166,25 @@ class PrimalUSVP:
         Estimate cost of solving LWE via uSVP reduction.
 
         :param params: LWE parameters
-        :param red_cost_model: How to cost BKZ
-        :param red_shape_model: How to model the shape of a BKZ reduced basis
+        :param red_cost_model: How to cost lattice reduction
+        :param red_shape_model: How to model the shape of a reduced basis
         :param optimize_d: Attempt to find minimal d, too
 
         EXAMPLE::
 
             >>> from estimator import *
             >>> primal_usvp(Kyber512)
-            rop: ≈2^140.9, red: ≈2^140.9, δ: 1.004111, β: 382, d: 973, tag: usvp
+            rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
 
             >>> params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> primal_usvp(params, red_shape_model="cn11")
-            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β: 209, d: 388, tag: usvp
+            rop: ≈2^91.2, red: ≈2^91.2, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> primal_usvp(params, red_shape_model=Simulator.CN11)
-            rop: ≈2^89.0, red: ≈2^89.0, δ: 1.006114, β: 209, d: 388, tag: usvp
+            rop: ≈2^91.2, red: ≈2^91.2, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
-            rop: ≈2^89.1, red: ≈2^89.1, δ: 1.006114, β: 209, d: 400, tag: usvp
+            rop: ≈2^91.3, red: ≈2^91.3, δ: 1.006114, β: 209, d: 400, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
         [AC:AGVW17,C:DDGR20,PKC:PosVir21]_. The treatment of small secrets is from
@@ -220,7 +220,7 @@ class PrimalUSVP:
                 start=40,
                 stop=2 * params.n,
                 param="beta",
-                predicate=lambda x, best: x["red"] <= best["red"],
+                predicate=lambda x, best: x["rop"] <= best["rop"],
                 params=params,
                 m=m,
                 red_cost_model=red_cost_model,
@@ -316,7 +316,7 @@ class PrimalHybrid:
         m: int = oo,
         d: int = None,
         simulator=Simulator.GSA,
-        red_cost_model=BKZ.default,
+        red_cost_model=RC.default,
         log_level=5,
     ):
         """
@@ -336,7 +336,7 @@ class PrimalHybrid:
         h = ceil(len(params.Xs) * params.Xs.density)
 
         if d is None:
-            delta = BKZ.delta(beta)
+            delta = RC.delta(beta)
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         d -= zeta
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
@@ -344,7 +344,7 @@ class PrimalHybrid:
         # 1. Simulate BKZ-β
         # TODO: pick τ
         r = simulator(d, params.n - zeta, params.q, beta, xi=xi)
-        bkz_cost = BKZ.cost(red_cost_model, beta, d)
+        bkz_cost = RC.cost(red_cost_model, beta, d)
 
         # 2. Required SVP dimension η
         if babai:
@@ -353,7 +353,7 @@ class PrimalHybrid:
         else:
             # we scaled the lattice so that χ_e is what we want
             eta = PrimalHybrid.svp_dimension(r, params.Xe)
-            svp_cost = BKZ.cost(red_cost_model, eta, eta)
+            svp_cost = RC.cost(red_cost_model, eta, eta)
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
 
@@ -422,7 +422,7 @@ class PrimalHybrid:
         zeta: int,
         params: LWEParameters,
         red_shape_model=Simulator.GSA,
-        red_cost_model=BKZ.default,
+        red_cost_model=RC.default,
         m: int = oo,
         babai: bool = False,
         mitm: bool = True,
@@ -490,7 +490,7 @@ class PrimalHybrid:
         zeta: int = None,
         mitm: bool = True,
         red_shape_model="gsa",
-        red_cost_model=BKZ.default,
+        red_cost_model=RC.default,
         log_level=1,
         **kwds,
     ):
@@ -556,7 +556,7 @@ primal_hybrid = PrimalHybrid()
 def primal_bdd(
     params: LWEParameters,
     red_shape_model="gsa",
-    red_cost_model=BKZ.default,
+    red_cost_model=RC.default,
     log_level=1,
     **kwds,
 ):

@@ -35,14 +35,14 @@ class Simulator:
 
     @classmethod
     def GSA(cls, d, n, q, beta, xi=1, tau=1):
-        from .reduction import BKZ
+        import estimator.reduction as RC
 
         if tau is not None:
             log_vol = RR(log(q, 2) * (d - n - 1) + log(xi, 2) * n + log(tau, 2))
         else:
             log_vol = RR(log(q, 2) * (d - n) + log(xi, 2) * n)
 
-        delta = BKZ.delta(beta)
+        delta = RC.delta(beta)
         r_log = [(d - 1 - 2 * i) * RR(log(delta, 2)) + log_vol / d for i in range(d)]
         r = [2 ** (2 * r_) for r_ in r_log]
         return r
