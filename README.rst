@@ -1,6 +1,9 @@
 Security Estimates for Lattice Problems
 =======================================
 
+.. image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/malb/lattice-estimator/binder?labpath=..%2F..%2Ftree%2Fnotebooks%2FPlain.ipynb
+
 This `Sage <http://sagemath.org>`__ module provides functions for estimating the concrete security
 of `Learning with Errors <https://en.wikipedia.org/wiki/Learning_with_errors>`__ instances.
 
