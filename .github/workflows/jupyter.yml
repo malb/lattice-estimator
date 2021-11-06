@@ -29,7 +29,8 @@ jobs:
         run: |          
           mkdir out
           cp -r estimator/ out/
-          cp Dockerfile out/
+          echo 'FROM sagemathinc/cocalc:latest' >> out/Dockerfile
+          echo 'COPY --chown=sage:sage . ${HOME}' >> out/Dockerfile
           cp doc/_build/jupyter/lwe-primal.ipynb out
           cp doc/_build/jupyter/prompt.ipynb out
 
