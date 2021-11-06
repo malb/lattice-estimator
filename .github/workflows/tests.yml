@@ -29,8 +29,8 @@ jobs:
           export DOT_SAGE=$HOME/.sage/
           pip install --upgrade pytest nbmake traitlets nbclient sphinxcontrib-jupyter
           make jupyter
-          cp doc/_build/jupyter/lwe-primal.ipynb .
-          cp doc/_build/jupyter/prompt.ipynb .        
+          mkdir notebooks
+          cp doc/_build/jupyter/*.ipynb notebooks/
           sudo mkdir -p /usr/share/sagemath/build/pkgs
           PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` python -m pytest
           
