@@ -202,6 +202,7 @@ class PrimalUSVP:
                 **kwds,
             )
             cost["tag"] = "usvp"
+            cost["problem"] = params
             return cost
 
         try:
@@ -251,6 +252,7 @@ class PrimalUSVP:
             Logging.log("usvp", log_level + 1, f"Opt-d: {repr(cost)}")
 
         cost["tag"] = "usvp"
+        cost["problem"] = params
         return cost
 
     __name__ = "primal_usvp"
@@ -511,6 +513,7 @@ class PrimalHybrid:
 
         if cost.get("zeta", 0) == 0:
             cost["tag"] = cost.get("tag", "bdd")
+            cost["problem"] = params
             try:
                 del cost["|S|"]
                 del cost["prob"]
@@ -520,6 +523,7 @@ class PrimalHybrid:
                 pass
         else:
             cost["tag"] = cost.get("tag", "hybrid")
+            cost["problem"] = params
         return cost
 
     __name__ = "primal_hybrid"
