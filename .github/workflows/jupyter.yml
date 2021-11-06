@@ -29,6 +29,7 @@ jobs:
         run: |          
           mkdir out
           cp pyproject.toml out/
+          cp -r .github/ out/
           cp -r estimator/ out/
           rm -rf out/estimator/__pycache__
           echo 'FROM sagemathinc/cocalc:latest' >> out/Dockerfile
