@@ -2,8 +2,6 @@
 
 LWE Primal Attacks
 ==================
-.. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb
 
 We construct an (easy) example LWE instance::
 
