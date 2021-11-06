@@ -28,7 +28,9 @@ jobs:
       - name: Copy over
         run: |          
           mkdir out
+          cp pyproject.toml out/
           cp -r estimator/ out/
+          rm -rf out/estimator/__pycache__
           echo 'FROM sagemathinc/cocalc:latest' >> out/Dockerfile
           echo 'COPY --chown=sage:sage . ${HOME}' >> out/Dockerfile
           cp doc/_build/jupyter/lwe-primal.ipynb out
