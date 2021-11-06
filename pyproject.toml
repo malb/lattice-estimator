@@ -1,0 +1,20 @@
+[tool.black]
+line-length = 120
+
+[tool.pytest.ini_options]
+addopts = "--ignore=doc/conf.py --doctest-modules --doctest-glob=\"*.rst\" --nbmake"
+
+[tool.flake8]
+max-line-length = 120
+max-complexity = 16
+extend-ignore = "E203,E22,E241"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+black = "*"
+flake8 = "*"
+pyproject-flake8 = "*"
+pytest = "*"
+pytest-xdist = "*"
+sphinx-book-theme = "*"
+sphinxcontrib-jupyter = "*"
