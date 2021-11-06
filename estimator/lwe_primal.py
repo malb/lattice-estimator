@@ -47,11 +47,12 @@ import estimator.reduction as RC
 from .util import binary_search
 from .cost import Cost
 from .lwe import LWEParameters
-from .simulator import Simulator
+import estimator.simulator as Simulator
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
 from .io import Logging
+from .conf import red_cost_model_default, red_shape_model_default, red_simulator_default
 
 
 class PrimalUSVP:
@@ -110,7 +111,7 @@ class PrimalUSVP:
         m: int = oo,
         tau=None,
         d=None,
-        red_cost_model=RC.default,
+        red_cost_model=red_cost_model_default,
     ):
 
         delta = RC.delta(beta)
@@ -137,7 +138,7 @@ class PrimalUSVP:
         m: int = oo,
         tau=None,
         d=None,
-        red_cost_model=RC.default,
+        red_cost_model=red_cost_model_default,
     ):
         delta = RC.delta(beta)
         if d is None:
@@ -156,8 +157,8 @@ class PrimalUSVP:
     def __call__(
         self,
         params: LWEParameters,
-        red_cost_model=RC.default,
-        red_shape_model="gsa",
+        red_cost_model=red_cost_model_default,
+        red_shape_model=red_shape_model_default,
         optimize_d=True,
         log_level=1,
         **kwds,
@@ -315,8 +316,8 @@ class PrimalHybrid:
         mitm=False,
         m: int = oo,
         d: int = None,
-        simulator=Simulator.GSA,
-        red_cost_model=RC.default,
+        simulator=red_simulator_default,
+        red_cost_model=red_cost_model_default,
         log_level=5,
     ):
         """
@@ -421,8 +422,8 @@ class PrimalHybrid:
         self,
         zeta: int,
         params: LWEParameters,
-        red_shape_model=Simulator.GSA,
-        red_cost_model=RC.default,
+        red_shape_model=red_simulator_default,
+        red_cost_model=red_cost_model_default,
         m: int = oo,
         babai: bool = False,
         mitm: bool = True,
@@ -489,8 +490,8 @@ class PrimalHybrid:
         babai: bool = False,
         zeta: int = None,
         mitm: bool = True,
-        red_shape_model="gsa",
-        red_cost_model=RC.default,
+        red_shape_model=red_shape_model_default,
+        red_cost_model=red_cost_model_default,
         log_level=1,
         **kwds,
     ):
@@ -555,8 +556,8 @@ primal_hybrid = PrimalHybrid()
 
 def primal_bdd(
     params: LWEParameters,
-    red_shape_model="gsa",
-    red_cost_model=RC.default,
+    red_shape_model=red_shape_model_default,
+    red_cost_model=red_cost_model_default,
     log_level=1,
     **kwds,
 ):

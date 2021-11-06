@@ -59,7 +59,7 @@ class LWEParameters:
         """
         Return a new set of parameters updated according to ``kwds``.
 
-        :params **kwds: We set ``key`` to ``value`` in the new set of parameters.
+        :param kwds: We set ``key`` to ``value`` in the new set of parameters.
 
         EXAMPLE::
 

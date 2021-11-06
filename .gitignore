@@ -1,1 +1,3 @@
 /notebooks/.ipynb_checkpoints/*.ipynb
+/doc/_apidoc/
+/doc/_build/

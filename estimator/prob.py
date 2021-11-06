@@ -6,6 +6,9 @@ from sage.all import RealDistribution, RR, sqrt, prod
 def babai(r, norm):
     """
     Babai probability following [Wun16]_.
+
+    .. [Wun16] Wunderer, T. (2016). Revisiting the hybrid attack: improved analysis and refined
+       security estimates.
     """
     R = [RR(sqrt(t) / (2 * norm)) for t in r]
     T = RealDistribution("beta", ((len(r) - 1) / 2, 1.0 / 2))

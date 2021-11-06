@@ -2,7 +2,7 @@
 line-length = 120
 
 [tool.pytest.ini_options]
-addopts = "--doctest-modules --doctest-glob=\"*.rst\" --nbmake"
+addopts = "--ignore=doc --doctest-modules --doctest-glob=\"*.rst\" --nbmake"
 
 [tool.flake8]
 max-line-length = 120
@@ -17,3 +17,4 @@ pyproject-flake8 = "*"
 pytest = "*"
 pytest-xdist = "*"
 nbmake = "*"
+sphinx-book-theme = "*"

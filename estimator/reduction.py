@@ -255,7 +255,8 @@ def LLL(d, B=None):
 
 def _BDGL16_small(beta, d, B=None):
     """
-    Runtime estimation given β and assuming sieving is used to realise the SVP oracle for small dimensions.
+    Runtime estimation given β and assuming sieving is used to realise the SVP oracle for small
+    dimensions following [BDGL16]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -271,14 +272,14 @@ def _BDGL16_small(beta, d, B=None):
     ..  [BDGL16] Becker, A., Ducas, L., Gama, N., & Laarhoven, T.  (2016).  New directions in
         nearest neighbor searching with applications to lattice sieving.  In SODA 2016, (pp.
         10–24).
-
     """
     return LLL(d, B) + ZZ(2) ** RR(0.387 * beta + 16.4 + log(svp_repeat(beta, d), 2))
 
 
 def _BDGL16_asymptotic(beta, d, B=None):
     """
-    Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle.
+    Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle
+    following [BDGL16]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -292,9 +293,8 @@ def _BDGL16_asymptotic(beta, d, B=None):
         175.4
 
     ..  [BDGL16] Becker, A., Ducas, L., Gama, N., & Laarhoven, T.  (2016).  New directions in
-    nearest neighbor searching with applications to lattice sieving.  In SODA 2016, (pp.
-    10–24).
-
+        nearest neighbor searching with applications to lattice sieving.  In SODA 2016, (pp.
+        10–24).
     """
     # TODO we simply pick the same additive constant 16.4 as for the experimental result in [BDGL16]
     return LLL(d, B) + ZZ(2) ** RR(0.292 * beta + 16.4 + log(svp_repeat(beta, d), 2))
@@ -302,7 +302,7 @@ def _BDGL16_asymptotic(beta, d, B=None):
 
 def BDGL16(beta, d, B=None):
     """
-    Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle.
+    Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle following [BDGL16]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -328,7 +328,7 @@ def BDGL16(beta, d, B=None):
 
 def LaaMosPol14(beta, d, B=None):
     """
-    Runtime estimation for quantum sieving.
+    Runtime estimation for quantum sieving following [LaaMosPol14]_ and [Laarhoven15]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -444,10 +444,10 @@ def ABLR21(beta, d, B=None):
         >>> log(RC.ABLR21(500, 1024), 2.0)
         278.20...
 
-     .. [C:ABLR21] Albrecht, M. R., Bai, S., Li, J., & Rowell, J. (2021). Lattice reduction with
-        approximate enumeration oracles - practical algorithms and concrete performance. In T.
-        Malkin, & C. Peikert, CRYPTO 2021, Part II (pp. 732–759). Virtual Event: Springer",
-        Heidelberg.
+    .. [C:ABLR21] Albrecht, M. R., Bai, S., Li, J., & Rowell, J. (2021). Lattice reduction with
+       approximate enumeration oracles - practical algorithms and concrete performance. In T.
+       Malkin, & C. Peikert, CRYPTO 2021, Part II (pp. 732–759). Virtual Event: Springer",
+       Heidelberg.
     """
     if 1.5 * beta >= d or beta <= 97:  # 1.5β is a bit arbitrary, 97 is the crossover
         cost = RR(0.1839 * beta * log(beta, 2) - 1.077 * beta + 29.12 + log(64, 2))
@@ -511,9 +511,9 @@ def d4f(beta):
         >>> RC.d4f(500)
         42.597...
 
-    -.. [EC:Ducas18] Léo Ducas (2018). Shortest vector from lattice sieving: A few dimensions for
-        free. In J. B. Nielsen, & V. Rijmen, EUROCRYPT 2018, Part I (pp. 125–145). : Springer,
-        Heidelberg.
+    .. [EC:Ducas18] Léo Ducas (2018). Shortest vector from lattice sieving: A few dimensions for
+       free. In J. B. Nielsen, & V. Rijmen, EUROCRYPT 2018, Part I (pp. 125–145). : Springer,
+       Heidelberg.
     """
     return max(float(beta * log(4 / 3.0) / log(beta / (2 * pi * e))), 0.0)
 
@@ -621,7 +621,3 @@ def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
         cost["red"] = oo
         cost["rop"] = oo
     return cost
-
-
-default = Kyber
-classical_poly_space = ABLR21
