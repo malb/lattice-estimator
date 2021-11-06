@@ -28,7 +28,7 @@ jobs:
           mkdir out
           cp -r estimator/ out/
           cp doc/_build/jupyter/lwe-primal.ipynb out
-          cp doc/_build/jyupyter/prompt.ipynb out
+          cp doc/_build/jupyter/prompt.ipynb out
 
       - name: Publish
         uses: s0/git-publish-subdir-action@develop
