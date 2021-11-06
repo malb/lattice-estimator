@@ -68,6 +68,8 @@ class Cost:
         d = self.__dict__
         s = []
         for k, v in d.items():
+            if k == "problem":  # we store the problem instance in a cost object for reference
+                continue
             kk = wfmtf(self.key_map.get(k, k))
             try:
                 if 1 / round_bound < abs(v) < round_bound or not v:

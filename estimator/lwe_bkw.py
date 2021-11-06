@@ -22,7 +22,7 @@ class CodedBKW:
         return floor(b / (1 - log(12 * sigma_set ** 2 / 2 ** i, q) / 2))
 
     @staticmethod
-    def find_ntest(n, ell, t1, t2, b, q):  # noqa
+    def ntest(n, ell, t1, t2, b, q):  # noqa
         """
         If the parameter ``ntest`` is not provided, we use this function to estimate it.
 
@@ -57,7 +57,7 @@ class CodedBKW:
                 break
         return int(ntest_min)
 
-    def find_t1(params: LWEParameters, ell, t2, b, ntest=None):
+    def t1(params: LWEParameters, ell, t2, b, ntest=None):
         """
         We compute t1 from N_i by observing that any N_i ≤ b gives no advantage over vanilla
         BKW, but the estimates for coded BKW always assume quantisation noise, which is too
@@ -66,7 +66,7 @@ class CodedBKW:
 
         t1 = 0
         if ntest is None:
-            ntest = CodedBKW.find_ntest(params.n, ell, t1, t2, b, params.q)
+            ntest = CodedBKW.ntest(params.n, ell, t1, t2, b, params.q)
         sigma_set = sqrt(params.q ** (2 * (1 - ell / ntest)) / 12)
         Ni = [CodedBKW.N(i, sigma_set, b, params.q) for i in range(1, t2 + 1)]
         t1 = len([e for e in Ni if e <= b])
@@ -106,7 +106,7 @@ class CodedBKW:
         # base of the table size.
         zeta = secret_bounds[1] - secret_bounds[0] + 1
 
-        t1 = CodedBKW.find_t1(params, ell, t2, b, ntest)
+        t1 = CodedBKW.t1(params, ell, t2, b, ntest)
         t2 -= t1
 
         cost["t1"] = t1
@@ -116,7 +116,7 @@ class CodedBKW:
 
         # compute ntest with the t1 just computed
         if ntest is None:
-            ntest = CodedBKW.find_ntest(params.n, ell, t1, t2, b, params.q)
+            ntest = CodedBKW.ntest(params.n, ell, t1, t2, b, params.q)
 
         # if there's no ntest then there's no `σ_{set}` and hence no ncod
         if ntest:
@@ -193,28 +193,11 @@ class CodedBKW:
 
         cost = cost.reorder("rop", "m", "mem", "b", "t1", "t2")
         cost["tag"] = "coded-bkw"
+        cost["problem"] = params
         return cost
 
-    def __call__(self, params: LWEParameters, ntest=None):
-        """
-        Coded-BKW as described in [C:GuoJohSta15]_
-
-        :param params: LWE parameters
-        :param ntest: Number of coordinates to hypothesis test.
-
-        EXAMPLE::
-
-            >>> from sage.all import oo
-            >>> from estimator import *
-            >>> coded_bkw(Kyber512.updated(m=oo))
-            rop: ≈2^156.2, m: ≈2^143.9, mem: ≈2^144.9, b: 12, t1: 7, t2: 16, ℓ: 11, #cod: 377, #top: 0, #test: 52, ...
-
-        .. [C:GuoJohSta15] Guo, Q., Johansson, T., & Stankovski, P. (2015). Coded-BKW: Solving LWE
-           using Lattice Codes. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part I (pp. 23–42):
-           Springer, Heidelberg.
-        """
-        params = LWEParameters.normalize(params)
-
+    @classmethod
+    def b(cls, params: LWEParameters, ntest=None):
         def predicate(x, best):
             return (x["rop"] <= best["rop"]) and (best["m"] > params.m or x["m"] <= params.m)
 
@@ -245,9 +228,66 @@ class CodedBKW:
         # binary search cannot fail. It just outputs some X with X["oracle"]>m.
         if best["m"] > params.m:
             raise InsufficientSamplesError(
-                f"Got m≈2^{float(log(params.m, 2.0)):.1f} samples, but require ≈2^{float(log(best['m'],2.0)):.1f}."
+                f"Got m≈2^{float(log(params.m, 2.0)):.1f} samples, but require ≈2^{float(log(best['m'],2.0)):.1f}.",
+                best["m"],
             )
         return best
+
+    def __call__(self, params: LWEParameters, ntest=None):
+        """
+        Coded-BKW as described in [C:GuoJohSta15]_
+
+        :param params: LWE parameters
+        :param ntest: Number of coordinates to hypothesis test.
+        :return: A cost dictionary
+
+        The returned cost dictionary has the following entries:
+
+        - ``rop``: Total number of word operations (≈ CPU cycles).
+        - ``b``: BKW tables have size `q^b`.
+        - ``t1``: Number of plain BKW tables.
+        - ``t2``: Number of Coded-BKW tables.
+        - ``ℓ``:
+        - ``#cod``:
+        - ``#top``:
+        ` ``#test``: Number of coordinates to do hypothesis testing on.
+
+        EXAMPLE::
+
+            >>> from sage.all import oo
+            >>> from estimator import *
+            >>> coded_bkw(Kyber512.updated(m=oo))
+            rop: ≈2^156.2, m: ≈2^143.9, mem: ≈2^144.9, b: 12, t1: 7, t2: 16, ℓ: 11, #cod: 377, #top: 0, #test: 52, ...
+
+        We may need to amplify the number of samples, which modifies the noise distribution::
+
+            >>> from sage.all import oo
+            >>> from estimator import *
+            >>> Kyber512
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
+            >>> cost = coded_bkw(Kyber512); cost
+            rop: ≈2^167.2, m: ≈2^155.1, mem: ≈2^156.1, b: 13, t1: 0, t2: 16, ℓ: 12, #cod: 444, #top: 1, #test: 67, ...
+            >>> cost["problem"]
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.00), Xe=D(σ=4.90), m=493584224..., tag='Kyber 512')
+
+        .. [C:GuoJohSta15] Guo, Q., Johansson, T., & Stankovski, P. (2015). Coded-BKW: Solving LWE
+           using Lattice Codes. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part I (pp. 23–42):
+           Springer, Heidelberg.
+        """
+        params = LWEParameters.normalize(params)
+        try:
+            cost = self.b(params, ntest=ntest)
+        except InsufficientSamplesError as e:
+            m = e.args[1]
+            while True:
+                params_ = params.amplify_m(m)
+                try:
+                    cost = self.b(params_, ntest=ntest)
+                    break
+                except InsufficientSamplesError as e:
+                    m = e.args[1]
+
+        return cost
 
 
 coded_bkw = CodedBKW()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from sage.all import oo
+from sage.all import oo, binomial, log, sqrt, ceil
 from dataclasses import dataclass
 from .nd import NoiseDistribution
 from .errors import InsufficientSamplesError
@@ -73,6 +73,50 @@ class LWEParameters:
         d = dict(self.__dict__)
         d.update(kwds)
         return LWEParameters(**d)
+
+    def amplify_m(self, m):
+        """
+        Return a LWE instance parameters with ``m`` samples produced from the samples in this instance.
+
+        :param m: New number of samples.
+
+        EXAMPLE::
+
+            >>> from sage.all import binomial, log
+            >>> from estimator import *
+            >>> Kyber512
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
+            >>> Kyber512.amplify_m(2**100)
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=3.46), m=126765..., tag='Kyber 512')
+
+        We can produce 2^100 samples by random ± linear combinations of 12 vectors::
+
+            >>> float(sqrt(12.)), float(log(binomial(1024, 12) , 2.0)) + 12
+            (3.46..., 103.07...)
+
+        """
+        if m <= self.m:
+            return self
+        if self.m == oo:
+            return self
+        d = dict(self.__dict__)
+
+        if self.Xe.mean != 0:
+            raise NotImplementedError("Amplifying for μ≠0 not implemented.")
+
+        for k in range(ceil(log(m, 2.0))):
+            # - binom(n,k) positions
+            #  -two signs per position (+1,-1)
+            # - all "-" and all "+" are the same
+            if binomial(self.m, k) * 2 ** k - 1 >= m:
+                Xe = NoiseDistribution.DiscreteGaussian(float(sqrt(k) * self.Xe.stddev))
+                d["Xe"] = Xe
+                d["m"] = ceil(m)
+                return LWEParameters(**d)
+        else:
+            raise NotImplementedError(
+                f"Cannot amplify to ≈2^{log(m,2):1} using {{+1,-1}} additions."
+            )
 
     def __hash__(self):
         return hash((self.n, self.q, self.Xs, self.Xe, self.m, self.tag))
