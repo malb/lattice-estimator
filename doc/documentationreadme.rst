@@ -1,5 +1,5 @@
 Documentation README
-======================
+====================
 
 Documentation for the ``estimator`` is available `online <https://lattice-estimator.readthedocs.io/>`__.
 This documentation can be generated locally by running the following code in the lwe-estimator directory:
@@ -13,6 +13,6 @@ If documentation was previously generated locally, to ensure a full regeneration
 
 ::
     
-    make clean && rm -fr doc/_apidoc
+    make clean
     
 

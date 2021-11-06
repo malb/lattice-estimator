@@ -38,17 +38,15 @@ Status
 
 We do not have feature parity with the old estimator yet:
 
-- [X] primal attack on LWE via uSVP using BKZ simulators or assuming the GSA
-- [X] primal attack on LWE (effectively) via BDD using BKZ simulators or assuming the GSA
-- [X] Coded-BKW attack on LWE
-- [ ] hybrid primal attack on LWE
-- [ ] dual attack on LWE
-- [ ] Aroroa-GB attack on LWE
+- ☑ :doc:`Primal attack on LWE <../lwe-primal>`.
+- ☑ Coded-BKW attack on LWE.
+- ☐ Dual attack on LWE.
+- ☐ Aroroa-GB attack on LWE.
 
-We also plan:
+We are also planning:
 
-- [ ] attack on NTRU pulic keys (using overstretched parameters)
-- [ ] SIS attack  
+- ☐ Attacks on NTRU pulic keys (using overstretched parameters).
+- ☐ SIS attack.
          
 Evolution
 ---------
