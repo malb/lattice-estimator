@@ -47,12 +47,7 @@ sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 #
 # needs_sphinx = '1.0'
 autoclass_content = "both"
-# autodoc_default_flags = [
-#    "members",
-#    "inherited-members",
-#    "private-members",
-#    "show-inheritance"
-# ]
+# autodoc_default_flags = ["members", "inherited-members", "private-members", "show-inheritance"]
 autosummary_generate = True
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -387,7 +382,7 @@ jupyter_static_file_path = ["_static"]
 jupyter_default_lang = "sagemath"
 jupyter_kernels = {
     "sagemath": {
-        "kernelspec": {"display_name": "SageMath", "language": "sagemath", "name": "sagemath"},
+        "kernelspec": {"display_name": "SageMath", "language": "sage", "name": "sagemath"},
         "file_extension": ".py",
     }
 }

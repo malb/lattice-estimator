@@ -1,13 +1,12 @@
-
-{{ fullname }}
-{{ underline }}
+{{ fullname  | escape | underline}}
 
 .. currentmodule:: {{ module }}
 
 .. autoclass:: {{ objname }}
 
    {% block methods %}
-
+   .. automethod:: __call__
+                   
    {% if methods %}
    .. rubric:: Methods
 

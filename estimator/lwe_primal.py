@@ -135,6 +135,15 @@ class PrimalUSVP:
         :param red_cost_model: How to cost lattice reduction
         :param red_shape_model: How to model the shape of a reduced basis
         :param optimize_d: Attempt to find minimal d, too
+        :return: A cost dictionary
+
+        The returned cost dictionary has the following entries:
+
+        - ``rop``: Total number of word operations (≈ CPU cycles).
+        - ``red``: Number of word operations in lattice reduction.
+        - ``δ``: Root-Hermite factor targeted by lattice reduction.
+        - ``β``: BKZ block size.
+        - ``d``: Lattice dimension.
 
         EXAMPLE::
 
@@ -153,7 +162,7 @@ class PrimalUSVP:
             rop: ≈2^91.3, red: ≈2^91.3, δ: 1.006114, β: 209, d: 400, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
-        [AC:AGVW17,C:DDGR20,PKC:PosVir21]_. The treatment of small secrets is from
+        [AC:AGVW17]_, [C:DDGR20]_, [PKC:PosVir21]_. The treatment of small secrets is from
         [ACISP:BaiGal14]_.
 
         .. [ACISP:BaiGal14] Bai, S., & Galbraith, S. D. (2014). Lattice decoding attacks on binary
