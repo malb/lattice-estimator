@@ -207,7 +207,7 @@ class CodedBKW:
             >>> from sage.all import oo
             >>> from estimator import *
             >>> coded_bkw(Kyber512.updated(m=oo))
-            rop: ≈2^160.0, m: ≈2^143.9, mem: ≈2^144.9, b: 12, t1: 6, t2: 16, ℓ: 11, #cod: 383, #top: 3, #test: 54, ...
+            rop: ≈2^156.2, m: ≈2^143.9, mem: ≈2^144.9, b: 12, t1: 7, t2: 16, ℓ: 11, #cod: 377, #top: 0, #test: 52, ...
 
         .. [GuoJohSta15] Guo, Q., Johansson, T., & Stankovski, P. (2015). Coded-BKW: Solving LWE
            using Lattice Codes. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part I (pp. 23–42):
