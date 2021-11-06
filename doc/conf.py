@@ -47,12 +47,7 @@ sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 #
 # needs_sphinx = '1.0'
 autoclass_content = "both"
-# autodoc_default_flags = [
-#    "members",
-#    "inherited-members",
-#    "private-members",
-#    "show-inheritance"
-# ]
+# autodoc_default_flags = ["members", "inherited-members", "private-members", "show-inheritance"]
 autosummary_generate = True
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -65,6 +60,7 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
+    "sphinxcontrib.jupyter",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -85,7 +81,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"Lattice Estimator"
-copyright = u"2018, Martin R Albrecht"
+copyright = u"2021, Martin R Albrecht"
 author = u"Martin R Albrecht"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -375,3 +371,26 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
+
+# --------------------------------------------
+# sphinxcontrib-jupyter Configuration Settings
+# --------------------------------------------
+
+jupyter_conversion_mode = "all"
+jupyter_write_metadata = True
+jupyter_static_file_path = ["_static"]
+jupyter_default_lang = "sagemath"
+jupyter_kernels = {
+    "sagemath": {
+        "kernelspec": {"display_name": "SageMath", "language": "sage", "name": "sagemath"},
+        "file_extension": ".py",
+    }
+}
+jupyter_headers = {
+    "sagemath": [
+        # nbformat.v4.new_code_cell("%autosave 0")      #@mmcky please make this an option
+    ],
+}
+
+# Prepend a Welcome Message to Each Notebook
+jupyter_welcome_block = "welcome.rst"

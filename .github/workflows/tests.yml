@@ -15,27 +15,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out
+      - name: Check Out
         uses: actions/checkout@v2
       - name: Install prerequisites
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install $DEPS
-      - name: PEP8
-        run: |
-          export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
-          export PATH="$SAGE_ROOT/bin:$PATH"
-          export SAGE_LOCAL="$SAGE_ROOT/local"
-          export DOT_SAGE=$HOME/.sage/
-          pip install --upgrade pyproject-flake8
-          flake8 estimator/
       - name: Test
         run: |
           export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
           export PATH="$SAGE_ROOT/bin:$PATH"
           export SAGE_LOCAL="$SAGE_ROOT/local"
           export DOT_SAGE=$HOME/.sage/
-          pip install --upgrade pytest nbmake traitlets nbclient
+          pip install --upgrade pytest traitlets nbmake nbclient sphinxcontrib-jupyter
+          # TODO: for some strange reason it hangs otherwise
+          pip install --upgrade nbmake
+          # make jupyter notebooks
+          make jupyter
+          # We have to manually copy over those notebooks we want check
+          cp doc/_build/jupyter/prompt.ipynb .
+          cp doc/_build/jupyter/lwe-primal.ipynb .
+          # sage wants it
           sudo mkdir -p /usr/share/sagemath/build/pkgs
+          # run tests
           PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` python -m pytest
           

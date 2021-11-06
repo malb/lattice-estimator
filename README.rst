@@ -2,7 +2,7 @@ Security Estimates for Lattice Problems
 =======================================
 
 .. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/malb/lattice-estimator/main?labpath=..%2F..%2Ftree%2Fnotebooks%2FPlain.ipynb
+ :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb
 
 This `Sage <http://sagemath.org>`__ module provides functions for estimating the concrete security
 of `Learning with Errors <https://en.wikipedia.org/wiki/Learning_with_errors>`__ instances.
@@ -31,24 +31,22 @@ Quick Start
     rop: ≈2^148.9, red: ≈2^148.9, δ: 1.003914, β: 410, d: 944, tag: usvp
 
 You can try/use the estimator on `Binder
-<https://mybinder.org/v2/gh/malb/lattice-estimator/main?labpath=..%2F..%2Ftree%2Fnotebooks%2FPlain.ipynb>`__.
+<https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
     
 Status
 ------
 
 We do not have feature parity with the old estimator yet:
 
-- [X] primal attack on LWE via uSVP using BKZ simulators or assuming the GSA
-- [X] primal attack on LWE (effectively) via BDD using BKZ simulators or assuming the GSA
-- [X] Coded-BKW attack on LWE
-- [ ] hybrid primal attack on LWE
-- [ ] dual attack on LWE
-- [ ] Aroroa-GB attack on LWE
+- ☑ :doc:`Primal attack on LWE <../lwe-primal>`. [`Binder <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb>`_]
+- ☑ Coded-BKW attack on LWE.
+- ☐ Dual attack on LWE.
+- ☐ Aroroa-GB attack on LWE.
 
-We also plan:
+We are also planning:
 
-- [ ] attack on NTRU pulic keys (using overstretched parameters)
-- [ ] SIS attack  
+- ☐ Attacks on NTRU pulic keys (using overstretched parameters).
+- ☐ SIS attack.
          
 Evolution
 ---------

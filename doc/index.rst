@@ -11,6 +11,7 @@ Welcome to Lattice Estimator's documentation.
    :maxdepth: 2
 
    readme_link
+   lwe-primal
    documentationreadme
 
 .. toctree::

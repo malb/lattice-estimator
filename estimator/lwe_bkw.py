@@ -197,7 +197,7 @@ class CodedBKW:
 
     def __call__(self, params: LWEParameters, ntest=None):
         """
-        Coded-BKW as described in [C:GuoJohSta15]
+        Coded-BKW as described in [C:GuoJohSta15]_
 
         :param params: LWE parameters
         :param ntest: Number of coordinates to hypothesis test.
@@ -209,7 +209,7 @@ class CodedBKW:
             >>> coded_bkw(Kyber512.updated(m=oo))
             rop: ≈2^156.2, m: ≈2^143.9, mem: ≈2^144.9, b: 12, t1: 7, t2: 16, ℓ: 11, #cod: 377, #top: 0, #test: 52, ...
 
-        .. [GuoJohSta15] Guo, Q., Johansson, T., & Stankovski, P. (2015). Coded-BKW: Solving LWE
+        .. [C:GuoJohSta15] Guo, Q., Johansson, T., & Stankovski, P. (2015). Coded-BKW: Solving LWE
            using Lattice Codes. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part I (pp. 23–42):
            Springer, Heidelberg.
         """
