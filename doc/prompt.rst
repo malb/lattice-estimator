@@ -18,13 +18,8 @@ An updated version of the material covered in the above survey is available in
 
 ::
 
-   # set paths
-   import sys
-   sys.path.append("..")
-
    # import
    from estimator import *
-
 
 ::
 
