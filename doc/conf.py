@@ -387,7 +387,7 @@ jupyter_static_file_path = ["_static"]
 jupyter_default_lang = "sagemath"
 jupyter_kernels = {
     "sagemath": {
-        "kernelspec": {"display_name": "SageMath", "language": "sage", "name": "sagemath"},
+        "kernelspec": {"display_name": "SageMath", "language": "sagemath", "name": "sagemath"},
         "file_extension": ".py",
     }
 }
