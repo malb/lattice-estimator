@@ -14,7 +14,7 @@ jobs:
         with:
             python-version: 3.8
             
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v2
   
       - name: Install Prerequists
@@ -25,8 +25,11 @@ jobs:
       - name: Generate Jupyter Notebooks
         run: |
           make jupyter
+      - name: Copy over
+        run: |          
           mkdir out
           cp -r estimator/ out/
+          cp Dockerfile out/
           cp doc/_build/jupyter/lwe-primal.ipynb out
           cp doc/_build/jupyter/prompt.ipynb out
 
