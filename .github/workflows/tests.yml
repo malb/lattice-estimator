@@ -27,11 +27,16 @@ jobs:
           export PATH="$SAGE_ROOT/bin:$PATH"
           export SAGE_LOCAL="$SAGE_ROOT/local"
           export DOT_SAGE=$HOME/.sage/
-          pip install --upgrade pytest nbmake traitlets nbclient sphinxcontrib-jupyter
+          pip install --upgrade pytest traitlets nbmake nbclient sphinxcontrib-jupyter
+          # TODO: for some strange reason it hangs otherwise
           pip install --upgrade nbmake
+          # make jupyter notebooks
           make jupyter
-          mkdir notebooks
-          cp doc/_build/jupyter/*.ipynb .
+          # We have to manually copy over those notebooks we want check
+          cp doc/_build/jupyter/prompt.ipynb .
+          cp doc/_build/jupyter/lwe-primal.ipynb .
+          # sage wants it
           sudo mkdir -p /usr/share/sagemath/build/pkgs
+          # run tests
           PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` python -m pytest
           
