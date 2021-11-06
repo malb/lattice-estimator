@@ -213,6 +213,7 @@ class CodedBKW:
            using Lattice Codes. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part I (pp. 23–42):
            Springer, Heidelberg.
         """
+        params = LWEParameters.normalize(params)
 
         def predicate(x, best):
             return (x["rop"] <= best["rop"]) and (best["m"] > params.m or x["m"] <= params.m)

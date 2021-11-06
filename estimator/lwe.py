@@ -20,6 +20,26 @@ class LWEParameters:
             self.Xe.n = self.m
 
     def normalize(self):
+        """
+        EXAMPLES:
+
+        We perform the normal form transformation if χ_e < χ_s and we got the samples::
+
+            >>> from estimator import *
+            >>> Xs=ND.DiscreteGaussian(2.0)
+            >>> Xe=ND.DiscreteGaussian(1.58)
+            >>> LWEParameters(n=512, q=8192, Xs=Xs, Xe=Xe).normalize()
+            LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=1.58), m=+Infinity, tag=None)
+
+        If m = n, we swap the secret and the noise::
+
+            >>> from estimator import *
+            >>> Xs=ND.DiscreteGaussian(2.0)
+            >>> Xe=ND.DiscreteGaussian(1.58)
+            >>> LWEParameters(n=512, q=8192, Xs=Xs, Xe=Xe, m=512).normalize()
+            LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=2.00), m=512, tag=None)
+
+        """
         if self.m < 1:
             raise InsufficientSamplesError(f"m={self.m} < 1")
 
