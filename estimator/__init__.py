@@ -4,8 +4,8 @@ from .lwe import LWEParameters  # noqa
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid  # noqa
 from .lwe_bkw import coded_bkw  # noqa
 
-import estimator.reduction as RC  # noqa
-import estimator.simulator as Simulator  # noqa
+from . import reduction as RC  # noqa
+from . import simulator as Simulator  # noqa
 
 # from .lwe_primal import RC  # noqa, this is a silly hack
 
