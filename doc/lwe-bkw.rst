@@ -1,3 +1,5 @@
+.. _Coded-BKW for LWE:
+
 Coded-BKW for LWE
 =================
 

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+See :ref:`Coded-BKW for LWE` for what is available.
+"""
 from sage.all import ceil, log, floor, sqrt, var, find_root, erf, oo
 from .lwe import LWEParameters
 from .util import binary_search

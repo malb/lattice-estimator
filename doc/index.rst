@@ -12,6 +12,7 @@ Welcome to Lattice Estimator's documentation.
 
    readme_link
    lwe-primal
+   lwe-bkw
    documentationreadme
 
 .. toctree::

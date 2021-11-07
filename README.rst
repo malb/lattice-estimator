@@ -3,6 +3,9 @@ Security Estimates for Lattice Problems
 
 .. image:: https://mybinder.org/badge_logo.svg
  :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb
+.. image:: https://readthedocs.org/projects/lattice-estimator/badge/?version=latest
+ :target: https://lattice-estimator.readthedocs.io/en/latest/?badge=latest
+ :alt: Documentation Status
 
 This `Sage <http://sagemath.org>`__ module provides functions for estimating the concrete security
 of `Learning with Errors <https://en.wikipedia.org/wiki/Learning_with_errors>`__ instances.
@@ -14,7 +17,7 @@ known in the literature.
 Quick Start
 -----------
 
-::
+- Usage ::
 
     >>> from estimator import *
     >>> Kyber512
@@ -26,20 +29,16 @@ Quick Start
     >>> primal_bdd(Kyber512)
     rop: ≈2^137.8, red: ≈2^136.5, svp: ≈2^137.1, β: 365, η: 400, d: 981, tag: bdd
 
-    >>> params = LWEParameters(n=512, q=3329, Xs=ND.UniformMod(3), Xe=ND.CenteredBinomial(eta=8), m=1024)
-    >>> primal_usvp(params)
-    rop: ≈2^148.9, red: ≈2^148.9, δ: 1.003914, β: 410, d: 944, tag: usvp
-
-You can try/use the estimator on `Binder
-<https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
-    
+- `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
+- `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.
+  
 Status
 ------
 
 We do not have feature parity with the old estimator yet:
 
-- ☑ :doc:`Primal attack on LWE <../lwe-primal>`. [`Binder <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb>`_]
-- ☑ :doc:`Coded-BKW attack <../lwe-bkw>` on LWE. [`Binder <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb>`_]
+- ☑ :doc:`Primal attack on LWE <../lwe-primal>`. [`Binder <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb>`__]
+- ☑ :doc:`Coded-BKW attack <../lwe-bkw>` on LWE. [`Binder <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb>`__]
 - ☐ Dual attack on LWE.
 - ☐ Aroroa-GB attack on LWE.
 
