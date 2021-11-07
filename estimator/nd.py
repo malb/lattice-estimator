@@ -173,6 +173,10 @@ class NoiseDistribution:
     def is_Gaussian_like(self):
         return ("Gaussian" in self.tag) or ("CenteredBinomial" in self.tag)
 
+    @property
+    def is_bounded(self):
+        return (self.bounds[1] - self.bounds[0]) < oo
+
     @staticmethod
     def DiscreteGaussian(stddev, mean=0, n=None):
         """

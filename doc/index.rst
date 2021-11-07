@@ -21,8 +21,14 @@ Lattice Estimator
    _apidoc/*
 
 .. toctree::
-   :caption: Appendix
+   :caption: Parameters from the Literature
 
+   nist-pqc-round-3
+   hes
+   
+.. toctree::
+   :caption: Appendix
+   
    documentationreadme
    genindex
 
