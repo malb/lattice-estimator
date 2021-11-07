@@ -7,13 +7,12 @@ Lattice Estimator
 =================
 
 .. toctree::
-   :caption: Introduction
+   :caption: Documentation
    :maxdepth: 2
 
    readme_link
    lwe-primal
    lwe-bkw
-   documentationreadme
 
 .. toctree::
    :caption: API Reference
@@ -24,5 +23,6 @@ Lattice Estimator
 .. toctree::
    :caption: Appendix
 
+   documentationreadme
    genindex
 

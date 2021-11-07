@@ -1,5 +1,5 @@
-Module Overview
-===============
+Introduction
+============
 .. Ignore the title from the README when importing 
    as we have written our own one above
 
