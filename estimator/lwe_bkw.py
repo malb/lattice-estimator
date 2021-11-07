@@ -6,6 +6,7 @@ from .cost import Cost
 from .errors import InsufficientSamplesError
 from .repeat import amplify_sigma
 from .nd import sigmaf
+from .io import Logging
 
 cfft = 1  # convolutions mod q
 
@@ -27,7 +28,7 @@ class CodedBKW:
         If the parameter ``ntest`` is not provided, we use this function to estimate it.
 
         :param n: LWE dimension > 0.
-        :param ell:  Table size for hypothesis testing.
+        :param ell: Table size for hypothesis testing.
         :param t1: Number of normal BKW steps.
         :param t2: Number of coded BKW steps.
         :param b: Table size for BKW steps.
@@ -76,7 +77,14 @@ class CodedBKW:
         return t1
 
     @staticmethod
-    def cost(t2: int, b: int, ntest: int, params: LWEParameters, success_probability=0.99):  # noqa
+    def cost(
+        t2: int,
+        b: int,
+        ntest: int,
+        params: LWEParameters,
+        success_probability=0.99,
+        log_level=1,
+    ):
         """
         Coded-BKW cost.
 
@@ -194,15 +202,22 @@ class CodedBKW:
         cost = cost.reorder("rop", "m", "mem", "b", "t1", "t2")
         cost["tag"] = "coded-bkw"
         cost["problem"] = params
+        Logging.log("bkw", log_level + 1, f"{repr(cost)}")
+
         return cost
 
     @classmethod
-    def b(cls, params: LWEParameters, ntest=None):
+    def b(
+        cls,
+        params: LWEParameters,
+        ntest=None,
+        log_level=1,
+    ):
         def predicate(x, best):
             return (x["rop"] <= best["rop"]) and (best["m"] > params.m or x["m"] <= params.m)
 
         # the inner search is over t2, the number of coded steps
-        def kernel(b=2):
+        def kernel(b=2, log_level=log_level):
             # the noise is 2**(t1+t2) * something so there is no need to go beyond, say, q^3
             r = binary_search(
                 CodedBKW.cost,
@@ -213,6 +228,7 @@ class CodedBKW:
                 predicate=predicate,
                 b=b,
                 ntest=ntest,
+                log_level=log_level + 1,
             )
             return r
 
@@ -223,6 +239,7 @@ class CodedBKW:
             3 * ceil(log(params.q, 2)),
             "b",
             predicate=predicate,
+            log_level=log_level,
         )
 
         # binary search cannot fail. It just outputs some X with X["oracle"]>m.
@@ -233,7 +250,12 @@ class CodedBKW:
             )
         return best
 
-    def __call__(self, params: LWEParameters, ntest=None):
+    def __call__(
+        self,
+        params: LWEParameters,
+        ntest=None,
+        log_level=1,
+    ):
         """
         Coded-BKW as described in [C:GuoJohSta15]_.
 
@@ -247,9 +269,9 @@ class CodedBKW:
         - ``b``: BKW tables have size `q^b`.
         - ``t1``: Number of plain BKW tables.
         - ``t2``: Number of Coded-BKW tables.
-        - ``ℓ``:
-        - ``#cod``:
-        - ``#top``:
+        - ``ℓ``: Hypothesis testing has tables of size `q^{ℓ+1}`
+        - ``#cod``: Number of coding steps.
+        - ``#top``: Number of guessing steps (typically zero)
         - ``#test``: Number of coordinates to do hypothesis testing on.
 
         EXAMPLE::
@@ -283,13 +305,13 @@ class CodedBKW:
         """
         params = LWEParameters.normalize(params)
         try:
-            cost = self.b(params, ntest=ntest)
+            cost = self.b(params, ntest=ntest, log_level=log_level)
         except InsufficientSamplesError as e:
             m = e.args[1]
             while True:
                 params_ = params.amplify_m(m)
                 try:
-                    cost = self.b(params_, ntest=ntest)
+                    cost = self.b(params_, ntest=ntest, log_level=log_level)
                     break
                 except InsufficientSamplesError as e:
                     m = e.args[1]
