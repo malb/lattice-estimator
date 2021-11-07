@@ -235,7 +235,7 @@ class CodedBKW:
 
     def __call__(self, params: LWEParameters, ntest=None):
         """
-        Coded-BKW as described in [C:GuoJohSta15]_
+        Coded-BKW as described in [C:GuoJohSta15]_.
 
         :param params: LWE parameters
         :param ntest: Number of coordinates to hypothesis test.
@@ -270,9 +270,16 @@ class CodedBKW:
             >>> cost["problem"]
             LWEParameters(n=512, q=3329, Xs=D(σ=1.00), Xe=D(σ=4.90), m=493584224..., tag='Kyber 512')
 
+        .. note :: See also [C:KirFou15]_.
+
         .. [C:GuoJohSta15] Guo, Q., Johansson, T., & Stankovski, P. (2015). Coded-BKW: Solving LWE
            using Lattice Codes. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part I (pp. 23–42):
            Springer, Heidelberg.
+
+        .. [C:KirFou15] Paul Kirchner & Pierre-Alain Fouque. An improved BKW algorithm for LWE with
+           applications to cryptography and lattices. In R. Gennaro, & M. J. B. Robshaw,
+           CRYPTO 2015, Part~I (pp. 43–62). : Springer, Heidelberg.
+
         """
         params = LWEParameters.normalize(params)
         try:
