@@ -8,9 +8,12 @@ Security Estimates for Lattice Problems
  :alt: Documentation Status
 
 This `Sage <http://sagemath.org>`__ module provides functions for estimating the concrete security
-of `Learning with Errors <https://en.wikipedia.org/wiki/Learning_with_errors>`__ instances.
+of
+`Learning with Errors <https://en.wikipedia.org/wiki/Learning_with_errors>`__,
+`SIS <https://en.wikipedia.org/wiki/Short_integer_solution_problem>`__ and
+`NTRU <https://en.wikipedia.org/wiki/NTRU>`__ instances.
 
-The main intend of this estimator is to give designers an easy way to choose parameters resisting
+The main purpose of this estimator is to give designers an easy way to choose parameters resisting
 known attacks and to enable cryptanalysts to compare their results and ideas with other techniques
 known in the literature.
 
@@ -37,8 +40,8 @@ Status
 
 We do not have feature parity with the old estimator yet:
 
-- ``[x]`` :doc:`Primal attack on LWE <../algorithms/lwe-primal>`. [`Binder <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb>`__]
-- ``[x]`` :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>`. [`Binder <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb>`__]
+- ``[x]`` :doc:`Primal attack on LWE <../algorithms/lwe-primal>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb>`__]
+- ``[x]`` :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb>`__]
 - ``[ ]`` Dual attack on LWE.
 - ``[ ]`` Aroroa-GB attack on LWE.
 
