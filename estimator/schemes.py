@@ -110,3 +110,36 @@ NTRUHRSS701Enc = LWEParameters(
     m=700,
     tag="NTRUHRSS701",
 )
+
+NISTPQC_R3 = (
+    Kyber512,
+    Kyber768,
+    Kyber1024,
+    LightSaber,
+    Saber,
+    FireSaber,
+    NTRUHPS2048509Enc,
+    NTRUHPS2048677Enc,
+    NTRUHPS4096821Enc,
+    NTRUHRSS701Enc,
+)
+
+HESv111024128error = LWEParameters(
+    n=1024,
+    q=2 ** 27,
+    Xs=NoiseDistribution.DiscreteGaussian(3.0),
+    Xe=NoiseDistribution.DiscreteGaussian(3.0),
+    m=1024,
+    tag="HESv11error",
+)
+
+HESv111024128ternary = LWEParameters(
+    n=1024,
+    q=2 ** 27,
+    Xs=NoiseDistribution.UniformMod(3),
+    Xe=NoiseDistribution.DiscreteGaussian(3.0),
+    m=1024,
+    tag="HESv11ternary",
+)
+
+HESv11 = (HESv111024128error, HESv111024128ternary)
