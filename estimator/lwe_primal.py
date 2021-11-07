@@ -8,11 +8,12 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 from functools import partial
 
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
-import estimator.reduction as RC
+from .reduction import deltaf
+from .reduction import cost as costf
 from .util import binary_search
 from .cost import Cost
 from .lwe import LWEParameters
-import estimator.simulator as Simulator
+from .simulator import normalize as simulator_normalize
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
@@ -40,7 +41,7 @@ class PrimalUSVP:
         If no such d exists, return the upper bound m.
         """
         # Find the smallest d ∈ [n,m] s.t. a*d^2 + b*d + c >= 0
-        delta = RC.delta(beta)
+        delta = deltaf(beta)
         a = -log(delta)
         C = log(params.Xe.stddev ** 2 * (beta - 1) + tau ** 2) / 2.0
         b = log(delta) * (2 * beta - 1) + log(params.q) - C
@@ -80,7 +81,7 @@ class PrimalUSVP:
         log_level=None,
     ):
 
-        delta = RC.delta(beta)
+        delta = deltaf(beta)
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         tau = params.Xe.stddev if tau is None else tau
@@ -93,7 +94,7 @@ class PrimalUSVP:
             + (log(tau) + log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
         )
 
-        return RC.cost(red_cost_model, beta, d, predicate=lhs <= rhs)
+        return costf(red_cost_model, beta, d, predicate=lhs <= rhs)
 
     @staticmethod
     @cached_function
@@ -107,7 +108,7 @@ class PrimalUSVP:
         red_cost_model=red_cost_model_default,
         log_level=None,
     ):
-        delta = RC.delta(beta)
+        delta = deltaf(beta)
         if d is None:
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
@@ -116,9 +117,9 @@ class PrimalUSVP:
         r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
         lhs = params.Xe.stddev ** 2 * (beta - 1) + tau ** 2
         if r[d - beta] > lhs:
-            cost = RC.cost(red_cost_model, beta, d)
+            cost = costf(red_cost_model, beta, d)
         else:
-            cost = RC.cost(red_cost_model, beta, d, predicate=False)
+            cost = costf(red_cost_model, beta, d, predicate=False)
         return cost
 
     def __call__(
@@ -208,8 +209,8 @@ class PrimalUSVP:
             return cost
 
         try:
-            red_shape_model = getattr(Simulator, str(red_shape_model).upper())
-        except AttributeError:
+            red_shape_model = simulator_normalize(red_shape_model)
+        except ValueError:
             pass
 
         # step 0. establish baseline
@@ -317,7 +318,7 @@ class PrimalHybrid:
         h = ceil(len(params.Xs) * params.Xs.density)
 
         if d is None:
-            delta = RC.delta(beta)
+            delta = deltaf(beta)
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         d -= zeta
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
@@ -325,7 +326,7 @@ class PrimalHybrid:
         # 1. Simulate BKZ-β
         # TODO: pick τ
         r = simulator(d, params.n - zeta, params.q, beta, xi=xi)
-        bkz_cost = RC.cost(red_cost_model, beta, d)
+        bkz_cost = costf(red_cost_model, beta, d)
 
         # 2. Required SVP dimension η
         if babai:
@@ -334,7 +335,7 @@ class PrimalHybrid:
         else:
             # we scaled the lattice so that χ_e is what we want
             eta = PrimalHybrid.svp_dimension(r, params.Xe)
-            svp_cost = RC.cost(red_cost_model, eta, eta)
+            svp_cost = costf(red_cost_model, eta, eta)
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
 
@@ -526,10 +527,7 @@ class PrimalHybrid:
         # allow for a larger embedding lattice dimension: Bai and Galbraith
         m = params.m + params.n if params.Xs <= params.Xe else params.m
 
-        try:
-            red_shape_model = getattr(Simulator, str(red_shape_model).upper())
-        except AttributeError:
-            pass
+        red_shape_model = simulator_normalize(red_shape_model)
 
         f = partial(
             self.cost_zeta,

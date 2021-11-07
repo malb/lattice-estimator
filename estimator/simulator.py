@@ -63,6 +63,15 @@ def GSA(d, n, q, beta, xi=1, tau=1):
     return r
 
 
+def normalize(name):
+    if str(name).upper() == "CN11":
+        return CN11
+    elif str(name).upper() == "GSA":
+        return GSA
+    else:
+        return name
+
+
 def plot_gso(r, *args, **kwds):
     from sage.all import line
 
