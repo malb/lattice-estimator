@@ -2,7 +2,7 @@
 line-length = 120
 
 [tool.pytest.ini_options]
-addopts = "--ignore=doc/conf.py --doctest-modules --doctest-glob=\"*.rst\" --nbmake"
+addopts = "--ignore=docs/conf.py --doctest-modules --doctest-glob=\"*.rst\" --nbmake"
 
 [tool.flake8]
 max-line-length = 120
