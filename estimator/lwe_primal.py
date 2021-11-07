@@ -77,6 +77,7 @@ class PrimalUSVP:
         tau=None,
         d=None,
         red_cost_model=red_cost_model_default,
+        log_level=None,
     ):
 
         delta = RC.delta(beta)
@@ -104,6 +105,7 @@ class PrimalUSVP:
         tau=None,
         d=None,
         red_cost_model=red_cost_model_default,
+        log_level=None,
     ):
         delta = RC.delta(beta)
         if d is None:
@@ -480,12 +482,32 @@ class PrimalHybrid:
         :param zeta: Guessing dimension ζ ≥ 0.
         :param babai: Insist on Babai's algorithm for finding close vectors.
         :param mitm: Simulate MITM approach (√ of search space).
+        :return: A cost dictionary
+
+        The returned cost dictionary has the following entries:
+
+        - ``rop``: Total number of word operations (≈ CPU cycles).
+        - ``red``: Number of word operations in lattice reduction.
+        - ``δ``: Root-Hermite factor targeted by lattice reduction.
+        - ``β``: BKZ block size.
+        - ``η``: Dimension of the final BDD call.
+        - ``ζ``: Number of guessed coordinates.
+        - ``|S|``: Guessing search space.
+        - ``prob``: Probability of success in guessing.
+        - ``repeat``: How often to repeat the attack.
+        - ``d``: Lattice dimension.
 
         - When ζ = 0 this function essentially estimates the BDD strategy as given in [RSA:LiuNgu13]_.
         - When ζ ≠ 0 and ``babai=True`` this function estimates the hybrid attack as given in
           [C:HowgraveGraham07]_
         - When ζ ≠ 0 and ``babai=False`` this function estimates the hybrid attack as given in
           [SAC:AlbCurWun19]_
+
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
+            rop: ≈2^85.2, red: ≈2^84.9, svp: ≈2^82.9, β: 179, η: 2, ζ: 248, |S|: ≈2^121.4, d: 541, prob: 0.986, ...
 
         .. [C:HowgraveGraham07] Nick Howgrave-Graham. A hybrid lattice-reduction and
            meet-in-the-middle attack against NTRU. In A. Menezes, CRYPTO 2007 (pp. 150–169). :
@@ -566,6 +588,15 @@ def primal_bdd(
     log_level=1,
     **kwds,
 ):
+    """
+    Estimate the cost of the BDD approach as given in [RSA:LiuNgu13]_.
+
+    :param params: LWE parameters.
+    :param red_cost_model: How to cost lattice reduction
+    :param red_shape_model: How to model the shape of a reduced basis
+
+    """
+
     return primal_hybrid(
         params,
         zeta=0,

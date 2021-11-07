@@ -28,7 +28,7 @@ def binary_search(
     while True:
         if b not in D:
             kwds[param] = b
-            D[b] = f(*args, **kwds)
+            D[b] = f(*args, log_level=log_level + 1, **kwds)
         if b == start:
             best = D[start]
             break
@@ -44,7 +44,7 @@ def binary_search(
             Logging.log("bins", log_level, f"{param}: {b:4d} || {repr(best)}")
             if b - 1 not in D:
                 kwds[param] = b - 1
-                D[b - 1] = f(*args, **kwds)
+                D[b - 1] = f(*args, log_level=log_level + 1, **kwds)
             if predicate(D[b - 1], best):
                 stop = b
                 b = floor((b + start) / 2)
@@ -52,7 +52,7 @@ def binary_search(
             else:
                 if b + 1 not in D:
                     kwds[param] = b + 1
-                    D[b + 1] = f(*args, **kwds)
+                    D[b + 1] = f(*args, log_level=log_level + 1, **kwds)
                 if not predicate(D[b + 1], best):
                     break
                 else:
@@ -62,7 +62,7 @@ def binary_search(
 
     for b in range(bounds[0], best[param])[::-1]:
         kwds[param] = b
-        D[b] = f(*args, **kwds)
+        D[b] = f(*args, log_level=log_level + 1, **kwds)
         if not predicate(D[b], best):
             break
         best = D[b]
