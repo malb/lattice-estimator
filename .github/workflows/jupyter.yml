@@ -34,7 +34,7 @@ jobs:
           rm -rf out/estimator/__pycache__
           echo 'FROM sagemathinc/cocalc:latest' >> out/Dockerfile
           echo 'COPY --chown=sage:sage . ${HOME}' >> out/Dockerfile
-          cp docs/_build/jupyter/lwe-*.ipynb out
+          cp docs/_build/jupyter/algorithms/*.ipynb out
           cp docs/_build/jupyter/prompt.ipynb out
 
       - name: Publish
