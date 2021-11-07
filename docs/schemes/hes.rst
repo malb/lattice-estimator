@@ -10,6 +10,8 @@ Homomorphic Encryption Standard
    >>> primal_bdd(HESv111024128error)
    rop: ≈2^140.8, red: ≈2^140.2, svp: ≈2^139.3, β: 373, η: 408, d: 11, tag: bdd
 
+::
+
    >>> from estimator import *
    >>> from estimator.schemes import HESv111024128ternary
    >>> HESv111024128ternary
