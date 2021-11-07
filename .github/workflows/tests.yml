@@ -34,7 +34,7 @@ jobs:
           make jupyter
           # We have to manually copy over those notebooks we want check
           cp docs/_build/jupyter/prompt.ipynb .
-          cp docs/_build/jupyter/lwe-*.ipynb .
+          cp docs/_build/jupyter/algorithms/*.ipynb .
           # sage wants it
           sudo mkdir -p /usr/share/sagemath/build/pkgs
           # run tests
