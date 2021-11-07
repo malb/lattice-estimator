@@ -33,22 +33,21 @@ class Mock(MagicMock):
         return MagicMock()
 
 
-MOCK_MODULES = [
-    "sage",
-    "sage.all",
-]
+MOCK_MODULES = ["sage", "sage.all", "scipy"]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
-# sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath("."))
 
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 # needs_sphinx = '1.0'
+
 autoclass_content = "both"
-# autodoc_default_flags = ["members", "inherited-members", "private-members", "show-inheritance"]
 autosummary_generate = True
+autosummary_mock_imports = MOCK_MODULES
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -80,9 +79,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"Lattice Estimator"
-copyright = u"2021, Martin R Albrecht"
-author = u"Martin R Albrecht"
+project = "Lattice Estimator"
+copyright = "2021, Martin R Albrecht"
+author = "Martin R Albrecht"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -292,8 +291,8 @@ latex_documents = [
     (
         master_doc,
         "LatticeEstimator.tex",
-        u"Lattice Estimator Documentation",
-        u"Martin R Albrecht",
+        "Lattice Estimator Documentation",
+        "Martin R. Albrecht",
         "manual",
     ),
 ]
@@ -329,7 +328,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "lweestimator", u"Lattice Estimator Documentation", [author], 1)]
+man_pages = [(master_doc, "latticeestimator", u"Lattice Estimator Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 #
@@ -345,7 +344,7 @@ texinfo_documents = [
     (
         master_doc,
         "LatticeEstimator",
-        u"Lattice Estimator Documentation",
+        "Lattice Estimator Documentation",
         author,
         "LatticeEstimator",
         "One line description of project.",
