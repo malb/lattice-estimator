@@ -165,22 +165,22 @@ class PrimalUSVP:
         [AC:AGVW17]_, [C:DDGR20]_, [PKC:PosVir21]_. The treatment of small secrets is from
         [ACISP:BaiGal14]_.
 
-        .. [ACISP:BaiGal14] Bai, S., & Galbraith, S. D. (2014). Lattice decoding attacks on binary
-           LWE. In W. Susilo, & Y. Mu, ACISP 14 (pp. 322–337). : Springer, Heidelberg.
+        .. [ACISP:BaiGal14] Shi Bai & Steven D. Galbraith. Lattice decoding attacks on binary LWE.
+           In W. Susilo, & Y. Mu, ACISP 14 (pp. 322–337). : Springer, Heidelberg.
 
-        .. [USENIX:ADPS16] Alkim, E., L\'eo Ducas, Thomas P\"oppelmann, & Schwabe, P. (2016).
+        .. [USENIX:ADPS16] Erdem Alkim, Léo Ducas, Thomas Pöppelmann, & Peter Schwabe.
            Post-quantum key exchange - A new hope. In T. Holz, & S. Savage, USENIX Security 2016 (pp.
            327–343). : USENIX Association.
 
-        .. [AC:AGVW17] Albrecht, M. R., Florian Göpfert, Virdia, F., & Wunderer, T. (2017).
+        .. [AC:AGVW17] Martin R. Albrecht, Florian Göpfert, Fernando Virdia & Thomas Wunderer.
            Revisiting the expected cost of solving uSVP and applications to LWE. In T. Takagi, & T.
            Peyrin, ASIACRYPT 2017, Part I (pp. 297–322). : Springer, Heidelberg.
 
-        .. [C:DDGR20] Dana Dachman-Soled, Léo Ducas, Gong, H., & M\'elissa Rossi (2020). LWE with
+        .. [C:DDGR20] Dana Dachman-Soled, Léo Ducas, Gong, H. & Mélissa Rossi. LWE with
            side information: Attacks and concrete security estimation. In D. Micciancio, & T.
            Ristenpart, CRYPTO~2020, Part~II (pp. 329–358). : Springer, Heidelberg.
 
-        .. [PKC:PosVir21] Postlethwaite, E. W., & Virdia, F. (2021). On the success probability of
+        .. [PKC:PosVir21] Eamonn W. Postlethwaite & Fernando Virdia. On the success probability of
            solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer,
            Heidelberg.
         """
@@ -299,11 +299,13 @@ class PrimalHybrid:
         """
         Cost of the hybrid attack.
 
-        :param zeta: guessing dimension ζ ≥ 0
-        :param babai: insist on Babai's algorithm for finding close vectors
-        :param mitm: simulate MITM approach (√ of search space)
-        :param m: We accept the number of samples to consider from the calling function
-        :param d: We optionally accept the dimension to pick
+        :param beta: Block size.
+        :param params: LWE parameters.
+        :param zeta: Guessing dimension ζ ≥ 0.
+        :param babai: Insist on Babai's algorithm for finding close vectors.
+        :param mitm: Simulate MITM approach (√ of search space).
+        :param m: We accept the number of samples to consider from the calling function.
+        :param d: We optionally accept the dimension to pick.
 
         .. note :: This is the lowest level function that runs no optimization, it merely reports
            costs.
@@ -471,6 +473,31 @@ class PrimalHybrid:
         log_level=1,
         **kwds,
     ):
+        """
+        Estimate the cost of the hybrid attack and its variants.
+
+        :param params: LWE parameters.
+        :param zeta: Guessing dimension ζ ≥ 0.
+        :param babai: Insist on Babai's algorithm for finding close vectors.
+        :param mitm: Simulate MITM approach (√ of search space).
+
+        - When ζ = 0 this function essentially estimates the BDD strategy as given in [RSA:LiuNgu13]_.
+        - When ζ ≠ 0 and ``babai=True`` this function estimates the hybrid attack as given in
+          [C:HowgraveGraham07]_
+        - When ζ ≠ 0 and ``babai=False`` this function estimates the hybrid attack as given in
+          [SAC:AlbCurWun19]_
+
+        .. [C:HowgraveGraham07] Nick Howgrave-Graham. A hybrid lattice-reduction and
+           meet-in-the-middle attack against NTRU. In A. Menezes, CRYPTO 2007 (pp. 150–169). :
+           Springer, Heidelberg.
+
+        .. [RSA:LiuNgu13] Liu, M., & Nguyen, P. Q.. Solving BDD by enumeration: an update. In E.
+           Dawson, CT-RSA 2013 (pp. 293–309). : Springer, Heidelberg.
+
+        .. [SAC:AlbCurWun19] Albrecht, M. R., Curtis, B. R., & Wunderer, T.. Exploring trade-offs in
+           batch bounded distance decoding. In K. G. Paterson, & D. Stebila, SAC 2019 (pp. 467–491).
+           : Springer, Heidelberg.
+        """
 
         params = LWEParameters.normalize(params)
 

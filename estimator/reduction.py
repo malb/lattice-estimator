@@ -238,14 +238,13 @@ def svp_repeat(beta, d):
 
 def LLL(d, B=None):
     """
-    Runtime estimation for LLL algorithm based on [CheNgu11]_.
+    Runtime estimation for LLL algorithm based on [AC:CheNgu11]_.
 
     :param d: Lattice dimension.
     :param B: Bit-size of entries.
 
-    ..  [CheNgu11] Chen, Y., & Nguyen, P.  Q.  (2011).  BKZ 2.0: better lattice security
-        estimates.  In D.  H.  Lee, & X.  Wang, ASIACRYPT~2011 (pp.  1–20).  : Springer,
-        Heidelberg.
+    .. [AC:CheNgu11] Yuanmi Chen & Phong Q. Nguyen. BKZ 2.0: better lattice security estimates. In
+       D. H. Lee, & X. Wang, ASIACRYPT 2011 (pp. 1–20): Springer, Heidelberg.
     """
     if B:
         return d ** 3 * B ** 2

@@ -10,7 +10,9 @@ We construct an (easy) example LWE instance::
     params
 
 The simplest (and quickest to estimate) model is solving via uSVP and assuming the Geometric Series
-Assumption (GSA)::
+Assumption (GSA) [Schnorr03]_. The success condition was formulated in [USENIX:ADPS16]_ and
+studied/verified in [AC:AGVW17]_, [C:DDGR20]_, [PKC:PosVir21]_. The treatment of small secrets is
+from [ACISP:BaiGal14]_::
 
     primal_usvp(params, red_shape_model="gsa")
 
@@ -19,18 +21,20 @@ we optimize β and d separately::
 
     primal_usvp(params, red_shape_model=Simulator.GSA)
 
-To get a more precise answer we may use the CN11 simulator by Chen and Nguyen (as implemented in FPLLL)::
+To get a more precise answer we may use the CN11 simulator by Chen and Nguyen [AC:CheNgu11]_ (as
+`implemented in FPyLLL
+<https://github.com/fplll/fpylll/blob/master/src/fpylll/tools/bkz_simulator.py>_`)::
 
     primal_usvp(params, red_shape_model=Simulator.CN11)
 
 We can then improve on this result by first preprocessing the basis with blocksize β followed by a
-single SVP call in dimension η. We call this the BDD approach since this is essentially the same
-strategy as preprocessing a basis and then running a CVP solver::
+single SVP call in dimension η [RSA:LiuNgu13]_. We call this the BDD approach since this is
+essentially the same strategy as preprocessing a basis and then running a CVP solver::
 
     primal_bdd(params, red_shape_model=Simulator.CN11)
 
-We can improve these results further by exploiting the sparse secret in the hybrid attack, guessing ζ
-positions of the secret::
+We can improve these results further by exploiting the sparse secret in the hybrid attack
+[C:HowgraveGraham07]_ guessing ζ positions of the secret::
 
     primal_hybrid(params, red_shape_model=Simulator.CN11)
-
+                        

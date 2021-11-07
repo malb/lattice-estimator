@@ -250,7 +250,7 @@ class CodedBKW:
         - ``ℓ``:
         - ``#cod``:
         - ``#top``:
-        ` ``#test``: Number of coordinates to do hypothesis testing on.
+        - ``#test``: Number of coordinates to do hypothesis testing on.
 
         EXAMPLE::
 
