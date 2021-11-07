@@ -11,8 +11,8 @@ Lattice Estimator
    :maxdepth: 2
 
    readme_link
-   lwe-primal
-   lwe-bkw
+   algorithms/lwe-primal
+   algorithms/lwe-bkw
 
 .. toctree::
    :caption: API Reference
@@ -23,8 +23,8 @@ Lattice Estimator
 .. toctree::
    :caption: Parameters from the Literature
 
-   nist-pqc-round-3
-   hes
+   schemes/nist-pqc-round-3
+   schemes/hes
    
 .. toctree::
    :caption: Appendix
