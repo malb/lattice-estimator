@@ -50,14 +50,14 @@ def GSA(d, n, q, beta, xi=1, tau=1):
                145–156.doi:10.1007/3-540-36494-3_14. url:
                http://dx.doi.org/10.1007/3-540-36494-3_14.
     """
-    import estimator.reduction as RC
+    from .reduction import deltaf
 
     if tau is not None:
         log_vol = RR(log(q, 2) * (d - n - 1) + log(xi, 2) * n + log(tau, 2))
     else:
         log_vol = RR(log(q, 2) * (d - n) + log(xi, 2) * n)
 
-    delta = RC.delta(beta)
+    delta = deltaf(beta)
     r_log = [(d - 1 - 2 * i) * RR(log(delta, 2)) + log_vol / d for i in range(d)]
     r = [2 ** (2 * r_) for r_ in r_log]
     return r
