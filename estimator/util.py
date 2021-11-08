@@ -17,8 +17,6 @@ def binary_search(
     :param param: the parameter to modify when calling `f`
     :param predicate: comparison is performed by evaluating ``predicate(current, best)``
     """
-    bounds = (start, stop)
-
     kwds[param] = stop
     D = {}
     D[stop] = f(*args, **kwds)
@@ -59,14 +57,6 @@ def binary_search(
                     start = b
                     b = ceil((stop + b) / 2)
                     direction = 1
-
-    for b in range(bounds[0], best[param])[::-1]:
-        kwds[param] = b
-        D[b] = f(*args, log_level=log_level + 1, **kwds)
-        if not predicate(D[b], best):
-            break
-        best = D[b]
-        Logging.log("bins", log_level, f"{param}: {b:4d} || {repr(best)}")
     return best
 
 
