@@ -434,12 +434,10 @@ class PrimalHybrid:
         )
 
         # step 1. optimize β
-        for b in range(40, baseline_cost["beta"])[::-1]:
-            cost = f(b)
-            if cost["rop"] < baseline_cost["rop"]:
-                baseline_cost = cost
-            else:
-                break
+        with local_minimum(40, baseline_cost["beta"] + 1) as it:
+            for beta in it:
+                it.update(f(beta))
+            cost = it.y
 
         Logging.log("bdd", log_level, f"H1: {repr(cost)}")
 
@@ -496,7 +494,7 @@ class PrimalHybrid:
 
             >>> from estimator import *
             >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^85.2, red: ≈2^84.9, svp: ≈2^82.9, β: 179, η: 2, ζ: 248, |S|: ≈2^121.4, d: 541, prob: 0.986, ...
+            rop: ≈2^73.1, red: ≈2^72.3, svp: ≈2^71.8, β: 115, η: 17, ζ: 304, |S|: ≈2^92.7, d: 393, prob: 0.048,...
 
         .. [C:HowgraveGraham07] Nick Howgrave-Graham. A hybrid lattice-reduction and
            meet-in-the-middle attack against NTRU. In A. Menezes, CRYPTO 2007 (pp. 150–169). :
