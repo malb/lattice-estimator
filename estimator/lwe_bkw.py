@@ -4,7 +4,7 @@ See :ref:`Coded-BKW for LWE` for what is available.
 """
 from sage.all import ceil, log, floor, sqrt, var, find_root, erf, oo
 from .lwe import LWEParameters
-from .util import binary_search
+from .util import local_minimum
 from .cost import Cost
 from .errors import InsufficientSamplesError
 from .repeat import amplify_sigma
@@ -216,34 +216,30 @@ class CodedBKW:
         ntest=None,
         log_level=1,
     ):
-        def predicate(x, best):
+        def smallerf(x, best):
             return (x["rop"] <= best["rop"]) and (best["m"] > params.m or x["m"] <= params.m)
 
         # the inner search is over t2, the number of coded steps
         def kernel(b=2, log_level=log_level):
             # the noise is 2**(t1+t2) * something so there is no need to go beyond, say, q^3
-            r = binary_search(
-                CodedBKW.cost,
+            with local_minimum(
                 2,
                 min(params.n // b, ceil(3 * log(params.q, 2))),
-                "t2",
-                params=params,
-                predicate=predicate,
-                b=b,
-                ntest=ntest,
-                log_level=log_level + 1,
-            )
-            return r
+                smallerf=smallerf,
+            ) as it:
+                for t2 in it:
+                    it.update(cls.cost(t2=t2, params=params, b=b, ntest=ntest))
+                return it.y
 
         # the outer search is over b, which determines the size of the tables: q^b
-        best = binary_search(
-            kernel,
+        with local_minimum(
             2,
             3 * ceil(log(params.q, 2)),
-            "b",
-            predicate=predicate,
-            log_level=log_level,
-        )
+            smallerf=smallerf,
+        ) as it:
+            for b in it:
+                it.update(kernel(b=b, log_level=log_level))
+            best = it.y
 
         # binary search cannot fail. It just outputs some X with X["oracle"]>m.
         if best["m"] > params.m:
@@ -282,7 +278,7 @@ class CodedBKW:
             >>> from sage.all import oo
             >>> from estimator import *
             >>> coded_bkw(Kyber512.updated(m=oo))
-            rop: ≈2^156.2, m: ≈2^143.9, mem: ≈2^144.9, b: 12, t1: 7, t2: 16, ℓ: 11, #cod: 377, #top: 0, #test: 52, ...
+            rop: ≈2^155.9, m: ≈2^143.7, mem: ≈2^144.7, b: 12, t1: 3, t2: 17, ℓ: 11, #cod: 417, #top: 0, #test: 60, ...
 
         We may need to amplify the number of samples, which modifies the noise distribution::
 
