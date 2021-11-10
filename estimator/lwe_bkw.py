@@ -216,32 +216,23 @@ class CodedBKW:
         ntest=None,
         log_level=1,
     ):
-        def smallerf(x, best):
+        def sf(x, best):
             return (x["rop"] <= best["rop"]) and (best["m"] > params.m or x["m"] <= params.m)
 
-        # the inner search is over t2, the number of coded steps
-        def kernel(b=2, log_level=log_level):
-            # the noise is 2**(t1+t2) * something so there is no need to go beyond, say, q^3
-            with local_minimum(
-                2,
-                min(params.n // b, ceil(3 * log(params.q, 2))),
-                smallerf=smallerf,
-            ) as it:
-                for t2 in it:
-                    it.update(cls.cost(t2=t2, params=params, b=b, ntest=ntest))
-                return it.y
-
         # the outer search is over b, which determines the size of the tables: q^b
-        with local_minimum(
-            2,
-            3 * ceil(log(params.q, 2)),
-            smallerf=smallerf,
-        ) as it:
-            for b in it:
-                it.update(kernel(b=b, log_level=log_level))
-            best = it.y
+        b_max = 3 * ceil(log(params.q, 2))
+        with local_minimum(2, b_max, sf) as it_b:
+            for b in it_b:
+                # the inner search is over t2, the number of coded steps
+                t2_max = min(params.n // b, ceil(3 * log(params.q, 2)))
+                with local_minimum(2, t2_max, sf) as it_t2:
+                    for t2 in it_t2:
+                        y = cls.cost(b=b, t2=t2, ntest=ntest, params=params)
+                        it_t2.update(y)
+                    it_b.update(it_t2.y)
+            best = it_b.y
 
-        # binary search cannot fail. It just outputs some X with X["oracle"]>m.
+        # the search cannot fail. It just outputs some X with X["oracle"]>m.
         if best["m"] > params.m:
             raise InsufficientSamplesError(
                 f"Got m≈2^{float(log(params.m, 2.0)):.1f} samples, but require ≈2^{float(log(best['m'],2.0)):.1f}.",
