@@ -539,7 +539,8 @@ class PrimalHybrid:
                                 **kwds,
                             )
                         )
-                cost = it.y
+                # TODO: this should not be required
+                cost = min(it.y, f(0, optimize_d=False, **kwds))
             else:
                 cost = f(zeta=zeta)
         else:
