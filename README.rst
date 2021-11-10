@@ -30,7 +30,7 @@ Quick Start
     rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
     
     >>> primal_bdd(Kyber512)
-    rop: ≈2^137.8, red: ≈2^136.5, svp: ≈2^137.1, β: 365, η: 400, d: 981, tag: bdd
+    rop: ≈2^137.8, red: ≈2^136.8, svp: ≈2^136.8, β: 366, η: 399, d: 978, tag: bdd
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.

@@ -8,7 +8,7 @@ Homomorphic Encryption Standard
    >>> HESv111024128error
    LWEParameters(n=1024, q=134217728, Xs=D(σ=3.00), Xe=D(σ=3.00), m=1024, tag='HESv11error')
    >>> primal_bdd(HESv111024128error)
-   rop: ≈2^140.8, red: ≈2^140.2, svp: ≈2^139.3, β: 373, η: 408, d: 11, tag: bdd
+   rop: ≈2^140.8, red: ≈2^140.5, svp: ≈2^138.5, β: 374, η: 405, d: 2047, tag: bdd
 
 ::
 
@@ -17,5 +17,5 @@ Homomorphic Encryption Standard
    >>> HESv111024128ternary
    LWEParameters(n=1024, q=134217728, Xs=D(σ=0.82), Xe=D(σ=3.00), m=1024, tag='HESv11ternary')
    >>> primal_hybrid(HESv111024128ternary)
-   rop: ≈2^130.8, red: ≈2^130.2, svp: ≈2^129.2, β: 337, η: 372, d: 11, tag: bdd
+   rop: ≈2^130.8, red: ≈2^130.5, svp: ≈2^128.4, β: 338, η: 369, d: 11, tag: bdd
    
