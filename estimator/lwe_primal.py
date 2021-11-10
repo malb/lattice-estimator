@@ -10,7 +10,7 @@ from functools import partial
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
 from .reduction import deltaf
 from .reduction import cost as costf
-from .util import binary_search
+from .util import local_minimum
 from .cost import Cost
 from .lwe import LWEParameters
 from .simulator import normalize as simulator_normalize
@@ -193,17 +193,13 @@ class PrimalUSVP:
         m = params.m + params.n if params.Xs <= params.Xe else params.m
 
         if red_shape_model == "gsa":
-            cost = binary_search(
-                self.cost_gsa,
-                start=40,
-                stop=2 * params.n,
-                param="beta",
-                predicate=lambda x, best: x["rop"] <= best["rop"],
-                params=params,
-                m=m,
-                red_cost_model=red_cost_model,
-                **kwds,
-            )
+            with local_minimum(40, 2 * params.n) as it:
+                for beta in it:
+                    cost = self.cost_gsa(
+                        beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds
+                    )
+                    it.update(cost)
+                cost = it.y
             cost["tag"] = "usvp"
             cost["problem"] = params
             return cost
@@ -231,27 +227,23 @@ class PrimalUSVP:
         )
 
         # step 1. find β
-        cost = binary_search(
-            f,
-            param="beta",
-            start=cost_gsa["beta"] - ceil(0.10 * cost_gsa["beta"]),
-            stop=cost_gsa["beta"] + ceil(0.20 * cost_gsa["beta"]),
-            predicate=lambda x, best: x["rop"] <= best["rop"],
-            **kwds,
-        )
+
+        with local_minimum(
+            cost_gsa["beta"] - ceil(0.10 * cost_gsa["beta"]),
+            cost_gsa["beta"] + ceil(0.20 * cost_gsa["beta"]),
+        ) as it:
+            for beta in it:
+                it.update(f(beta=beta, **kwds))
+            cost = it.y
+
         Logging.log("usvp", log_level, f"Opt-β: {repr(cost)}")
 
         if cost and optimize_d:
             # step 2. find d
-            cost = binary_search(
-                f,
-                param="d",
-                start=params.n,
-                stop=cost["d"],
-                predicate=lambda x, best: x["rop"] <= best["rop"],
-                beta=cost["beta"],
-                **kwds,
-            )
+            with local_minimum(params.n, stop=cost["d"] + 1) as it:
+                for d in it:
+                    it.update(f(d=d, beta=cost["beta"], **kwds))
+                cost = it.y
             Logging.log("usvp", log_level + 1, f"Opt-d: {repr(cost)}")
 
         cost["tag"] = "usvp"
@@ -438,6 +430,7 @@ class PrimalHybrid:
             simulator=red_shape_model,
             red_cost_model=red_cost_model,
             m=m,
+            **kwds,
         )
 
         # step 1. optimize β
@@ -452,15 +445,10 @@ class PrimalHybrid:
 
         # step 2. optimize d
         if cost and cost.get("tag", "XXX") != "usvp" and optimize_d:
-            cost = binary_search(
-                f,
-                param="d",
-                start=params.n,
-                stop=cost["d"],
-                predicate=lambda x, best: x["rop"] <= best["rop"],
-                beta=cost["beta"],
-                **kwds,
-            )
+            with local_minimum(params.n, cost["d"] + 1) as it:
+                for d in it:
+                    it.update(f(beta=cost["beta"], d=d))
+                cost = it.y
             Logging.log("bdd", log_level + 1, f"H2: {repr(cost)}")
 
         return cost
@@ -538,21 +526,20 @@ class PrimalHybrid:
             mitm=mitm,
             m=m,
             log_level=log_level,
-            **kwds,
         )
 
         if babai is False:
             if zeta is None:
-                cost_0 = f(zeta=0)
-                cost = binary_search(
-                    f,
-                    start=0,
-                    stop=params.n,
-                    param="zeta",
-                    predicate=lambda x, best: x <= best,
-                    optimize_d=False,
-                )
-                cost = min(cost, cost_0)
+                with local_minimum(0, params.n) as it:
+                    for zeta in it:
+                        it.update(
+                            f(
+                                zeta=zeta,
+                                optimize_d=False,
+                                **kwds,
+                            )
+                        )
+                cost = it.y
             else:
                 cost = f(zeta=zeta)
         else:
