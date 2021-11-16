@@ -16,15 +16,24 @@ class local_minimum:
     .. note :: We combine an iterator and a context to give the caller access to the result.
     """
 
-    def __init__(self, start, stop, smallerf=lambda x, best: x <= best, log_level=Logging.LEVEL5):
+    def __init__(
+        self,
+        start,
+        stop,
+        smallerf=lambda x, best: x <= best,
+        log_level=5,
+        suppress_bounds_warning=False,
+    ):
         """
         Create a fresh local minimum search context.
 
         :param start: starting point
         :param stop:  end point (exclusive)
         :param smallerf: a function to decide if ``lhs`` is smaller than ``rhs``.
+        :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
 
         """
+        self._suppress_bounds_warning = suppress_bounds_warning
         self._log_level = log_level
         self._start = start
         self._stop = stop - 1
@@ -55,10 +64,10 @@ class local_minimum:
             self._next_x = None
             return self._last_x
         else:
-            if self._best[0] in self._initial_bounds:
+            if self._best[0] in self._initial_bounds and not self._suppress_bounds_warning:
                 # We warn the user if the optimal solution is at the edge and thus possibly not optimal.
                 Logging.log(
-                    "binsearch",
+                    "bins",
                     self._log_level,
                     f'warning: "optimal" solution {self._best[0]} matches a bound ∈ {self._initial_bounds}.',
                 )
@@ -73,14 +82,14 @@ class local_minimum:
         return self._best[1]
 
     def update(self, res):
-        Logging.log("binsearch", self._log_level, f"({self._last_x}, {repr(res)})")
+        Logging.log("bins", self._log_level, f"({self._last_x}, {repr(res)})")
 
         # We got nothing yet
         if self._best[0] is None:
             self._best = self._last_x, res
 
         # We found something better
-        if self._smallerf(res, self._best[1]):
+        if res is not False and self._smallerf(res, self._best[1]):
             # store it
             self._best = self._last_x, res
 

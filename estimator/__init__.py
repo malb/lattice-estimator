@@ -8,7 +8,7 @@ from .gb import arora_gb  # noqa
 from . import reduction as RC  # noqa
 from . import simulator as Simulator  # noqa
 
-# from .lwe_primal import RC  # noqa, this is a silly hack
+from .guess import guess_composition  # noqa
 
 from .io import Logging  # noqa
 
