@@ -229,6 +229,8 @@ class AroraGB:
             Logging.log("gb", log_level, f"G: {repr(cost)}")
             best = min(best, cost, key=lambda x: x["dreg"])
 
+        best["tag"] = "arora-gb"
+        best["problem"] = params
         return best
 
     __name__ = "arora_gb"
