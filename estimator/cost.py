@@ -19,6 +19,8 @@ class Cost:
 
     impermanents = {
         "repeat": False,
+        "tag": False,
+        "problem": False,
     }
 
     @classmethod
