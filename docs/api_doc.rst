@@ -14,6 +14,7 @@ API Reference
    estimator.lwe
    estimator.lwe_bkw
    estimator.lwe_primal
+   estimator.gb
    estimator.nd
    estimator.prob
    estimator.reduction     

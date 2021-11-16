@@ -13,6 +13,7 @@ Lattice Estimator
    readme_link
    algorithms/lwe-primal
    algorithms/lwe-bkw
+   algorithms/gb
 
 .. toctree::
    :caption: API Reference
