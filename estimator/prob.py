@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from sage.all import binomial, ZZ, log, ceil, RealField, oo
+from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, pi
 from sage.all import RealDistribution, RR, sqrt, prod
 
 
@@ -79,3 +79,20 @@ def amplify(target_success_probability, success_probability, majority=False):
             return ceil(log(1 - target_success_probability) / log(1 - success_probability))
     except ValueError:
         return oo
+
+
+def amplify_sigma(target_advantage, sigma, q):
+    """
+    Amplify distinguishing advantage for a given σ and q
+
+    :param target_advantage:
+    :param sigma: (Lists of) Gaussian width parameters
+    :param q: Modulus q > 0
+
+    """
+    try:
+        sigma = sum(sigma_ ** 2 for sigma_ in sigma).sqrt()
+    except TypeError:
+        pass
+    advantage = float(exp(-float(pi) * (float(sigma / q) ** 2)))
+    return amplify(target_advantage, advantage, majority=True)

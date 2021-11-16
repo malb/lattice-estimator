@@ -18,7 +18,6 @@ API Reference
    estimator.nd
    estimator.prob
    estimator.reduction     
-   estimator.repeat
    estimator.simulator
    estimator.util
 
