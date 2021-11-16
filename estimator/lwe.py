@@ -118,5 +118,42 @@ class LWEParameters:
                 f"Cannot amplify to ≈2^{log(m,2):1} using {{+1,-1}} additions."
             )
 
+    def switch_modulus(self):
+        """
+        Apply modulus switching and return new instance.
+
+        See [JMC:AlbPlaSco15]_ for details.
+
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> LWEParameters(n=128, q=7681, Xs=ND.UniformMod(3), Xe=ND.UniformMod(11)).switch_modulus()
+            LWEParameters(n=128, q=5289, Xs=D(σ=0.82), Xe=D(σ=3.08), m=+Infinity, tag=None)
+
+        .. [JMC:AlbPlaSco15] Albrecht, M. R., Player, R., & Scott, S. (2015). On the concrete
+           hardness of Learning with Errors. Journal of Mathematical Cryptology, 9(3), 169–203.
+        """
+        n = self.Xs.density * len(self.Xs)
+
+        # n uniform in -(0.5,0.5) ± stddev(χ_s)
+        Xr_stddev = sqrt(n / 12) * self.Xs.stddev  # rounding noise
+        # χ_r == p/q ⋅ χ_e # we want the rounding noise match the scaled noise
+        p = ceil(Xr_stddev * self.q / self.Xe.stddev)
+
+        scale = float(p) / self.q
+
+        # there is no point in scaling if the improvement is eaten up by rounding noise
+        if scale > 1 / sqrt(2):
+            return self
+
+        return LWEParameters(
+            self.n,
+            p,
+            Xs=self.Xs,
+            Xe=NoiseDistribution.DiscreteGaussian(sqrt(2) * self.Xe.stddev * scale),
+            m=self.m,
+            tag=self.tag + ",scaled" if self.tag else None,
+        )
+
     def __hash__(self):
         return hash((self.n, self.q, self.Xs, self.Xe, self.m, self.tag))

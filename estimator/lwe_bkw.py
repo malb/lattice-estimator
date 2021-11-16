@@ -7,7 +7,7 @@ from .lwe import LWEParameters
 from .util import local_minimum
 from .cost import Cost
 from .errors import InsufficientSamplesError
-from .repeat import amplify_sigma
+from .prob import amplify_sigma
 from .nd import sigmaf
 from .io import Logging
 

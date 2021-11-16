@@ -247,7 +247,7 @@ class NoiseDistribution:
         stddev = sqrt((m ** 2 - 1) / RR(12))
 
         if a <= 0 and 0 <= b:
-            density = 1.0 / m
+            density = 1.0 - 1.0 / m
         else:
             density = 0.0
 
