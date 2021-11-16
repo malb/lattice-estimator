@@ -315,11 +315,11 @@ class PrimalHybrid:
 
         # 3. Search
         # We need to do one BDD call at least
-        search_space, probability, hw = ZZ(1), 1.0, 0
+        search_space, probability, hw = 0, 1.0, 0
 
         # MITM or no MITM
+        # TODO: this is rather clumsy as a model
         def ssf(x):
-            # TODO: this is rather clumsy as a model
             if mitm:
                 return RR(sqrt(x))
             else:
@@ -331,7 +331,7 @@ class PrimalHybrid:
         if zeta:
             probability = RR(prob_drop(params.n, h, zeta))
             hw = 1
-            while hw < h and hw < zeta and base < oo:
+            while hw < min(h, zeta):
                 new_search_space = search_space + binomial(zeta, hw) * base ** hw
                 if svp_cost.repeat(ssf(new_search_space))["rop"] < bkz_cost["rop"]:
                     search_space = new_search_space
@@ -367,9 +367,12 @@ class PrimalHybrid:
         ret["prob"] = probability
 
         # 4. Repeat whole experiment ~1/prob times
-        ret = ret.repeat(
-            prob_amplify(0.99, probability),
-        )
+        if probability:
+            ret = ret.repeat(
+                prob_amplify(0.99, probability),
+            )
+        else:
+            return Cost(rop=oo)
 
         return ret
 

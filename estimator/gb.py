@@ -52,8 +52,8 @@ def gb_cost(n, D, omega=2, prec=None):
         s *= (1 - z ** d) ** m
     s /= (1 - z) ** n
 
-    Cost.register_impermanent({"dreg": False, "mem": False})
     retval = Cost(rop=oo, dreg=oo)
+    retval.register_impermanent({"rop": True, "dreg": False, "mem": False})
 
     for dreg in range(prec):
         if s[dreg] < 0:
@@ -92,7 +92,11 @@ class AroraGB:
         dn = cls.equations_for_secret(params)
         cost = gb_cost(params.n, [(d, params.m)] + dn)
         cost["t"] = (d - 1) // 2
-        cost["m"] = params.m
+        if cost["dreg"] < oo and binomial(params.n + cost["dreg"], cost["dreg"]) < params.m:
+            cost["m"] = binomial(params.n + cost["dreg"], cost["dreg"])
+        else:
+            cost["m"] = params.m
+        cost.register_impermanent(t=False, m=False)
         return cost
 
     @classmethod
@@ -127,7 +131,7 @@ class AroraGB:
 
             current["t"] = t
             current["m"] = m_req
-
+            current.register_impermanent(t=False, m=False)
             current = current.reorder("rop", "m", "dreg", "t")
 
             Logging.log("repeat", log_level + 1, f"{repr(current)}")
@@ -177,26 +181,35 @@ class AroraGB:
         :param params: LWE parameters.
         :param success_probability: targeted success probability < 1.
         :param omega: linear algebra constant.
+        :return: A cost dictionary
+
+        The returned cost dictionary has the following entries:
+
+        - ``rop``: Total number of word operations (≈ CPU cycles).
+        - ``m``: Number of samples consumed.
+        - ``dreg``: The degree of regularity or "solving degree".
+        - ``t``: Polynomials of degree 2t + 1 are considered.
+        - ``mem``: Total memory usage.
 
         EXAMPLE::
 
             >>> from estimator import *
             >>> params = LWEParameters(n=64, q=7681, Xs=ND.DiscreteGaussian(3.0), Xe=ND.DiscreteGaussian(3.0), m=2**50)
             >>> arora_gb(params)
-            rop: ≈2^307.1, m: ≈2^46.8, dreg: 99, t: 25, mem: ≈2^307.1
+            rop: ≈2^307.1, m: ≈2^46.8, dreg: 99, t: 25, mem: ≈2^307.1, tag: arora-gb
 
         TESTS::
 
             >>> arora_gb(params.updated(m=2**120))
-            rop: ≈2^282.6, m: ≈2^101.1, dreg: 83, t: 36, mem: ≈2^282.6
+            rop: ≈2^282.6, m: ≈2^101.1, dreg: 83, t: 36, mem: ≈2^282.6, tag: arora-gb
             >>> arora_gb(params.updated(Xe=ND.UniformMod(7)))
-            rop: ≈2^60.6, dreg: 7, mem: ≈2^60.6, t: 3, m: ≈2^50.0
+            rop: ≈2^60.6, dreg: 7, mem: ≈2^60.6, t: 3, m: ≈2^30.3, tag: arora-gb
             >>> arora_gb(params.updated(Xe=ND.CenteredBinomial(8)))
-            rop: ≈2^122.3, dreg: 19, mem: ≈2^122.3, t: 8, m: ≈2^50.0
+            rop: ≈2^122.3, dreg: 19, mem: ≈2^122.3, t: 8, m: ≈2^50.0, tag: arora-gb
             >>> arora_gb(params.updated(Xs=ND.UniformMod(5), Xe=ND.CenteredBinomial(4), m=1024))
-            rop: ≈2^227.2, dreg: 54, mem: ≈2^227.2, t: 4, m: 1024
+            rop: ≈2^227.2, dreg: 54, mem: ≈2^227.2, t: 4, m: 1024, tag: arora-gb
             >>> arora_gb(params.updated(Xs=ND.UniformMod(3), Xe=ND.CenteredBinomial(4), m=1024))
-            rop: ≈2^189.9, dreg: 39, mem: ≈2^189.9, t: 4, m: 1024
+            rop: ≈2^189.9, dreg: 39, mem: ≈2^189.9, t: 4, m: 1024, tag: arora-gb
 
         ..  [EPRINT:ACFP14] Martin R. Albrecht, Carlos Cid, Jean-Charles Faugère & Ludovic Perret. (2014).
             Algebraic algorithms for LWE. https://eprint.iacr.org/2014/1018

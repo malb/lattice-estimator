@@ -41,9 +41,9 @@ Status
 We do not have feature parity with the old estimator yet:
 
 - ``[x]`` :doc:`Primal attack on LWE <../algorithms/lwe-primal>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb>`__]
-- ``[x]`` :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb>`__]
 - ``[ ]`` Dual attack on LWE.
-- ``[X]`` :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fgb.ipynb>`__] .
+- ``[x]`` :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb>`__]
+- ``[X]`` :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fgb.ipynb>`__]
 
 We are also planning:
 

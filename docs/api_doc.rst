@@ -10,6 +10,7 @@ API Reference
       
    estimator.cost
    estimator.errors
+   estimator.guess
    estimator.io
    estimator.lwe
    estimator.lwe_bkw

@@ -177,6 +177,14 @@ class NoiseDistribution:
     def is_bounded(self):
         return (self.bounds[1] - self.bounds[0]) < oo
 
+    @property
+    def is_sparse(self):
+        """
+        We consider a distribution "sparse" if its density is ≤ 1/2.
+        """
+        # NOTE: somewhat arbitrary
+        return self.density < 0.5
+
     @staticmethod
     def DiscreteGaussian(stddev, mean=0, n=None):
         """
