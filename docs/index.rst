@@ -32,4 +32,4 @@ Lattice Estimator
    
    documentationreadme
    genindex
-
+   references

@@ -102,8 +102,6 @@ def _beta_secant(delta):
         >>> RC._beta_secant(1.0024) # Chen reports 800
         808
 
-    .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement
-                    complètement homomorphe. PhD thesis, Paris 7, 2013.
     """
     # newton() will produce a "warning", if two subsequent function values are
     # indistinguishable (i.e. equal in terms of machine precision). In this case
@@ -207,8 +205,6 @@ def beta(delta):
         >>> RC.beta(1.0024) # Chen reports 800
         808
 
-    .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement
-                    complètement homomorphe. PhD thesis, Paris 7, 2013.
     """
     # TODO: decide for one strategy (secant, find_root, old) and its error handling
     beta = _beta_find_root(delta)
@@ -243,8 +239,6 @@ def LLL(d, B=None):
     :param d: Lattice dimension.
     :param B: Bit-size of entries.
 
-    .. [AC:CheNgu11] Yuanmi Chen & Phong Q. Nguyen. BKZ 2.0: better lattice security estimates. In
-       D. H. Lee, & X. Wang, ASIACRYPT 2011 (pp. 1–20): Springer, Heidelberg.
     """
     if B:
         return d ** 3 * B ** 2
@@ -255,7 +249,7 @@ def LLL(d, B=None):
 def _BDGL16_small(beta, d, B=None):
     """
     Runtime estimation given β and assuming sieving is used to realise the SVP oracle for small
-    dimensions following [BDGL16]_.
+    dimensions following [SODA:BDGL16]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -268,17 +262,13 @@ def _BDGL16_small(beta, d, B=None):
         >>> log(RC._BDGL16_small(500, 1024), 2.0)
         222.9
 
-    ..  [BDGL16] Becker, A., Ducas, L., Gama, N., & Laarhoven, T.  (2016).  New directions in
-        nearest neighbor searching with applications to lattice sieving.  In SODA 2016, (pp.
-        10–24).
     """
     return LLL(d, B) + ZZ(2) ** RR(0.387 * beta + 16.4 + log(svp_repeat(beta, d), 2))
 
 
 def _BDGL16_asymptotic(beta, d, B=None):
     """
-    Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle
-    following [BDGL16]_.
+    Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle following [SODA:BDGL16]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -290,18 +280,14 @@ def _BDGL16_asymptotic(beta, d, B=None):
         >>> import estimator.reduction as RC
         >>> log(RC._BDGL16_asymptotic(500, 1024), 2.0)
         175.4
-
-    ..  [BDGL16] Becker, A., Ducas, L., Gama, N., & Laarhoven, T.  (2016).  New directions in
-        nearest neighbor searching with applications to lattice sieving.  In SODA 2016, (pp.
-        10–24).
     """
-    # TODO we simply pick the same additive constant 16.4 as for the experimental result in [BDGL16]
+    # TODO we simply pick the same additive constant 16.4 as for the experimental result in [SODA:BDGL16]_
     return LLL(d, B) + ZZ(2) ** RR(0.292 * beta + 16.4 + log(svp_repeat(beta, d), 2))
 
 
 def BDGL16(beta, d, B=None):
     """
-    Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle following [BDGL16]_.
+    Runtime estimation given `β` and assuming sieving is used to realise the SVP oracle following [SODA:BDGL16]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -314,9 +300,6 @@ def BDGL16(beta, d, B=None):
         >>> log(RC.BDGL16(500, 1024), 2.0)
         175.4
 
-    ..  [BDGL16] Becker, A., Ducas, L., Gama, N., & Laarhoven, T.  (2016).  New directions in
-        nearest neighbor searching with applications to lattice sieving.  In SODA 2016, (pp.
-        10–24).
     """
     # TODO this is somewhat arbitrary
     if beta <= 90:
@@ -327,7 +310,7 @@ def BDGL16(beta, d, B=None):
 
 def LaaMosPol14(beta, d, B=None):
     """
-    Runtime estimation for quantum sieving following [LaaMosPol14]_ and [Laarhoven15]_.
+    Runtime estimation for quantum sieving following [EPRINT:LaaMosPol14]_ and [PhD:Laarhoven15]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -340,13 +323,6 @@ def LaaMosPol14(beta, d, B=None):
         >>> log(RC.LaaMosPol14(500, 1024), 2.0)
         161.9
 
-    ..  [LaaMosPol14] Thijs Laarhoven, Michele Mosca, & Joop van de Pol.  Finding shortest
-        lattice vectors faster using quantum search.  Cryptology ePrint Archive, Report
-        2014/907, 2014.  https://eprint.iacr.org/2014/907.
-
-    ..  [Laarhoven15] Laarhoven, T.  (2015).  Search problems in cryptography: from
-        fingerprinting to lattice sieving (Doctoral dissertation).  Eindhoven University of
-        Technology. http://repository.tue.nl/837539
     """
     return LLL(d, B) + ZZ(2) ** RR((0.265 * beta + 16.4 + log(svp_repeat(beta, d), 2)))
 
@@ -385,9 +361,6 @@ def CheNgu12(beta, d, B=None):
         >>> log(RC.CheNgu12(500, 1024), 2.0)
         365.70...
 
-    ..  [CheNgu12] Yuanmi Chen and Phong Q.  Nguyen.  BKZ 2.0: Better lattice security
-        estimates (Full Version). 2012. http://www.di.ens.fr/~ychen/research/Full_BKZ.pdf
-
     """
     repeat = svp_repeat(beta, d)
     cost = RR(
@@ -414,9 +387,6 @@ def ABFKSW20(beta, d, B=None):
         >>> log(RC.ABFKSW20(500, 1024), 2.0)
         316.26...
 
-    .. [C:ABFKSW20] Martin R. Albrecht, Shi Bai, Pierre-Alain Fouque, Paul Kirchner, Damien
-       Stehlé and Weiqiang Wen.  Faster Enumeration-based Lattice Reduction: Root Hermite
-       Factor $beta^{1/(2k)}$ in Time $beta^{beta/8 + o(beta)}$.  CRYPTO 2020.
     """
     if 1.5 * beta >= d or beta <= 92:  # 1.5β is a bit arbitrary, β≤92 is the crossover point
         cost = RR(0.1839 * beta * log(beta, 2) - 0.995 * beta + 16.25 + log(64, 2))
@@ -443,10 +413,6 @@ def ABLR21(beta, d, B=None):
         >>> log(RC.ABLR21(500, 1024), 2.0)
         278.20...
 
-    .. [C:ABLR21] Albrecht, M. R., Bai, S., Li, J., & Rowell, J. (2021). Lattice reduction with
-       approximate enumeration oracles - practical algorithms and concrete performance. In T.
-       Malkin, & C. Peikert, CRYPTO 2021, Part II (pp. 732–759). Virtual Event: Springer",
-       Heidelberg.
     """
     if 1.5 * beta >= d or beta <= 97:  # 1.5β is a bit arbitrary, 97 is the crossover
         cost = RR(0.1839 * beta * log(beta, 2) - 1.077 * beta + 29.12 + log(64, 2))
@@ -460,7 +426,7 @@ def ABLR21(beta, d, B=None):
 
 def ADPS16(beta, d, B=None, mode="classical"):
     """
-    Runtime estimation from [ADPS16]_.
+    Runtime estimation from [USENIX:ADPS16]_.
 
     :param beta: Block size ≥ 2.
     :param d: Lattice dimension.
@@ -477,9 +443,6 @@ def ADPS16(beta, d, B=None, mode="classical"):
         >>> log(RC.ADPS16(500, 1024, mode="paranoid"), 2.0)
         103.75
 
-    ..  [ADPS16] Edem Alkim, Léo Ducas, Thomas Pöppelmann, & Peter Schwabe (2016).
-        Post-quantum key exchange - A New Hope.  In T. Holz, & S. Savage, 25th USENIX
-        Security Symposium, USENIX Security 16 (pp. 327–343). USENIX Association.
     """
 
     if mode not in ("classical", "quantum", "paranoid"):
@@ -510,9 +473,6 @@ def d4f(beta):
         >>> RC.d4f(500)
         42.597...
 
-    .. [EC:Ducas18] Léo Ducas (2018). Shortest vector from lattice sieving: A few dimensions for
-       free. In J. B. Nielsen, & V. Rijmen, EUROCRYPT 2018, Part I (pp. 125–145). : Springer,
-       Heidelberg.
     """
     return max(float(beta * log(4 / 3.0) / log(beta / (2 * pi * e))), 0.0)
 
@@ -564,14 +524,6 @@ def Kyber(beta, d, B=None, nn="classical", C=5.46):
         >>> log(RC.Kyber(500, 1024, nn="list_decoding-ge19"), 2.0)
         170.23...
 
-    .. [Kyber20] Roberto Avanzi, Joppe Bos, Léo Ducas, Eike Kiltz, Tancrède Lepoint,Vadim
-       Lyubashevsky, John M. Schanck, Peter Schwabe, Gregor Seiler, Damien Stehlé.
-       CRYSTALS-KYBER. 2020
-       https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf
-
-    .. [AC:AGPS20] Albrecht, M. R., Gheorghiu, V., Postlethwaite, E. W., & Schanck, J. M.
-       (2020). Estimating quantum speedups for lattice sieves. In S. Moriai, & H. Wang,
-       ASIACRYPT 2020, Part II (pp. 583–613). : Springer, Heidelberg.
     """
 
     if beta < 20:  # goes haywire

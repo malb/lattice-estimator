@@ -130,8 +130,6 @@ class LWEParameters:
             >>> LWEParameters(n=128, q=7681, Xs=ND.UniformMod(3), Xe=ND.UniformMod(11)).switch_modulus()
             LWEParameters(n=128, q=5289, Xs=D(σ=0.82), Xe=D(σ=3.08), m=+Infinity, tag=None)
 
-        .. [JMC:AlbPlaSco15] Albrecht, M. R., Player, R., & Scott, S. (2015). On the concrete
-           hardness of Learning with Errors. Journal of Mathematical Cryptology, 9(3), 169–203.
         """
         n = self.Xs.density * len(self.Xs)
 
