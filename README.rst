@@ -38,17 +38,26 @@ Quick Start
 Status
 ------
 
-We do not have feature parity with the old estimator yet:
+We do not have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-estimator/src/master/>`__ yet:
 
-- ``[x]`` :doc:`Primal attack on LWE <../algorithms/lwe-primal>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb>`__]
-- ``[ ]`` Dual attack on LWE.
-- ``[x]`` :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb>`__]
-- ``[X]`` :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`. [`Try it <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fgb.ipynb>`__]
+- ``[x]`` |lwe-primal-binder| :doc:`Primal attack on LWE <../algorithms/lwe-primal>` 
+- ``[x]`` |lwe-bkw-binder| :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>` 
+- ``[X]`` |gb-binder| :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`
+- ``[ ]`` Dual attack on LWE
 
+.. |lwe-primal-binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb
+
+.. |lwe-bkw-binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb
+
+.. |gb-binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fgb.ipynb
+            
 We are also planning:
 
-- ``[ ]`` Attacks on NTRU pulic keys (using overstretched parameters).
-- ``[ ]`` SIS attack.
+- ``[ ]`` Attacks on NTRU pulic keys (using overstretched parameters)
+- ``[ ]`` SIS attacks
          
 Evolution
 ---------
