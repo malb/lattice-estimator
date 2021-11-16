@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from sage.all import oo, binomial, log, sqrt, ceil
 from dataclasses import dataclass
+from copy import copy
 from .nd import NoiseDistribution
 from .errors import InsufficientSamplesError
 
@@ -15,8 +16,10 @@ class LWEParameters:
     tag: str = None
 
     def __post_init__(self, **kwds):
+        self.Xs = copy(self.Xs)
         self.Xs.n = self.n
         if self.m < oo:
+            self.Xe = copy(self.Xe)
             self.Xe.n = self.m
 
     def normalize(self):
