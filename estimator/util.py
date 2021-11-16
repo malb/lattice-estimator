@@ -206,7 +206,14 @@ def _batch_estimatef(f, x, log_level=0, f_repr=None):
     return y
 
 
-def batch_estimate(params, algorithm, jobs=1, **kwds):
+def f_name(f):
+    try:
+        return f.__name__
+    except AttributeError:
+        return repr(f)
+
+
+def batch_estimate(params, algorithm, jobs=1, log_level=0, **kwds):
     from .lwe import LWEParameters
 
     if isinstance(params, LWEParameters):
@@ -220,17 +227,13 @@ def batch_estimate(params, algorithm, jobs=1, **kwds):
 
     for x in params:
         for f in algorithm:
-            try:
-                f_repr = f.__name__
-            except AttributeError:
-                f_repr = repr(f)
-            tasks.append((partial(f, **kwds), x, 0, f_repr))
+            tasks.append((partial(f, **kwds), x, log_level, f_name(f)))
 
     if jobs == 1:
         res = {}
         for f, x, lvl, f_repr in tasks:
             y = _batch_estimatef(f, x, lvl, f_repr)
-            res[(f_repr, x)] = y
+            res[f_repr, x] = y
     else:
         pool = Pool(jobs)
         res = pool.starmap(_batch_estimatef, tasks)
