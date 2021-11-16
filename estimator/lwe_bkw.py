@@ -123,7 +123,7 @@ class CodedBKW:
         cost["t1"] = t1
         cost["t2"] = t2
 
-        Cost.register_impermanent(t1=False, t2=False)
+        cost.register_impermanent(t1=False, t2=False)
 
         # compute ntest with the t1 just computed
         if ntest is None:
@@ -142,7 +142,7 @@ class CodedBKW:
         cost["#top"] = ntop  # guessing step, typically zero
         cost["#test"] = ntest  # hypothesis testing
 
-        Cost.register_impermanent({"#cod": False, "#top": False, "#test": False})
+        cost.register_impermanent({"#cod": False, "#top": False, "#test": False})
 
         # Theorem 1: quantization noise + addition noise
         coding_variance = params.Xs.stddev ** 2 * sigma_set ** 2 * ntot
@@ -155,7 +155,7 @@ class CodedBKW:
             return cost
         m = (t1 + t2) * (params.q ** b - 1) / 2 + M
         cost["m"] = float(m)
-        Cost.register_impermanent({"m": True})
+        cost.register_impermanent(m=True)
 
         if not params.Xs <= params.Xe:
             # Equation (7)
