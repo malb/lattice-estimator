@@ -96,7 +96,7 @@ class AroraGB:
             cost["m"] = binomial(params.n + cost["dreg"], cost["dreg"])
         else:
             cost["m"] = params.m
-        cost.register_impermanent(t=False, m=False)
+        cost.register_impermanent(t=False, m=True)
         return cost
 
     @classmethod
@@ -131,7 +131,7 @@ class AroraGB:
 
             current["t"] = t
             current["m"] = m_req
-            current.register_impermanent(t=False, m=False)
+            current.register_impermanent(t=False, m=True)
             current = current.reorder("rop", "m", "dreg", "t")
 
             Logging.log("repeat", log_level + 1, f"{repr(current)}")

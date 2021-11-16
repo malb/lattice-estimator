@@ -265,7 +265,7 @@ class PrimalHybrid:
         beta: int,
         params: LWEParameters,
         zeta: int = 0,
-        babai=True,
+        babai=False,
         mitm=False,
         m: int = oo,
         d: int = None,
@@ -288,9 +288,6 @@ class PrimalHybrid:
            costs.
 
         """
-        # the number of non-zero entries
-        h = ceil(len(params.Xs) * params.Xs.density)
-
         if d is None:
             delta = deltaf(beta)
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
@@ -315,7 +312,7 @@ class PrimalHybrid:
 
         # 3. Search
         # We need to do one BDD call at least
-        search_space, probability, hw = 0, 1.0, 0
+        search_space, probability, hw = 1, 1.0, 0
 
         # MITM or no MITM
         # TODO: this is rather clumsy as a model
@@ -329,12 +326,14 @@ class PrimalHybrid:
         base = params.Xs.bounds[1] - params.Xs.bounds[0]
 
         if zeta:
+            # the number of non-zero entries
+            h = ceil(len(params.Xs) * params.Xs.density)
             probability = RR(prob_drop(params.n, h, zeta))
             hw = 1
             while hw < min(h, zeta):
-                new_search_space = search_space + binomial(zeta, hw) * base ** hw
-                if svp_cost.repeat(ssf(new_search_space))["rop"] < bkz_cost["rop"]:
-                    search_space = new_search_space
+                new_search_space = binomial(zeta, hw) * base ** hw
+                if svp_cost.repeat(ssf(search_space + new_search_space))["rop"] < bkz_cost["rop"]:
+                    search_space += new_search_space
                     probability += prob_drop(params.n, h, zeta, fail=hw)
                     hw += 1
                 else:
@@ -342,18 +341,8 @@ class PrimalHybrid:
 
             svp_cost = svp_cost.repeat(ssf(search_space))
 
-        if babai is True:
+        if eta <= 20:  # NOTE: somewhat arbitrary bound
             probability *= RR(prob_babai(r, sqrt(d) * params.Xe.stddev))
-
-        Cost.register_impermanent(
-            {"|S|": False},
-            rop=True,
-            red=True,
-            svp=True,
-            eta=False,
-            zeta=False,
-            prob=False,
-        )
 
         ret = Cost()
         ret["rop"] = bkz_cost["rop"] + svp_cost["rop"]
@@ -365,6 +354,16 @@ class PrimalHybrid:
         ret["|S|"] = search_space
         ret["d"] = d
         ret["prob"] = probability
+
+        ret.register_impermanent(
+            {"|S|": False},
+            rop=True,
+            red=True,
+            svp=True,
+            eta=False,
+            zeta=False,
+            prob=False,
+        )
 
         # 4. Repeat whole experiment ~1/prob times
         if probability:
@@ -386,7 +385,6 @@ class PrimalHybrid:
         babai: bool = False,
         mitm: bool = True,
         optimize_d=True,
-        baseline_cost=None,
         log_level=5,
         **kwds,
     ):
@@ -395,16 +393,15 @@ class PrimalHybrid:
         """
 
         # step 0. establish baseline
-        if baseline_cost is None:
-            baseline_cost = primal_usvp(
-                params,
-                red_shape_model=red_shape_model,
-                red_cost_model=red_cost_model,
-                optimize_d=False,
-                log_level=log_level + 1,
-                **kwds,
-            )
-            Logging.log("bdd", log_level + 1, f"H0: {repr(baseline_cost)}")
+        baseline_cost = primal_usvp(
+            params,
+            red_shape_model=red_shape_model,
+            red_cost_model=red_cost_model,
+            optimize_d=False,
+            log_level=log_level + 1,
+            **kwds,
+        )
+        Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
             self.cost,
@@ -419,7 +416,7 @@ class PrimalHybrid:
         )
 
         # step 1. optimize β
-        with local_minimum(40, baseline_cost["beta"] + 1) as it:
+        with local_minimum(40, baseline_cost["beta"] + 1, log_level=log_level + 1) as it:
             for beta in it:
                 it.update(f(beta))
             cost = it.y
@@ -428,11 +425,13 @@ class PrimalHybrid:
 
         # step 2. optimize d
         if cost and cost.get("tag", "XXX") != "usvp" and optimize_d:
-            with local_minimum(params.n, cost["d"] + 1) as it:
+            with local_minimum(
+                params.n, cost["d"] + cost["zeta"] + 1, log_level=log_level + 1
+            ) as it:
                 for d in it:
                     it.update(f(beta=cost["beta"], d=d))
                 cost = it.y
-            Logging.log("bdd", log_level + 1, f"H2: {repr(cost)}")
+            Logging.log("bdd", log_level, f"H2: {repr(cost)}")
 
         return cost
 
@@ -479,7 +478,8 @@ class PrimalHybrid:
 
             >>> from estimator import *
             >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^73.1, red: ≈2^72.3, svp: ≈2^71.8, β: 115, η: 17, ζ: 304, |S|: ≈2^92.7, d: 393, prob: 0.048,...
+            rop: ≈2^84.2, red: ≈2^83.7, svp: ≈2^82.6, β: 155, η: 50, ζ: 256, |S|: ≈2^73.5, d: 500, prob: 0.050, ...
+
 
         """
 
@@ -498,12 +498,12 @@ class PrimalHybrid:
             babai=babai,
             mitm=mitm,
             m=m,
-            log_level=log_level,
+            log_level=log_level + 1,
         )
 
         if babai is False:
             if zeta is None:
-                with local_minimum(0, params.n) as it:
+                with local_minimum(0, params.n, log_level=log_level) as it:
                     for zeta in it:
                         it.update(
                             f(
