@@ -43,12 +43,6 @@ def GSA(d, n, q, beta, xi=1, tau=1):
     :param xi: Scaling factor ξ for identity part.
     :param tau: Kannan factor τ.
 
-    .. [Schnorr03] Claus-Peter Schnorr. Lattice Reduction by Random Sampling and Birthday Methods. In:
-               STACS2003, 20th Annual Symposium on Theoretical Aspects of Computer Science, Berlin,
-               Germany, February 27 - March 1, 2003, Proceedings. Ed. by Helmut Alt and Michel
-               Habib. Vol. 2607. LectureNotes in Computer Science. Springer, 2003, pp.
-               145–156.doi:10.1007/3-540-36494-3_14. url:
-               http://dx.doi.org/10.1007/3-540-36494-3_14.
     """
     from .reduction import deltaf
 

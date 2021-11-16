@@ -284,14 +284,6 @@ class CodedBKW:
 
         .. note :: See also [C:KirFou15]_.
 
-        .. [C:GuoJohSta15] Guo, Q., Johansson, T., & Stankovski, P. (2015). Coded-BKW: Solving LWE
-           using Lattice Codes. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part I (pp. 23–42):
-           Springer, Heidelberg.
-
-        .. [C:KirFou15] Paul Kirchner & Pierre-Alain Fouque. An improved BKW algorithm for LWE with
-           applications to cryptography and lattices. In R. Gennaro, & M. J. B. Robshaw,
-           CRYPTO 2015, Part~I (pp. 43–62). : Springer, Heidelberg.
-
         """
         params = LWEParameters.normalize(params)
         try:

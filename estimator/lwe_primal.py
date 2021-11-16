@@ -168,24 +168,6 @@ class PrimalUSVP:
         [AC:AGVW17]_, [C:DDGR20]_, [PKC:PosVir21]_. The treatment of small secrets is from
         [ACISP:BaiGal14]_.
 
-        .. [ACISP:BaiGal14] Shi Bai & Steven D. Galbraith. Lattice decoding attacks on binary LWE.
-           In W. Susilo, & Y. Mu, ACISP 14 (pp. 322–337). : Springer, Heidelberg.
-
-        .. [USENIX:ADPS16] Erdem Alkim, Léo Ducas, Thomas Pöppelmann, & Peter Schwabe.
-           Post-quantum key exchange - A new hope. In T. Holz, & S. Savage, USENIX Security 2016 (pp.
-           327–343). : USENIX Association.
-
-        .. [AC:AGVW17] Martin R. Albrecht, Florian Göpfert, Fernando Virdia & Thomas Wunderer.
-           Revisiting the expected cost of solving uSVP and applications to LWE. In T. Takagi, & T.
-           Peyrin, ASIACRYPT 2017, Part I (pp. 297–322). : Springer, Heidelberg.
-
-        .. [C:DDGR20] Dana Dachman-Soled, Léo Ducas, Gong, H. & Mélissa Rossi. LWE with
-           side information: Attacks and concrete security estimation. In D. Micciancio, & T.
-           Ristenpart, CRYPTO~2020, Part~II (pp. 329–358). : Springer, Heidelberg.
-
-        .. [PKC:PosVir21] Eamonn W. Postlethwaite & Fernando Virdia. On the success probability of
-           solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer,
-           Heidelberg.
         """
         params = LWEParameters.normalize(params)
 
@@ -496,16 +478,6 @@ class PrimalHybrid:
             >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
             rop: ≈2^73.1, red: ≈2^72.3, svp: ≈2^71.8, β: 115, η: 17, ζ: 304, |S|: ≈2^92.7, d: 393, prob: 0.048,...
 
-        .. [C:HowgraveGraham07] Nick Howgrave-Graham. A hybrid lattice-reduction and
-           meet-in-the-middle attack against NTRU. In A. Menezes, CRYPTO 2007 (pp. 150–169). :
-           Springer, Heidelberg.
-
-        .. [RSA:LiuNgu13] Liu, M., & Nguyen, P. Q.. Solving BDD by enumeration: an update. In E.
-           Dawson, CT-RSA 2013 (pp. 293–309). : Springer, Heidelberg.
-
-        .. [SAC:AlbCurWun19] Albrecht, M. R., Curtis, B. R., & Wunderer, T.. Exploring trade-offs in
-           batch bounded distance decoding. In K. G. Paterson, & D. Stebila, SAC 2019 (pp. 467–491).
-           : Springer, Heidelberg.
         """
 
         params = LWEParameters.normalize(params)
