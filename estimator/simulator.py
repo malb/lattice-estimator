@@ -44,7 +44,7 @@ def GSA(d, n, q, beta, xi=1, tau=1):
     :param tau: Kannan factor τ.
 
     """
-    from .reduction import deltaf
+    from .reduction import delta as deltaf
 
     if tau is not None:
         log_vol = RR(log(q, 2) * (d - n - 1) + log(xi, 2) * n + log(tau, 2))

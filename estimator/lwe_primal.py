@@ -8,7 +8,7 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 from functools import partial
 
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
-from .reduction import deltaf
+from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .util import local_minimum
 from .cost import Cost
