@@ -73,7 +73,7 @@ def _delta(beta):
         return RR(beta / (2 * pi * e) * (pi * beta) ** (1 / beta)) ** (1 / (2 * (beta - 1)))
 
 
-def deltaf(beta):
+def delta(beta):
     """
     Compute root-Hermite factor δ from block size β.
 
@@ -81,9 +81,6 @@ def deltaf(beta):
     """
     beta = ZZ(round(beta))
     return _delta(beta)
-
-
-delta = deltaf
 
 
 def _beta_secant(delta):
@@ -148,7 +145,7 @@ def _beta_find_root(delta):
     """
     # handle beta < 40 separately
     beta = ZZ(40)
-    if deltaf(beta) < delta:
+    if _delta(beta) < delta:
         return beta
 
     try:
