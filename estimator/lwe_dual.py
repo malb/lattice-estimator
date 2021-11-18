@@ -12,15 +12,18 @@ from .lwe import LWEParameters
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .io import Logging
-from .conf import red_cost_model_default
+from .conf import red_cost_model_default, default_mitm_opt
 from .errors import OutOfBoundsError
 from .nd import NoiseDistribution
-from .lwe_brute_force import exhaustive_search
+from .lwe_brute_force import exhaustive_search, mitm
 
 
 class DualHybrid:
 
     full_sieves = [ADPS16, BDGL16]
+
+    def __init__(self, opt_step=1):
+        self.opt_step = opt_step
 
     @staticmethod
     @cached_function
@@ -45,15 +48,15 @@ class DualHybrid:
 
         .. note :: This function assumes that the instance is normalized.
         """
-        if zeta < 0 or zeta > params.n:
-            raise OutOfBoundsError("Splitting dimension must be between 0 and n.")
+        if not 0 <= zeta <= params.n:
+            raise OutOfBoundsError(f"Splitting dimension {zeta} must be between 0 and n={params.n}.")
 
         # Compute new secret distribution
 
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(params.n)
-            if h1 < 0 or h1 > h:
-                raise OutOfBoundsError("Splitting weight must be between 0 and h.")
+            if not 0 <= h1 <= h:
+                raise OutOfBoundsError(f"Splitting weight {h1} must be between 0 and h={h}.")
             # assuming the non-zero entries are uniform
             p = h1 / 2
             red_Xs = NoiseDistribution.SparseTernary(params.n - zeta, h / 2 - p)
@@ -158,6 +161,9 @@ class DualHybrid:
         total_cost["m"] = m_
         total_cost["rop"] = cost_red["rop"] + cost_slv["rop"]
         total_cost["mem"] = cost_slv["mem"]
+
+        if d < params.n - zeta:
+            raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
         total_cost["d"] = d
 
         Logging.log("dual", log_level, f"total cost: {repr(total_cost)}")
@@ -209,11 +215,11 @@ class DualHybrid:
         # don't have a reliable upper bound for beta
         # we choose n - k arbitrarily and adjust later if
         # necessary
-        beta_upper = params.n - zeta
+        beta_upper = max(params.n - zeta, 40)
         beta = beta_upper
         while beta == beta_upper:
             beta_upper *= 2
-            cost = robust_bin_search(f, 2, beta_upper, "beta", step=2)
+            cost = robust_bin_search(f, 2, beta_upper, "beta", step=self.opt_step)
             beta = cost["beta"]
 
         cost["zeta"] = zeta
@@ -228,18 +234,25 @@ class DualHybrid:
         success_probability: float = .99,
         red_cost_model=red_cost_model_default,
         use_lll=True,
+        opt_step=2,
         log_level=1,
     ):
         """
         Optimizes the cost of the dual hybrid attack (using the given solver) over
         all attack parameters: blocksize beta, splitting dimension ζ, and
-        splitting weight h1 (in case the secret distribution is sparse).
+        splitting weight h1 (in case the secret distribution is sparse). Since
+        the cost function for the dual hybrid might only be convex in an approximate
+        sense, the parameter ``opt_step`` allows to make the optimization procedure more
+        robust against local irregularities (higher value) at the cost of a longer
+        running time. In a nutshell, if the cost of the dual hybrid seems suspiciosly
+        high, try a larger ``opt_step`` (e.g. 4 or 8).
 
         :param solver: Algorithm for solving the reduced instance
         :param params: LWE parameters
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
         :param use_lll: use LLL calls to produce more small vectors
+        :param opt_step: control robustness of optimizer
 
         The returned cost dictionary has the following entries:
 
@@ -257,22 +270,30 @@ class DualHybrid:
         - When ζ = 1 this function essentially estimates the dual attack.
         - When ζ > 1 0 and ``solver`` is ``exhaustive_search`` this function estimates
             the hybrid attack as given in [INDOCRYPT:EspJouKha20]_
+        - When ζ > 1 0 and ``solver`` is ``mitm`` this function estimates the dual MITM
+            hybrid attack roughly following [https://ia.cr/2019/1114]_
 
         EXAMPLE::
 
             >>> from estimator import *
-            >>> params = LWEParameters(n=1024, q = 2**32, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.0))
+            >>> params = LWEParameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
             >>> dual(params)
             rop: ≈2^115.5, mem: ≈2^70.0, m: 1018, red: ≈2^115.4, δ: 1.005021, β: 284, d: 2041, ↻: ≈2^69.0
             >>> dual_hybrid(params)
             rop: ≈2^111.3, mem: ≈2^106.4, m: 983, red: ≈2^111.2, δ: 1.005204, β: 269, d: 1957, ↻: ≈2^56.4, ζ: 50
+            >>> dual_mitm_hybrid(params)
+            rop: ≈2^141.1, mem: ≈2^139.1, m: 1189, k: 132, ↻: 139, red: ≈2^140.8, δ: 1.004164, β: 375, d: 2021, ζ: 192
+            >>> dual_mitm_hybrid(params, mitm_optimization="numerical")
+            rop: ≈2^140.6, m: 1191, k: 128, mem: ≈2^136.0, ↻: 133, red: ≈2^140.2, δ: 1.004179, β: 373, d: 11, ζ: 163
 
             >>> from dataclasses import replace
             >>> params = replace(params, Xs=ND.SparseTernary(params.n, 32))
             >>> dual(params)
             rop: ≈2^112.8, mem: ≈2^64.0, m: 953, red: ≈2^112.7, δ: 1.005178, β: 271, d: 1976, ↻: ≈2^65.0
             >>> dual_hybrid(params)
-            rop: ≈2^97.8, mem: ≈2^81.5, m: 727, red: ≈2^97.4, δ: 1.006837, β: 174, d: 1446, ↻: ≈2^36.0, ζ: 305, h1: 8
+            rop: ≈2^97.8, mem: ≈2^81.9, m: 730, red: ≈2^97.4, δ: 1.006813, β: 175, d: 1453, ↻: ≈2^36.3, ζ: 301, h1: 8
+            >>> dual_mitm_hybrid(params)
+            rop: ≈2^103.4, mem: ≈2^81.5, m: 724, k: 310, ↻: ≈2^27.3, red: ≈2^102.7, δ: 1.006655, β: 182, ...
         """
 
         Cost.register_impermanent(
@@ -285,7 +306,7 @@ class DualHybrid:
             d=False,
             zeta=False,
         )
-
+        self.opt_step = opt_step
         Logging.log("dual", log_level, f"costing LWE instance: {repr(params)}")
 
         params = params.normalize()
@@ -314,7 +335,8 @@ class DualHybrid:
                     )
                 h = params.Xs.get_hamming_weight(params.n)
                 h1_min = max(0, h - (params.n - zeta))
-                h1_max = min(zeta, h)
+                h1_max = min(zeta, h) - 1       # subtracting 1 as workaround for issue #6
+                Logging.log("dual", log_level, f"Optimizing over h1 in [{h1_min},{h1_max}] (zeta={zeta})")
                 return binary_search(f, h1_min, h1_max, "h1")
         else:
             _optimize_blocksize = self.optimize_blocksize
@@ -329,10 +351,10 @@ class DualHybrid:
             log_level=log_level+1,
             )
 
-        return binary_search(f, 1, params.n - 1, "zeta")
+        return robust_bin_search(f, 1, params.n - 1, "zeta", step=self.opt_step)
 
 
-DH = DualHybrid()
+DH = DualHybrid(opt_step=2)
 
 
 def dual(
@@ -372,11 +394,32 @@ def dual_hybrid(
         success_probability: float = .99,
         red_cost_model=red_cost_model_default,
         use_lll=True,
+        opt_step=2
 ):
     return DH(
         solver=exhaustive_search,
         params=params,
         success_probability=success_probability,
         red_cost_model=red_cost_model,
-        use_lll=use_lll
+        use_lll=use_lll,
+        opt_step=opt_step
+        )
+
+
+def dual_mitm_hybrid(
+        params: LWEParameters,
+        success_probability: float = .99,
+        red_cost_model=red_cost_model_default,
+        use_lll=True,
+        mitm_optimization=default_mitm_opt,
+        opt_step=2
+):
+    solver = partial(mitm, optimization=mitm_optimization)
+    return DH(
+        solver=solver,
+        params=params,
+        success_probability=success_probability,
+        red_cost_model=red_cost_model,
+        use_lll=use_lll,
+        opt_step=opt_step
         )

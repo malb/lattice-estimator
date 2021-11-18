@@ -1,7 +1,7 @@
 from multiprocessing import Pool
 from functools import partial
 
-from sage.all import ceil, floor
+from sage.all import ceil, floor, log
 
 from .io import Logging
 
@@ -195,25 +195,29 @@ def robust_bin_search(
     :param step: initially only consider every `steps`-th value
     :param smallerf: comparison is performed by evaluating ``smallerf(current, best)``
     """
-    if start:
-        if start >= step:
-            start_ = floor(start / step)
+
+    with local_minimum(
+                ceil(start / step),
+                floor(stop / step),
+                smallerf=smallerf,
+                log_level=log_level) as it:
+        if stop - start > step:
+            for x in it:
+                kwds_ = dict(kwds)
+                kwds_[param] = step * x
+                it.update(f(**kwds_))
+
+            p = step * it.x
+            y = it.y
         else:
-            start_ = 1
-    else:
-        start_ = start_
-
-    with local_minimum(start_, ceil(stop / step + 1), smallerf=smallerf, log_level=log_level) as it:
-        for x in it:
+            p = round((stop - start)/2)
             kwds_ = dict(kwds)
-            kwds_[param] = step * x
-            it.update(f(**kwds_))
-
-        p = step * it.x
-        lower = max(start, step * (it.x - 1) + 1)
-        upper = min(stop, step * (it.x + 1))
+            kwds_[param] = p
+            y = f(**kwds_)
+        lower = max(start, p - step)
+        upper = min(stop, p + step)
         if lower >= upper:
-            return it.y
+            return y
         cst = []
         for p in range(lower, upper):
             kwds_ = dict(kwds)
@@ -271,3 +275,7 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, **kwds):
         ret[x][f] = res[f, x]
 
     return ret
+
+
+def log2(x):
+    return log(x, 2)
