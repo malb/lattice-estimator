@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from sage.all import parent, RR, RealField, sqrt, pi, oo
+from sage.all import parent, RR, RealField, sqrt, pi, oo, ceil, binomial
 
 
 def stddevf(sigma):
@@ -180,10 +180,53 @@ class NoiseDistribution:
     @property
     def is_sparse(self):
         """
-        We consider a distribution "sparse" if its density is ≤ 1/2.
+        We consider a distribution "sparse" if its density is < 1/2.
         """
         # NOTE: somewhat arbitrary
         return self.density < 0.5
+
+    def support_size(self, n=None, fraction=1.):
+        """
+        Compute the size of the support covering the probability given as fraction.
+
+        EXAMPLE::
+
+            >>> from estimator.nd import NoiseDistribution as ND
+            >>> D = ND.Uniform(-3,3, 64)
+            >>> D.support_size(fraction=.99)
+            1207562882759477428726191443614714994252339953407098880
+            >>> D = ND.SparseTernary(64, 8)
+            >>> D.support_size()
+            32016101348447354880
+        """
+        if not n:
+            if not self.n:
+                raise ValueError(f"Length required to determine support size, but n was {n}.")
+            n = self.n
+
+        if self.tag == "SparseTernary":
+            h = self.h
+            # TODO: this is assuming that the non-zero entries are uniform over {-1,1}
+            # need p and m for more accurate calculation
+            size = 2 ** h * binomial(n, h) * RR(fraction)
+        elif self.is_bounded and not self.is_Gaussian_like:
+            a, b = self.bounds
+            size = RR(fraction) * (b - a + 1) ** n
+        else:
+            raise NotImplementedError(
+                "Attempting to brute-force Gaussian-like secrets is unlikely to be efficient enough to be relevant."
+            )
+        return ceil(size)
+
+    def get_hamming_weight(self, n=None):
+        if hasattr(self, "h"):
+            return self.h
+
+        if not n:
+            if not self.n:
+                raise ValueError("Length required to determine hamming weight.")
+            n = self.n
+        return round(n * self.density)
 
     @staticmethod
     def DiscreteGaussian(stddev, mean=0, n=None):

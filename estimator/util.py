@@ -181,6 +181,47 @@ def binary_search(
         return it.y
 
 
+def robust_bin_search(
+    f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds
+):
+    """
+    A version of binary search that is more robust w.r.t. small local irregularities in f. The idea
+    is to zoom out by a factor `step`, find an approximate local minimum and then search the
+    vicinity for the smallest value.
+
+    :param start: start of range to search
+    :param stop: stop of range to search (exclusive)
+    :param param: the parameter to modify when calling `f`
+    :param step: initially only consider every `steps`-th value
+    :param smallerf: comparison is performed by evaluating ``smallerf(current, best)``
+    """
+    if start:
+        if start >= step:
+            start_ = floor(start / step)
+        else:
+            start_ = 1
+    else:
+        start_ = start_
+
+    with local_minimum(start_, ceil(stop / step + 1), smallerf=smallerf, log_level=log_level) as it:
+        for x in it:
+            kwds_ = dict(kwds)
+            kwds_[param] = step * x
+            it.update(f(**kwds_))
+
+        p = step * it.x
+        lower = max(start, step * (it.x - 1) + 1)
+        upper = min(stop, step * (it.x + 1))
+        if lower >= upper:
+            return it.y
+        cst = []
+        for p in range(lower, upper):
+            kwds_ = dict(kwds)
+            kwds_[param] = p
+            cst.append(f(**kwds_))
+        return min(cst)
+
+
 def _batch_estimatef(f, x, log_level=0, f_repr=None):
     y = f(x)
     if f_repr is None:
