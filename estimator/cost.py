@@ -171,11 +171,22 @@ class Cost:
         :param right: cost dictionary
         :param base: add entries to ``base``
 
+        EXAMPLE::
+
+            >>> from estimator.cost import Cost
+            >>> c0 = Cost(a=1)
+            >>> c1 = Cost(b=2)
+            >>> c2 = Cost(c=3)
+            >>> c0.combine(c1)
+            a: 1, b: 2
+            >>> c0.combine(c1, base=c2)
+            c: 3, a: 1, b: 2
+
         """
         if base is None:
-            cost = Cost()
+            cost = dict()
         else:
-            cost = base
+            cost = base.__dict__
         for key in self.__dict__:
             cost[key] = self.__dict__[key]
         for key in right:
