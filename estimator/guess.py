@@ -115,7 +115,7 @@ class guess_composition:
             >>> from estimator import *
             >>> from estimator.guess import guess_composition
             >>> guess_composition(primal_usvp)(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^101.8, red: ≈2^101.8, δ: 1.008587, β: 116, d: 439, tag: usvp, repeat: ≈2^35.5, ζ: 255, |S|: 1, ...
+            rop: ≈2^101.8, red: ≈2^101.8, δ: 1.008587, β: 116, d: 439, tag: usvp, ↻: ≈2^35.5, ζ: 255, |S|: 1, ...
 
         Compare::
 

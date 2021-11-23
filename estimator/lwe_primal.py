@@ -525,7 +525,7 @@ class PrimalHybrid:
             try:
                 del cost["|S|"]
                 del cost["prob"]
-                del cost["repeat"]
+                del cost["repetitions"]
                 del cost["zeta"]
             except KeyError:
                 pass
