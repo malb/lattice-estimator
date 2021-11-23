@@ -15,21 +15,24 @@ Lattice Estimator
    algorithms/lwe-bkw
    algorithms/gb
 
+   contributing
+
+.. toctree::
+   :caption: Parameters from the Literature
+   :maxdepth: 2
+
+   schemes/nist-pqc-round-3
+   schemes/hes
+
 .. toctree::
    :caption: API Reference
    :glob:
 
    _apidoc/*
-
-.. toctree::
-   :caption: Parameters from the Literature
-
-   schemes/nist-pqc-round-3
-   schemes/hes
    
 .. toctree::
    :caption: Appendix
+   :maxdepth: 2
    
-   documentationreadme
    genindex
    references

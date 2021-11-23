@@ -69,14 +69,6 @@ state the commit that was used when referencing this project.
 Contributions
 -------------
 
-Our intent is for this estimator to be maintained by the research community. For example, we
-encourage algorithm designers to add their own algorithms to this estimator and we are happy to help
-with that process.
-
-More generally, all contributions such as bugfixes, documentation and tests are welcome. Please go
-ahead and submit your pull requests. Also, don’t forget to add yourself to the list of contributors
-below in your pull requests.
-
 At present, this estimator is maintained by Martin Albrecht. Contributors are:
 
 - Benjamin Curtis
@@ -89,6 +81,8 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Martin Albrecht
 - Rachel Player
 - Sam Scott
+
+ See :doc:`Contributing <../contributing>` for details on how to contribute.
 
 Citing
 ------
