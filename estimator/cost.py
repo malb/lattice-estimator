@@ -18,7 +18,8 @@ class Cost:
     # scaled.
 
     impermanents = {
-        "repeat": False,
+        "rop": True,
+        "repetitions": False,
         "tag": False,
         "problem": False,
     }
@@ -36,7 +37,15 @@ class Cost:
                 raise ValueError(f"Attempting to overwrite {k}:{cls.impermanents[k]} with {v}")
             cls.impermanents[k] = v
 
-    key_map = {"delta": "δ", "beta": "β", "eta": "η", "epsilon": "ε", "zeta": "ζ", "ell": "ℓ"}
+    key_map = {
+        "delta": "δ",
+        "beta": "β",
+        "eta": "η",
+        "epsilon": "ε",
+        "zeta": "ζ",
+        "ell": "ℓ",
+        "repetitions": "↻",
+    }
     val_map = {"beta": "%8d", "d": "%8d", "delta": "%8.6f"}
 
     def __init__(self, **kwds):
@@ -139,6 +148,19 @@ class Cost:
         :param select: toggle which fields ought to be repeated and which should not
         :returns:      a new cost estimate
 
+        EXAMPLE::
+
+            >>> from estimator.cost import Cost
+            >>> c0 = Cost(a=1, b=2)
+            >>> c0.register_impermanent(a=True, b=False)
+            >>> c0.repeat(1000)
+            a: 1000, b: 2, ↻: 1000
+
+        TESTS::
+
+            >>> from estimator.cost import Cost
+            >>> Cost(rop=1).repeat(1000).repeat(1000)
+            rop: ≈2^19.9, ↻: ≈2^19.9
 
         """
         impermanents = dict(self.impermanents)
@@ -158,7 +180,7 @@ class Cost:
                 raise NotImplementedError(
                     f"You found a bug, this function does not know about '{key}' but should."
                 )
-        ret["repeat"] = times * ret.get("repeat", 1)
+        ret["repetitions"] = times * ret.get("repetitions", 1)
         return Cost(**ret)
 
     def __rmul__(self, times):
