@@ -341,7 +341,7 @@ class PrimalHybrid:
 
             svp_cost = svp_cost.repeat(ssf(search_space))
 
-        if eta <= 20:  # NOTE: somewhat arbitrary bound
+        if eta <= 20 and d >= 0:  # NOTE: η: somewhat arbitrary bound, d: we may guess it all
             probability *= RR(prob_babai(r, sqrt(d) * params.Xe.stddev))
 
         ret = Cost()
