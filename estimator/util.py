@@ -45,6 +45,7 @@ class local_minimum:
         self._last_x = None
         self._next_x = self._stop
         self._best = (None, None)
+        self._all_x = set()
 
     def __enter__(self):
         """ """
@@ -59,19 +60,19 @@ class local_minimum:
         return self
 
     def __next__(self):
-        if self._next_x is not None:
+        if self._next_x is not None and self._next_x not in self._all_x:
             self._last_x = self._next_x
             self._next_x = None
             return self._last_x
-        else:
-            if self._best[0] in self._initial_bounds and not self._suppress_bounds_warning:
-                # We warn the user if the optimal solution is at the edge and thus possibly not optimal.
-                Logging.log(
-                    "bins",
-                    self._log_level,
-                    f'warning: "optimal" solution {self._best[0]} matches a bound ∈ {self._initial_bounds}.',
-                )
-            raise StopIteration
+
+        if self._best[0] in self._initial_bounds and not self._suppress_bounds_warning:
+            # We warn the user if the optimal solution is at the edge and thus possibly not optimal.
+            Logging.log(
+                "bins",
+                self._log_level,
+                f'warning: "optimal" solution {self._best[0]} matches a bound ∈ {self._initial_bounds}.',
+            )
+        raise StopIteration
 
     @property
     def x(self):
@@ -82,7 +83,23 @@ class local_minimum:
         return self._best[1]
 
     def update(self, res):
+        """
+
+        TESTS:
+
+        We keep cache old inputs in ``_all_x`` to prevent infinite loops::
+
+            >>> from estimator.util import binary_search
+            >>> from estimator.cost import Cost
+            >>> f = lambda x, log_level=1: Cost(rop=1) if x >= 19 else Cost(rop=2)
+            >>> binary_search(f, 10, 30, "x")
+            rop: 1
+
+        """
+
         Logging.log("bins", self._log_level, f"({self._last_x}, {repr(res)})")
+
+        self._all_x.add(self._last_x)
 
         # We got nothing yet
         if self._best[0] is None:
