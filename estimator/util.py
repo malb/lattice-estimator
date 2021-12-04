@@ -33,6 +33,10 @@ class local_minimum:
         :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
 
         """
+
+        if stop < start:
+            raise ValueError(f"Incorrect bounds {start} > {stop}.")
+
         self._suppress_bounds_warning = suppress_bounds_warning
         self._log_level = log_level
         self._start = start
@@ -60,7 +64,16 @@ class local_minimum:
         return self
 
     def __next__(self):
-        if self._next_x is not None and self._next_x not in self._all_x:
+        abort = False
+        if self._next_x is None:
+            abort = True  # we're told to abort
+        elif self._next_x in self._all_x:
+            abort = True  # we're looping
+        elif self._next_x < self._initial_bounds[0] or self._initial_bounds[1] < self._next_x:
+            print(self._next_x, self._initial_bounds)
+            abort = True  # we're stepping out of bounds
+
+        if not abort:
             self._last_x = self._next_x
             self._next_x = None
             return self._last_x
@@ -72,6 +85,7 @@ class local_minimum:
                 self._log_level,
                 f'warning: "optimal" solution {self._best[0]} matches a bound ∈ {self._initial_bounds}.',
             )
+
         raise StopIteration
 
     @property
