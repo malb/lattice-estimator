@@ -147,54 +147,6 @@ def binary_search(
             it.update(f(*args, **kwds_))
         return it.y
 
-    kwds[param] = stop
-    D = {}
-    D[stop] = f(*args, log_level=log_level + 1, **kwds)
-    Logging.log("bins", log_level, f"{param}: {stop:4d} || {repr(D[stop])}")
-    best = D[stop]
-    b = ceil((start + stop) / 2)
-    direction = 0
-    while True:
-        if b not in D:
-            kwds[param] = b
-            D[b] = f(*args, log_level=log_level + 1, **kwds)
-            Logging.log("bins", log_level, f"{param}: {b:4d} || {repr(D[b])}")
-        if b == start:
-            best = D[start]
-            break
-        if not smallerf(D[b], best):
-            if direction == 0:
-                start = b
-                b = ceil((stop + b) / 2)
-            else:
-                stop = b
-                b = floor((start + b) / 2)
-        else:
-            best = D[b]
-            Logging.log("bins", log_level, f"{param}: {b:4d} || {repr(best)}")
-            if b - 1 not in D:
-                kwds[param] = b - 1
-                D[b - 1] = f(*args, log_level=log_level + 1, **kwds)
-                Logging.log("bins", log_level, f"{param}: {b-1:4d} || {repr(D[b-1])}")
-            if smallerf(D[b - 1], best):
-                best = D[b - 1]
-                stop = b
-                b = floor((b + start) / 2)
-                direction = 0
-            else:
-                if b + 1 not in D:
-                    kwds[param] = b + 1
-                    D[b + 1] = f(*args, log_level=log_level + 1, **kwds)
-                    Logging.log("bins", log_level, f"{param}: {b+1:4d} || {repr(D[b+1])}")
-                if not smallerf(D[b + 1], best):
-                    break
-                else:
-                    best = D[b + 1]
-                    start = b
-                    b = ceil((stop + b) / 2)
-                    direction = 1
-    return best
-
 
 def _batch_estimatef(f, x, log_level=0, f_repr=None):
     y = f(x)
