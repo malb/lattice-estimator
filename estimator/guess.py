@@ -93,7 +93,7 @@ class guess_composition:
         base = params.Xs.bounds[1] - params.Xs.bounds[0]  # we exclude zero
         h = ceil(len(params.Xs) * params.Xs.density)  # nr of non-zero entries
 
-        with local_minimum(0, params.n, log_level=log_level) as it:
+        with local_minimum(0, params.n - 40, log_level=log_level) as it:
             for zeta in it:
                 single_cost = f(params.updated(n=params.n - zeta), log_level=log_level + 1, **kwds)
                 repeat, gamma, search_space, probability = cls.gammaf(params.n, h, zeta, base)
@@ -115,7 +115,7 @@ class guess_composition:
             >>> from estimator import *
             >>> from estimator.guess import guess_composition
             >>> guess_composition(primal_usvp)(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^101.8, red: ≈2^101.8, δ: 1.008587, β: 116, d: 439, tag: usvp, ↻: ≈2^35.5, ζ: 255, |S|: 1, ...
+            rop: ≈2^102.0, red: ≈2^102.0, δ: 1.008079, β: 130, d: 474, tag: usvp, ↻: ≈2^31.8, ζ: 235, |S|: 1, ...
 
         Compare::
 
