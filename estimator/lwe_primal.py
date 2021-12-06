@@ -366,7 +366,7 @@ class PrimalHybrid:
         )
 
         # 4. Repeat whole experiment ~1/prob times
-        if probability:
+        if probability and not probability.is_NaN():
             ret = ret.repeat(
                 prob_amplify(0.99, probability),
             )
