@@ -120,7 +120,7 @@ class guess_composition:
         Compare::
 
             >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^83.7, red: ≈2^82.8, svp: ≈2^82.7, β: 168, η: 23, ζ: 256, |S|: ≈2^103.9, d: 518, prob: 0.708, ...
+            rop: ≈2^84.6, red: ≈2^83.6, svp: ≈2^83.5, β: 103, η: 2, ζ: 365, |S|: ≈2^90.8, d: 313, prob: ≈2^-19...
 
         """
         if params.Xs.is_sparse:

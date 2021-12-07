@@ -17,6 +17,7 @@ from .simulator import normalize as simulator_normalize
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
+from .prob import mitm_babai_probability
 from .io import Logging
 from .conf import red_cost_model_default, red_shape_model_default, red_simulator_default
 
@@ -341,6 +342,13 @@ class PrimalHybrid:
 
             svp_cost = svp_cost.repeat(ssf(search_space))
 
+        if mitm and zeta > 0:
+            if babai:
+                probability *= mitm_babai_probability(r, params.Xe.stddev, params.q)
+            else:
+                # TODO: the probability in this case needs to be analysed
+                probability *= 1
+
         if eta <= 20 and d >= 0:  # NOTE: η: somewhat arbitrary bound, d: we may guess it all
             probability *= RR(prob_babai(r, sqrt(d) * params.Xe.stddev))
 
@@ -440,7 +448,7 @@ class PrimalHybrid:
     def __call__(
         self,
         params: LWEParameters,
-        babai: bool = False,
+        babai: bool = True,
         zeta: int = None,
         mitm: bool = True,
         red_shape_model=red_shape_model_default,
@@ -479,9 +487,17 @@ class PrimalHybrid:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^83.7, red: ≈2^82.8, svp: ≈2^82.7, β: 168, η: 23, ζ: 256, |S|: ≈2^103.9, d: 518, ...
+            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
+            rop: ≈2^93.9, red: ≈2^93.5, svp: ≈2^91.7, β: 169, η: 23, ζ: 255, |S|: ≈2^50.6, d: 520, prob: 0.001 ...
 
+            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
+            rop: ≈2^90.0, red: ≈2^89.5, svp: ≈2^88.0, β: 88, η: 2, ζ: 327, |S|: ≈2^39.8, d: 326, prob: ≈2^-29.3,...
+
+            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
+            rop: ≈2^83.7, red: ≈2^82.8, svp: ≈2^82.7, β: 168, η: 23, ζ: 256, |S|: ≈2^103.9, d: 518, prob: 0.708 ...
+
+            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
+            rop: ≈2^84.6, red: ≈2^83.6, svp: ≈2^83.5, β: 103, η: 2, ζ: 365, |S|: ≈2^90.8, d: 313, prob: ≈2^-19.3...
 
         """
 
@@ -508,23 +524,20 @@ class PrimalHybrid:
             log_level=log_level + 1,
         )
 
-        if babai is False:
-            if zeta is None:
-                with local_minimum(0, params.n, log_level=log_level) as it:
-                    for zeta in it:
-                        it.update(
-                            f(
-                                zeta=zeta,
-                                optimize_d=False,
-                                **kwds,
-                            )
+        if zeta is None:
+            with local_minimum(0, params.n, log_level=log_level) as it:
+                for zeta in it:
+                    it.update(
+                        f(
+                            zeta=zeta,
+                            optimize_d=False,
+                            **kwds,
                         )
-                # TODO: this should not be required
-                cost = min(it.y, f(0, optimize_d=False, **kwds))
-            else:
-                cost = f(zeta=zeta)
+                    )
+            # TODO: this should not be required
+            cost = min(it.y, f(0, optimize_d=False, **kwds))
         else:
-            raise NotImplementedError
+            cost = f(zeta=zeta)
 
         cost["tag"] = tag
         cost["problem"] = params

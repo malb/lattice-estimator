@@ -27,3 +27,4 @@ References
 .. [USENIX:ADPS16] Edem Alkim, Léo Ducas, Thomas Pöppelmann, & Peter Schwabe (2016). Post-quantum key exchange - A New Hope. In T. Holz, & S. Savage, 25th USENIX Security Symposium, USENIX Security 16 (pp. 327–343). USENIX Association.
 .. [INDOCRYPT:EspJouKha20] Espitau, T., Joux, A. and Kharchenko, N., 2020, December. On a dual/hybrid approach to small secret LWE. In International Conference on Cryptology in India (pp. 440-462). Springer, Cham.
 .. [https://ia.cr/2019/1114] Cheon, J.H., Hhan, M., Hong, S. and Son, Y., 2019. A hybrid of dual and meet-in-the-middle attack on sparse and ternary secret LWE. IEEE Access, 7, pp.89497-89506.
+.. [EPRINT:SonChe19] Son, Y. and Cheon, J.H., 2019. Revisiting the Hybrid Attack on sparse abd ternary LWE. Workshop on Applied Homomorphic Cryptography, WAHC2019.
