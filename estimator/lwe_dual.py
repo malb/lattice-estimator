@@ -20,7 +20,7 @@ from .lwe_brute_force import exhaustive_search, mitm
 
 class DualHybrid:
 
-    full_sieves = [ADPS16, BDGL16]
+    full_sieves = [ADPS16.__name__, BDGL16.__name__]
 
     def __init__(self, opt_step=1):
         self.opt_step = opt_step
@@ -137,18 +137,22 @@ class DualHybrid:
 
         d = m_ + params.n - zeta
         cost_red = costf(red_cost_model, beta, d)
-        if red_cost_model in DualHybrid.full_sieves:
+        if red_cost_model.__name__ in DualHybrid.full_sieves:
             # if we use full sieving, we get many short vectors
             # we compute in logs to avoid overflows in case m
             # or beta happen to be large
             try:
                 log_rep = max(0, log(cost_slv["m"]) - (beta / 2) * log(4 / 3))
+                if log_rep > 10^10:
+                    # sage's ceil function seems to completely freak out for large
+                    # inputs, but then m is huge, so unlikely to be relevant
+                    raise OverflowError()
                 cost_red = cost_red.repeat(ceil(exp(log_rep)))
             except OverflowError:
-                # if we still get an overflow, m must be huge so
-                # can probably be approximated with oo for our
-                # purposes
-                cost_slv["rop"] = oo
+                # if we get an overflow, m must be huge
+                # so we can probably approximate the cost with
+                # oo for our purposes
+                return Cost(rop=oo)
         elif use_lll:
             cost_red["rop"] += cost_slv["m"] * LLL(d, log(params.q, 2))
             cost_red["repetitions"] = cost_slv["m"]
@@ -278,20 +282,20 @@ class DualHybrid:
             >>> from estimator import *
             >>> params = LWEParameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
             >>> dual(params)
-            rop: ≈2^115.5, mem: ≈2^70.0, m: 1018, red: ≈2^115.4, δ: 1.005021, β: 284, d: 2041, ↻: ≈2^69.0
+            rop: ≈2^115.5, mem: ≈2^70.0, m: 1018, red: ≈2^115.4, δ: 1.005021, β: 284, d: 2041, ↻: ≈2^69.0, tag: dual
             >>> dual_hybrid(params)
-            rop: ≈2^111.3, mem: ≈2^106.4, m: 983, red: ≈2^111.2, δ: 1.005204, β: 269, d: 1957, ↻: ≈2^56.4, ζ: 50
+            rop: ≈2^111.3, mem: ≈2^106.4, m: 983, red: ≈2^111.2, δ: 1.005204, β: 269, d: 1957, ↻: ≈2^56.4, ζ: 50, ...
             >>> dual_mitm_hybrid(params)
-            rop: ≈2^141.1, mem: ≈2^139.1, m: 1189, k: 132, ↻: 139, red: ≈2^140.8, δ: 1.004164, β: 375, d: 2021, ζ: 192
+            rop: ≈2^141.1, mem: ≈2^139.1, m: 1189, k: 132, ↻: 139, red: ≈2^140.8, δ: 1.004164, β: 375, d: 2021, ...
             >>> dual_mitm_hybrid(params, mitm_optimization="numerical")
-            rop: ≈2^140.6, m: 1191, k: 128, mem: ≈2^136.0, ↻: 133, red: ≈2^140.2, δ: 1.004179, β: 373, d: 11, ζ: 163
+            rop: ≈2^140.6, m: 1191, k: 128, mem: ≈2^136.0, ↻: 133, red: ≈2^140.2, δ: 1.004179, β: 373, d: 11, ...
 
             >>> from dataclasses import replace
             >>> params = replace(params, Xs=ND.SparseTernary(params.n, 32))
             >>> dual(params)
-            rop: ≈2^112.8, mem: ≈2^64.0, m: 953, red: ≈2^112.7, δ: 1.005178, β: 271, d: 1976, ↻: ≈2^65.0
+            rop: ≈2^112.8, mem: ≈2^64.0, m: 953, red: ≈2^112.7, δ: 1.005178, β: 271, d: 1976, ↻: ≈2^65.0, tag: dual
             >>> dual_hybrid(params)
-            rop: ≈2^97.8, mem: ≈2^81.9, m: 730, red: ≈2^97.4, δ: 1.006813, β: 175, d: 1453, ↻: ≈2^36.3, ζ: 301, h1: 8
+            rop: ≈2^97.8, mem: ≈2^81.9, m: 730, red: ≈2^97.4, δ: 1.006813, β: 175, d: 1453, ↻: ≈2^36.3, ζ: 301, ...
             >>> dual_mitm_hybrid(params)
             rop: ≈2^103.4, mem: ≈2^81.5, m: 724, k: 310, ↻: ≈2^27.3, red: ≈2^102.7, δ: 1.006655, β: 182, ...
         """
@@ -386,6 +390,7 @@ def dual(
     del ret["zeta"]
     if hasattr(ret, "h1"):
         del ret["h1"]
+    ret["tag"] = "dual"
     return ret
 
 
@@ -396,7 +401,7 @@ def dual_hybrid(
         use_lll=True,
         opt_step=2
 ):
-    return DH(
+    ret = DH(
         solver=exhaustive_search,
         params=params,
         success_probability=success_probability,
@@ -404,6 +409,8 @@ def dual_hybrid(
         use_lll=use_lll,
         opt_step=opt_step
         )
+    ret["tag"] = "dual_hybrid"
+    return ret
 
 
 def dual_mitm_hybrid(
@@ -415,7 +422,7 @@ def dual_mitm_hybrid(
         opt_step=2
 ):
     solver = partial(mitm, optimization=mitm_optimization)
-    return DH(
+    ret = DH(
         solver=solver,
         params=params,
         success_probability=success_probability,
@@ -423,3 +430,5 @@ def dual_mitm_hybrid(
         use_lll=use_lll,
         opt_step=opt_step
         )
+    ret["tag"] = "dual_mitm_hybrid"
+    return ret
