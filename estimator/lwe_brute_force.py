@@ -72,6 +72,8 @@ class ExhaustiveSearch:
         ret = Cost(rop=cost, mem=cost / 2, m=m)
         return ret
 
+    __name__ = "exhaustive_search"
+
 
 exhaustive_search = ExhaustiveSearch()
 
@@ -247,6 +249,8 @@ class MITM:
             return min(ret, ret1)
         else:
             raise ValueError("Unknown optimization method for MITM.")
+
+    __name__ = "mitm"
 
 
 mitm = MITM()

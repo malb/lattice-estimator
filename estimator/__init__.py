@@ -6,7 +6,7 @@ from .lwe_bkw import coded_bkw  # noqa
 from .lwe_brute_force import exhaustive_search, mitm  # noqa
 from .lwe_dual import dual, dual_hybrid, dual_mitm_hybrid # noqa
 from .gb import arora_gb  # noqa
-
+from .top_level import estimate_lwe # noqa
 from . import reduction as RC  # noqa
 from . import simulator as Simulator  # noqa
 

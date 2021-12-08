@@ -79,6 +79,7 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Léo Ducas
 - Markus Schmidt
 - Martin Albrecht
+- Michael Walter
 - Rachel Player
 - Sam Scott
 
