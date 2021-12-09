@@ -83,13 +83,13 @@ class Cost:
                 continue
             kk = wfmtf(self.key_map.get(k, k))
             try:
-                if 1 / round_bound < abs(v) < round_bound or not v:
+                if (1 / round_bound < abs(v) < round_bound) or (not v) or (k in self.val_map):
                     if abs(v % 1) < 0.0000001:
                         vv = self.val_map.get(k, "%8d") % round(v)
                     else:
                         vv = self.val_map.get(k, "%8.3f") % v
                 else:
-                    vv = "%7s" % self.val_map.get(k, "≈2^%.1f") % log(v, 2)
+                    vv = "%7s" % ("≈2^%.1f" % log(v, 2))
             except TypeError:  # strings and such
                 vv = "%8s" % v
             if compact:

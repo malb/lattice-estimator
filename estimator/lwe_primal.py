@@ -519,7 +519,7 @@ class PrimalHybrid:
         else:
             raise NotImplementedError
 
-        if cost.get("zeta", 0) == 0:
+        if zeta == 0:
             cost["tag"] = cost.get("tag", "bdd")
             cost["problem"] = params
             try:
