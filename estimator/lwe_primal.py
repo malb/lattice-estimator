@@ -483,6 +483,11 @@ class PrimalHybrid:
 
         """
 
+        if zeta == 0:
+            tag = "bdd"
+        else:
+            tag = "hybrid"
+
         params = LWEParameters.normalize(params)
 
         # allow for a larger embedding lattice dimension: Bai and Galbraith
@@ -519,8 +524,11 @@ class PrimalHybrid:
         else:
             raise NotImplementedError
 
-        if zeta == 0:
-            cost["tag"] = cost.get("tag", "bdd")
+        cost["tag"] = tag
+        cost["problem"] = params
+
+        if tag == "bdd":
+            cost["tag"] = tag
             cost["problem"] = params
             try:
                 del cost["|S|"]
@@ -529,9 +537,7 @@ class PrimalHybrid:
                 del cost["zeta"]
             except KeyError:
                 pass
-        else:
-            cost["tag"] = cost.get("tag", "hybrid")
-            cost["problem"] = params
+
         return cost
 
     __name__ = "primal_hybrid"
