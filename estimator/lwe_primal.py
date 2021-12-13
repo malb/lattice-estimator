@@ -480,7 +480,7 @@ class PrimalHybrid:
 
             >>> from estimator import *
             >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^83.7, red: ≈2^82.8, svp: ≈2^82.7, β: 168, η: 23, ζ: 256, |S|: ≈2^103.9, d: 518, prob: 0.708, ↻: 4, tag: hybrid
+            rop: ≈2^83.7, red: ≈2^82.8, svp: ≈2^82.7, β: 168, η: 23, ζ: 256, |S|: ≈2^103.9, d: 518, ...
 
 
         """
