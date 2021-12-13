@@ -23,6 +23,7 @@ class local_minimum:
         smallerf=lambda x, best: x <= best,
         log_level=5,
         suppress_bounds_warning=False,
+        test_step_size=1,
     ):
         """
         Create a fresh local minimum search context.
@@ -31,6 +32,7 @@ class local_minimum:
         :param stop:  end point (exclusive)
         :param smallerf: a function to decide if ``lhs`` is smaller than ``rhs``.
         :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
+        :param test_step_size: when exploring the neighborhood of a point, how far our shall we go
 
         """
 
@@ -38,6 +40,7 @@ class local_minimum:
             raise ValueError(f"Incorrect bounds {start} > {stop}.")
 
         self._suppress_bounds_warning = suppress_bounds_warning
+        self._test_step_size = test_step_size
         self._log_level = log_level
         self._start = start
         self._stop = stop - 1
@@ -70,7 +73,6 @@ class local_minimum:
         elif self._next_x in self._all_x:
             abort = True  # we're looping
         elif self._next_x < self._initial_bounds[0] or self._initial_bounds[1] < self._next_x:
-            print(self._next_x, self._initial_bounds)
             abort = True  # we're stepping out of bounds
 
         if not abort:
@@ -127,7 +129,7 @@ class local_minimum:
             # if it's a result of a long jump figure out the next direction
             if abs(self._direction) != 1:
                 self._direction = -1
-                self._next_x = self._last_x - 1
+                self._next_x = self._last_x - self._test_step_size
             # going down worked, so let's keep on doing that.
             elif self._direction == -1:
                 self._direction = -2
@@ -142,7 +144,7 @@ class local_minimum:
             # going downwards didn't help, let's try up
             if self._direction == -1:
                 self._direction = 1
-                self._next_x = self._last_x + 2
+                self._next_x = self._last_x + 2 * self._test_step_size
             # going up didn't help either, so we stop
             elif self._direction == 1:
                 self._next_x = None

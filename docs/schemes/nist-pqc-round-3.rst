@@ -9,7 +9,7 @@ NIST PQC Round 3 Finalists
    >>> Kyber512
    LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
    >>> primal_bdd(Kyber512)
-   rop: ≈2^137.8, red: ≈2^136.8, svp: ≈2^136.8, β: 366, η: 399, d: 978, tag: bdd
+   rop: ≈2^137.8, red: ≈2^136.5, svp: ≈2^137.1, β: 365, η: 400, d: 981, tag: bdd
 
 ::
 
@@ -17,7 +17,7 @@ NIST PQC Round 3 Finalists
    >>> Kyber768
    LWEParameters(n=768, q=3329, Xs=D(σ=1.00), Xe=D(σ=1.00), m=768, tag='Kyber 768')
    >>> primal_bdd(Kyber768)
-   rop: ≈2^205.7, red: ≈2^204.6, svp: ≈2^204.8, β: 606, η: 641, d: 1425, tag: bdd
+   rop: ≈2^205.7, red: ≈2^204.9, svp: ≈2^204.5, β: 607, η: 640, d: 1426, tag: bdd
 
 ::
 
@@ -25,7 +25,7 @@ NIST PQC Round 3 Finalists
    >>> Kyber1024
    LWEParameters(n=1024, q=3329, Xs=D(σ=1.00), Xe=D(σ=1.00), m=1024, tag='Kyber 1024')
    >>> primal_bdd(Kyber1024)
-   rop: ≈2^276.1, red: ≈2^275.1, svp: ≈2^275.0, β: 855, η: 890, d: 1873, tag: bdd
+   rop: ≈2^276.1, red: ≈2^274.9, svp: ≈2^275.3, β: 854, η: 891, d: 1869, tag: bdd
 
 `Saber <https://www.esat.kuleuven.be/cosic/pqcrypto/saber/files/saberspecround3.pdf>`__
 
@@ -43,7 +43,7 @@ NIST PQC Round 3 Finalists
    >>> Saber
    LWEParameters(n=768, q=8192, Xs=D(σ=1.41), Xe=D(σ=2.00), m=768, tag='Saber')
    >>> primal_bdd(Saber)
-   rop: ≈2^209.7, red: ≈2^208.6, svp: ≈2^208.7, β: 620, η: 655, d: 1475, tag: bdd
+   rop: ≈2^209.7, red: ≈2^208.9, svp: ≈2^208.5, β: 621, η: 654, d: 1476, tag: bdd
 
 ::
 
@@ -51,7 +51,7 @@ NIST PQC Round 3 Finalists
    >>> FireSaber
    LWEParameters(n=1024, q=8192, Xs=D(σ=1.22), Xe=D(σ=2.00), m=1024, tag='FireSaber')
    >>> primal_bdd(FireSaber)
-   rop: ≈2^277.1, red: ≈2^276.0, svp: ≈2^276.2, β: 858, η: 894, d: 1886, tag: bdd
+   rop: ≈2^276.9, red: ≈2^276.3, svp: ≈2^275.3, β: 859, η: 891, d: 1928, tag: bdd
 
 
 `NTRU <https://ntru.org/f/ntru-20190330.pdf>`__
@@ -70,7 +70,7 @@ NIST PQC Round 3 Finalists
    >>> NTRUHPS2048677Enc
    LWEParameters(n=676, q=2048, Xs=D(σ=0.82), Xe=D(σ=0.61), m=676, tag='NTRUHPS2048677Enc')
    >>> primal_bdd(NTRUHPS2048677Enc)
-   rop: ≈2^175.2, red: ≈2^174.3, svp: ≈2^174.1, β: 499, η: 532, d: 1181, tag: bdd
+   rop: ≈2^175.2, red: ≈2^174.0, svp: ≈2^174.4, β: 498, η: 533, d: 1179, tag: bdd
 
 ::
 
@@ -78,7 +78,7 @@ NIST PQC Round 3 Finalists
    >>> NTRUHPS4096821Enc
    LWEParameters(n=820, q=4096, Xs=D(σ=0.82), Xe=D(σ=0.79), m=820, tag='NTRUHPS4096821Enc')
    >>> primal_bdd(NTRUHPS4096821Enc)
-   rop: ≈2^204.4, red: ≈2^203.3, svp: ≈2^203.4, β: 601, η: 636, d: 1485, tag: bdd
+   rop: ≈2^204.4, red: ≈2^203.6, svp: ≈2^203.1, β: 602, η: 635, d: 1484, tag: bdd
 
 ::
 
