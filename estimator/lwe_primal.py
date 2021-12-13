@@ -416,7 +416,9 @@ class PrimalHybrid:
         )
 
         # step 1. optimize β
-        with local_minimum(40, baseline_cost["beta"] + 1, log_level=log_level + 1) as it:
+        with local_minimum(
+            40, baseline_cost["beta"] + 1, log_level=log_level + 1, test_step_size=2
+        ) as it:
             for beta in it:
                 it.update(f(beta))
             cost = it.y
@@ -478,7 +480,7 @@ class PrimalHybrid:
 
             >>> from estimator import *
             >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^84.2, red: ≈2^83.7, svp: ≈2^82.6, β: 155, η: 50, ζ: 256, |S|: ≈2^73.5, d: 500, prob: 0.050, ...
+            rop: ≈2^83.7, red: ≈2^82.8, svp: ≈2^82.7, β: 168, η: 23, ζ: 256, |S|: ≈2^103.9, d: 518, prob: 0.708, ↻: 4, tag: hybrid
 
 
         """
