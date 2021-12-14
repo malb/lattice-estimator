@@ -30,7 +30,8 @@ def estimate_lwe(params,
     >>> _["primal_bdd"]
     rop: ≈2^86.2, red: ≈2^84.6, svp: ≈2^85.7, β: 185, η: 216, d: 370, tag: bdd
     >>> _["primal_hybrid"]
-    rop: ≈2^114.6, red: ≈2^113.6, svp: ≈2^113.5, β: 191, η: 2, ζ: 87, |S|: ≈2^137.9, d: 302, ...
+    rop: ≈2^115.6, red: ≈2^114.7, svp: ≈2^114.6, β: 197, η: 2, ζ: 89, |S|: ≈2^141.1, d: 304, ...
+
     """
 
     # all implemented algorithms

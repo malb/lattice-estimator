@@ -25,7 +25,8 @@ def mitm_babai_probability(r, stddev, q, fast=False):
         # get non-squared norms
         R = [sqrt(s) for s in r]
         alphaq = sigmaf(stddev)
-        probs = [RR(erf(s * sqrt(pi)/alphaq) + (alphaq / s) * ((exp(-s * sqrt(pi) / alphaq) - 1)/pi)) for s in R]
+        probs = [RR(erf(s * sqrt(RR(pi)) / alphaq) + (alphaq / s) *
+                    ((exp(-s * sqrt(RR(pi)) / alphaq) - 1) / RR(pi))) for s in R]
         p = RR(prod(probs))
         if p < 0 or p > 1:
             p = 0.0
