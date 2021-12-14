@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from sage.all import parent, RR, RealField, sqrt, pi, oo, ceil, binomial
+from sage.all import parent, RR, RealField, sqrt, pi, oo, ceil, binomial, exp
 
 
 def stddevf(sigma):
@@ -73,6 +73,11 @@ class NoiseDistribution:
     All noise distributions are instances of this class.
 
     """
+    # cut-off for Gaussian distributions
+    gaussian_tail_bound = 2
+
+    # probability that a coefficient falls within the cut-off
+    gaussian_tail_prob = 1 - 2 * exp(-4 * pi)
 
     stddev: float
     mean: float = 0
@@ -204,18 +209,26 @@ class NoiseDistribution:
                 raise ValueError(f"Length required to determine support size, but n was {n}.")
             n = self.n
 
-        if self.tag == "SparseTernary":
+        if "SparseTernary" in self.tag:
             h = self.h
             # TODO: this is assuming that the non-zero entries are uniform over {-1,1}
             # need p and m for more accurate calculation
             size = 2 ** h * binomial(n, h) * RR(fraction)
-        elif self.is_bounded and not self.is_Gaussian_like:
+        elif self.is_bounded:
+            # TODO: this might be suboptimal/inaccurate for binomial distribution
             a, b = self.bounds
             size = RR(fraction) * (b - a + 1) ** n
         else:
-            raise NotImplementedError(
-                "Attempting to brute-force Gaussian-like secrets is unlikely to be efficient enough to be relevant."
-            )
+            # Looks like nd is Gaussian
+            # -> we'll treat it as bounded (with failure probability)
+            t = self.gaussian_tail_bound
+            p = self.gaussian_tail_prob
+
+            if p ** n < fraction:
+                raise NotImplementedError(f"TODO(nd.support-size): raise t. {RR(p ** n)}, {n}, {fraction}")
+
+            b = 2 * t * sigmaf(self.stddev) + 1
+            return (2 * b + 1) ** n
         return ceil(size)
 
     def get_hamming_weight(self, n=None):

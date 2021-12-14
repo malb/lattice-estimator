@@ -4,7 +4,6 @@ from sage.all import sqrt, pi, log, exp, RR, ZZ, oo, round, e, binomial, ceil, f
 from .cost import Cost
 from .lwe import LWEParameters
 from .errors import InsufficientSamplesError
-from .nd import sigmaf
 from .conf import default_mitm_opt
 from .util import binary_search, log2
 from .prob import amplify
@@ -48,7 +47,13 @@ class ExhaustiveSearch:
         # there are two stages: enumeration and distinguishing, so we split up the success_probability
         probability = sqrt(success_probability)
 
-        size = params.Xs.support_size(n=params.n, fraction=probability)
+        try:
+            size = params.Xs.support_size(n=params.n, fraction=probability)
+        except NotImplementedError:
+            # not achieving required probability with search space
+            # given our settings that means the search space is huge
+            # so we approximate the cost with oo
+            return Cost(rop=oo, mem=oo, m=1)
 
         if quantum:
             size = size.sqrt()
@@ -79,21 +84,18 @@ exhaustive_search = ExhaustiveSearch()
 
 
 class MITM:
-    t = 2       # cut-off for discret Gaussian distributions
-    p = 1 - 2 * exp(-4 * pi)    # probability that a coefficient falls within the cut-off
 
     locality = .05
 
     def X_range(self, nd):
-        a, b = nd.bounds
-        p = 1.
-        if a == -oo or b == oo:
-            # Looks like nd is Gaussian
-            # -> we'll treat it as bounded (with probability self.p)
-            b = 2 * self.t * sigmaf(nd.stddev) + 1
-            a = -b
-            p = self.p
-        return b - a + 1, p
+        if nd.is_bounded:
+            a, b = nd.bounds
+            return b - a + 1, 1.
+        else:
+            # setting fraction=0 to ensure that support size does not
+            # throw error. we'll take the probability into account later
+            rng = nd.support_size(n=1, fraction=0.)
+            return rng, nd.gaussian_tail_prob
 
     def local_range(self, center):
         return ZZ(floor((1 - self.locality) * center)), ZZ(ceil((1 + self.locality) * center))
@@ -133,7 +135,7 @@ class MITM:
                 )
 
         # since m = logT + loglogT and rop = T*m, we have rop=2^m
-        ret = Cost(rop=2 ** m_, mem=2 ** logT * m_, m=m_, k=ZZ(k))
+        ret = Cost(rop=RR(2 ** m_), mem=2 ** logT * m_, m=m_, k=ZZ(k))
         repeat = amplify(success_probability, sd_p ** n * nd_p ** m_ * success_probability_)
         return ret.repeat(times=repeat)
 
