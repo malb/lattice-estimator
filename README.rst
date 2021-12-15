@@ -43,7 +43,7 @@ We do not have feature parity with the `old estimator <https://bitbucket.org/mal
 - ``[x]`` |lwe-primal-binder| :doc:`Primal attack on LWE <../algorithms/lwe-primal>` 
 - ``[x]`` |lwe-bkw-binder| :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>` 
 - ``[X]`` |gb-binder| :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`
-- ``[ ]`` Dual attack on LWE
+- ``[X]`` :doc:`Dual attack on LWE <../algorithms/lwe-dual>`
 
 .. |lwe-primal-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb
