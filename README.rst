@@ -43,7 +43,7 @@ We do not have feature parity with the `old estimator <https://bitbucket.org/mal
 - ``[x]`` |lwe-primal-binder| :doc:`Primal attack on LWE <../algorithms/lwe-primal>` 
 - ``[x]`` |lwe-bkw-binder| :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>` 
 - ``[X]`` |gb-binder| :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`
-- ``[ ]`` Dual attack on LWE
+- ``[X]`` :doc:`Dual attack on LWE <../algorithms/lwe-dual>`
 
 .. |lwe-primal-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb
@@ -104,10 +104,11 @@ An updated version of the material covered in the above survey is available in
 License
 -------
 
-The esimator is licensed under the `LGPLv3+ <https://www.gnu.org/licenses/lgpl-3.0.en.html>`__ license.
+The estimator is licensed under the `LGPLv3+ <https://www.gnu.org/licenses/lgpl-3.0.en.html>`__ license.
 
 Acknowledgements
 ----------------
 
 This project was supported through the European Union PROMETHEUS project (Horizon 2020 Research and
-Innovation Program, grant 780701), EPSRC grant EP/P009417/1 and EPSRC grant EP/S020330/1.
+Innovation Program, grant 780701), EPSRC grant EP/P009417/1 and EPSRC grant EP/S020330/1, and by 
+`Zama <https://zama.ai/>`__.
