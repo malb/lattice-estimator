@@ -1,7 +1,7 @@
 from multiprocessing import Pool
 from functools import partial
 
-from sage.all import ceil, floor, log
+from sage.all import ceil, floor
 
 from .io import Logging
 
@@ -275,7 +275,3 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, **kwds):
         ret[x][f] = res[f, x]
 
     return ret
-
-
-def log2(x):
-    return log(x, 2)

@@ -5,8 +5,12 @@ from .cost import Cost
 from .lwe import LWEParameters
 from .errors import InsufficientSamplesError
 from .conf import default_mitm_opt
-from .util import binary_search, log2
+from .util import binary_search
 from .prob import amplify
+
+
+def log2(x):
+    return log(x, 2)
 
 
 class ExhaustiveSearch:
