@@ -104,10 +104,11 @@ An updated version of the material covered in the above survey is available in
 License
 -------
 
-The esimator is licensed under the `LGPLv3+ <https://www.gnu.org/licenses/lgpl-3.0.en.html>`__ license.
+The estimator is licensed under the `LGPLv3+ <https://www.gnu.org/licenses/lgpl-3.0.en.html>`__ license.
 
 Acknowledgements
 ----------------
 
 This project was supported through the European Union PROMETHEUS project (Horizon 2020 Research and
-Innovation Program, grant 780701), EPSRC grant EP/P009417/1 and EPSRC grant EP/S020330/1.
+Innovation Program, grant 780701), EPSRC grant EP/P009417/1 and EPSRC grant EP/S020330/1, and by 
+`Zama<https://zama.ai/>`.
