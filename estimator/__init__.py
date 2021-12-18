@@ -3,7 +3,7 @@ from .nd import NoiseDistribution as ND  # noqa
 from .io import Logging  # noqa
 from . import reduction as RC  # noqa
 from . import simulator as Simulator  # noqa
-from . import lwe as lwe  # noqa
+from . import lwe as LWE  # noqa
 
 from .schemes import (  # noqa
     Kyber512,

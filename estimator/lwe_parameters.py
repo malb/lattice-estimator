@@ -31,7 +31,7 @@ class LWEParameters:
             >>> from estimator import *
             >>> Xs=ND.DiscreteGaussian(2.0)
             >>> Xe=ND.DiscreteGaussian(1.58)
-            >>> LWEParameters(n=512, q=8192, Xs=Xs, Xe=Xe).normalize()
+            >>> LWE.Parameters(n=512, q=8192, Xs=Xs, Xe=Xe).normalize()
             LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=1.58), m=+Infinity, tag=None)
 
         If m = n, we swap the secret and the noise::
@@ -39,7 +39,7 @@ class LWEParameters:
             >>> from estimator import *
             >>> Xs=ND.DiscreteGaussian(2.0)
             >>> Xe=ND.DiscreteGaussian(1.58)
-            >>> LWEParameters(n=512, q=8192, Xs=Xs, Xe=Xe, m=512).normalize()
+            >>> LWE.Parameters(n=512, q=8192, Xs=Xs, Xe=Xe, m=512).normalize()
             LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=2.00), m=512, tag=None)
 
         """
@@ -130,7 +130,7 @@ class LWEParameters:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> lwe.Parameters(n=128, q=7681, Xs=ND.UniformMod(3), Xe=ND.UniformMod(11)).switch_modulus()
+            >>> LWE.Parameters(n=128, q=7681, Xs=ND.UniformMod(3), Xe=ND.UniformMod(11)).switch_modulus()
             LWEParameters(n=128, q=5289, Xs=D(σ=0.82), Xe=D(σ=3.08), m=+Infinity, tag=None)
 
         """

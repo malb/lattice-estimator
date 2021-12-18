@@ -299,39 +299,39 @@ class DualHybrid:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> params = lwe.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
-            >>> lwe.dual(params)
+            >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
+            >>> LWE.dual(params)
             rop: ≈2^115.5, mem: ≈2^70.0, m: 1018, red: ≈2^115.4, δ: 1.005021, β: 284, d: 2041, ↻: ≈2^69.0, tag: dual
-            >>> lwe.dual_hybrid(params)
+            >>> LWE.dual_hybrid(params)
             rop: ≈2^111.3, mem: ≈2^106.4, m: 983, red: ≈2^111.2, δ: 1.005204, β: 269, d: 1957, ↻: ≈2^56.4, ζ: 50...
-            >>> lwe.dual_mitm_hybrid(params)
+            >>> LWE.dual_mitm_hybrid(params)
             rop: ≈2^141.1, mem: ≈2^139.1, m: 1189, k: 132, ↻: 139, red: ≈2^140.8, δ: 1.004164, β: 375, d: 2021...
-            >>> lwe.dual_mitm_hybrid(params, mitm_optimization="numerical")
+            >>> LWE.dual_mitm_hybrid(params, mitm_optimization="numerical")
             rop: ≈2^140.6, m: 1191, k: 128, mem: ≈2^136.0, ↻: 133, red: ≈2^140.2, δ: 1.004179, β: 373, d: 2052...
 
             >>> from dataclasses import replace
             >>> params = replace(params, Xs=ND.SparseTernary(params.n, 32))
-            >>> lwe.dual(params)
+            >>> LWE.dual(params)
             rop: ≈2^112.8, mem: ≈2^64.0, m: 953, red: ≈2^112.7, δ: 1.005178, β: 271, d: 1976, ↻: ≈2^65.0, tag: dual
-            >>> lwe.dual_hybrid(params)
+            >>> LWE.dual_hybrid(params)
             rop: ≈2^97.8, mem: ≈2^81.9, m: 730, red: ≈2^97.4, δ: 1.006813, β: 175, d: 1453, ↻: ≈2^36.3, ζ: 301...
-            >>> lwe.dual_mitm_hybrid(params)
+            >>> LWE.dual_mitm_hybrid(params)
             rop: ≈2^103.4, mem: ≈2^81.5, m: 724, k: 310, ↻: ≈2^27.3, red: ≈2^102.7, δ: 1.006655, β: 182...
 
             >>> params = replace(params, Xs=ND.CenteredBinomial(8))
-            >>> lwe.dual(params)
+            >>> LWE.dual(params)
             rop: ≈2^123.2, mem: ≈2^81.2, m: 1151, red: ≈2^123.0, δ: 1.004727, β: 311, d: 2174, ↻: ≈2^77.1, tag: dual
-            >>> lwe.dual_hybrid(params)
+            >>> LWE.dual_hybrid(params)
             rop: ≈2^122.4, mem: ≈2^116.6, m: 1143, red: ≈2^122.2, δ: 1.004758, β: 308, d: 2157, ↻: ≈2^75.8, ζ: 10...
-            >>> lwe.dual_mitm_hybrid(params)
+            >>> LWE.dual_mitm_hybrid(params)
             rop: ≈2^181.7, mem: ≈2^179.2, m: 1554, k: 42, ↻: 179, red: ≈2^181.4, δ: 1.003315, β: 519, d: 2513...
 
             >>> params = replace(params, Xs=ND.DiscreteGaussian(3.0))
-            >>> lwe.dual(params)
+            >>> LWE.dual(params)
             rop: ≈2^125.5, mem: ≈2^85.4, m: 1190, red: ≈2^125.3, δ: 1.004648, β: 319, d: 2213, ↻: ≈2^79.5, tag: dual
-            >>> lwe.dual_hybrid(params)
+            >>> LWE.dual_hybrid(params)
             rop: ≈2^125.1, mem: ≈2^117.7, m: 1187, red: ≈2^125.0, δ: 1.004657, β: 318, d: 2204, ↻: ≈2^75.9, ζ: 7...
-            >>> lwe.dual_mitm_hybrid(params)
+            >>> LWE.dual_mitm_hybrid(params)
             rop: ≈2^175.0, mem: ≈2^168.9, m: 1547, k: 27, ↻: 169, red: ≈2^175.0, δ: 1.003424, β: 496, d: 2544, ζ: 27...
         """
 

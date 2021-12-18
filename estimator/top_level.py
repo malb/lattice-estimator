@@ -20,7 +20,7 @@ def estimate_lwe(
 
     EXAMPLE:
     >>> from estimator import *
-    >>> _ = estimate_lwe(lwe.Parameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3)),)
+    >>> _ = estimate_lwe(LWE.Parameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3)),)
     >>> _["dual"]
     rop: ≈2^109.2, mem: ≈2^77.3, m: 234, red: ≈2^108.6, δ: 1.005166, β: 272, d: 433, ↻: ≈2^75.8, tag: dual
     >>> _["dual_hybrid"]

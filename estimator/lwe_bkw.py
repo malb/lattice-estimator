@@ -268,7 +268,7 @@ class CodedBKW:
 
             >>> from sage.all import oo
             >>> from estimator import *
-            >>> lwe.coded_bkw(Kyber512.updated(m=oo))
+            >>> LWE.coded_bkw(Kyber512.updated(m=oo))
             rop: ≈2^155.9, m: ≈2^143.7, mem: ≈2^144.7, b: 12, t1: 3, t2: 17, ℓ: 11, #cod: 417, #top: 0, #test: 60, ...
 
         We may need to amplify the number of samples, which modifies the noise distribution::

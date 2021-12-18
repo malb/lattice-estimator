@@ -38,10 +38,10 @@ class ExhaustiveSearch:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> params = lwe.Parameters(n=64, q=2**40, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.2))
+            >>> params = LWE.Parameters(n=64, q=2**40, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.2))
             >>> exhaustive_search(params)
             rop: ≈2^73.6, mem: ≈2^72.6, m: 397.198
-            >>> params = lwe.Parameters(n=1024, q=2**40, Xs=ND.SparseTernary(n=1024, p=32), Xe=ND.DiscreteGaussian(3.2))
+            >>> params = LWE.Parameters(n=1024, q=2**40, Xs=ND.SparseTernary(n=1024, p=32), Xe=ND.DiscreteGaussian(3.2))
             >>> exhaustive_search(params)
             rop: ≈2^417.3, mem: ≈2^416.3, m: ≈2^11.2
 
@@ -222,12 +222,12 @@ class MITM:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> params = lwe.Parameters(n=64, q=2**40, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.2))
+            >>> params = LWE.Parameters(n=64, q=2**40, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.2))
             >>> mitm(params)
             rop: ≈2^37.0, mem: ≈2^37.2, m: 37, k: 32, ↻: 1
             >>> mitm(params, optimization="numerical")
             rop: ≈2^39.2, m: 36, k: 32, mem: ≈2^39.1, ↻: 1
-            >>> params = lwe.Parameters(n=1024, q=2**40, Xs=ND.SparseTernary(n=1024, p=32), Xe=ND.DiscreteGaussian(3.2))
+            >>> params = LWE.Parameters(n=1024, q=2**40, Xs=ND.SparseTernary(n=1024, p=32), Xe=ND.DiscreteGaussian(3.2))
             >>> mitm(params)
             rop: ≈2^215.4, mem: ≈2^210.2, m: ≈2^13.1, k: 512, ↻: 43
             >>> mitm(params, optimization="numerical")
