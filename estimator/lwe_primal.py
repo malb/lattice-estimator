@@ -19,7 +19,9 @@ from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
 from .prob import mitm_babai_probability
 from .io import Logging
-from .conf import red_cost_model_default, red_shape_model_default, red_simulator_default
+from .conf import red_cost_model as red_cost_model_default
+from .conf import red_shape_model as red_shape_model_default
+from .conf import red_simulator as red_simulator_default
 
 
 class PrimalUSVP:
@@ -135,11 +137,11 @@ class PrimalUSVP:
         """
         Estimate cost of solving LWE via uSVP reduction.
 
-        :param params: LWE parameters
-        :param red_cost_model: How to cost lattice reduction
-        :param red_shape_model: How to model the shape of a reduced basis
-        :param optimize_d: Attempt to find minimal d, too
-        :return: A cost dictionary
+        :param params: LWE parameters.
+        :param red_cost_model: How to cost lattice reduction.
+        :param red_shape_model: How to model the shape of a reduced basis.
+        :param optimize_d: Attempt to find minimal d, too.
+        :return: A cost dictionary.
 
         The returned cost dictionary has the following entries:
 

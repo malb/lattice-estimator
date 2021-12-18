@@ -7,7 +7,7 @@ from .nd import sigmaf
 def mitm_babai_probability(r, stddev, q, fast=False):
     """
     Compute the "e-admissibility" probability associated to the mitm step, according to
-    [EPRINT:SonChe19]
+    [EPRINT:SonChe19]_
 
     :params r: the squared GSO lengths
     :params stddev: the std.dev of the error distribution
@@ -25,8 +25,13 @@ def mitm_babai_probability(r, stddev, q, fast=False):
         # get non-squared norms
         R = [sqrt(s) for s in r]
         alphaq = sigmaf(stddev)
-        probs = [RR(erf(s * sqrt(RR(pi)) / alphaq) + (alphaq / s) *
-                    ((exp(-s * sqrt(RR(pi)) / alphaq) - 1) / RR(pi))) for s in R]
+        probs = [
+            RR(
+                erf(s * sqrt(RR(pi)) / alphaq)
+                + (alphaq / s) * ((exp(-s * sqrt(RR(pi)) / alphaq) - 1) / RR(pi))
+            )
+            for s in R
+        ]
         p = RR(prod(probs))
         if p < 0 or p > 1:
             p = 0.0

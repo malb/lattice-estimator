@@ -12,6 +12,7 @@ Lattice Estimator
 
    readme_link
    algorithms/lwe-primal
+   algorithms/lwe-dual
    algorithms/lwe-bkw
    algorithms/gb
 

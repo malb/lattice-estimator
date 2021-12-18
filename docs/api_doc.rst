@@ -10,11 +10,13 @@ API Reference
       
    estimator.cost
    estimator.errors
-   estimator.guess
    estimator.io
-   estimator.lwe
+   estimator.lwe_parameters
+   estimator.lwe_guess
    estimator.lwe_bkw
    estimator.lwe_primal
+   estimator.lwe_dual
+   estimator.lwe
    estimator.gb
    estimator.nd
    estimator.prob

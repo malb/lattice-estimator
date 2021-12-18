@@ -13,11 +13,15 @@ References
 .. [C:KirFou15] Paul Kirchner & Pierre-Alain Fouque. An improved BKW algorithm for LWE with applications to cryptography and lattices. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part~I (pp. 43–62). : Springer, Heidelberg.
 .. [CheNgu12] Yuanmi Chen and Phong Q. Nguyen. BKZ 2.0: Better lattice security estimates (Full Version). 2012. http://www.di.ens.fr/~ychen/research/Full_BKZ.pdf
 .. [EC:Ducas18] Léo Ducas (2018). Shortest vector from lattice sieving: A few dimensions for free. In J. B. Nielsen, & V. Rijmen, EUROCRYPT 2018, Part I (pp. 125–145). : Springer, Heidelberg.
+.. [EPRINT:CHHS19] Cheon, J.H., Hhan, M., Hong, S. and Son, Y., 2019. A hybrid of dual and meet-in-the-middle attack on sparse and ternary secret LWE. IEEE Access, 7, pp.89497-89506. https://ia.cr/2019/1114pri
 .. [EPRINT:LaaMosPol14] Thijs Laarhoven, Michele Mosca, & Joop van de Pol. Finding shortest lattice vectors faster using quantum search. Cryptology ePrint Archive, Report 2014/907, 2014. https://eprint.iacr.org/2014/907.
+.. [EPRINT:SonChe19] Son, Y. and Cheon, J.H., 2019. Revisiting the Hybrid Attack on sparse abd ternary LWE. Workshop on Applied Homomorphic Cryptography, WAHC2019.
 .. [EPRINT:Wun16] Wunderer, T. (2016). Revisiting the hybrid attack: improved analysis and refined security estimates. https://eprint.iacr.org/2016/733
+.. [INDOCRYPT:EspJouKha20] Espitau, T., Joux, A. and Kharchenko, N., 2020, December. On a dual/hybrid approach to small secret LWE. In International Conference on Cryptology in India (pp. 440-462). Springer, Cham. https://ia.cr/2020/515
 .. [JMC:AlbPlaSco15] Albrecht, M. R., Player, R., & Scott, S. (2015). On the concrete hardness of Learning with Errors. Journal of Mathematical Cryptology, 9(3), 169–203.
 .. [Kyber20] Roberto Avanzi, Joppe Bos, Léo Ducas, Eike Kiltz, Tancrède Lepoint,Vadim Lyubashevsky, John M. Schanck, Peter Schwabe, Gregor Seiler, Damien Stehlé. CRYSTALS-KYBER. 2020 https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf
 .. [PKC:PosVir21] Eamonn W. Postlethwaite & Fernando Virdia. On the success probability of solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer, Heidelberg.
+.. [PQCBook:MicReg09] Micciancio, D., & Regev, O. (2009). Lattice-based cryptography. In D. J. Bernstein, J. Buchmann, & E. Dahmen (Eds.), Post-Quantum Cryptography (pp. 147–191). Berlin, Heidelberg, New York: Springer, Heidelberg.
 .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement complètement homomorphe. PhD thesis, Paris 7, 2013.
 .. [PhD:Laarhoven15] Laarhoven, T. (2015). Search problems in cryptography: from fingerprinting to lattice sieving (Doctoral dissertation). Eindhoven University of Technology. http://repository.tue.nl/837539
 .. [RSA:LiuNgu13] Liu, M., & Nguyen, P. Q.. Solving BDD by enumeration: an update. In E. Dawson, CT-RSA 2013 (pp. 293–309). : Springer, Heidelberg.
@@ -25,6 +29,3 @@ References
 .. [SODA:BDGL16] Becker, A., Ducas, L., Gama, N., & Laarhoven, T. (2016). New directions in nearest neighbor searching with applications to lattice sieving. In SODA 2016, (pp. 10–24).
 .. [Schnorr03] Claus-Peter Schnorr. Lattice Reduction by Random Sampling and Birthday Methods. In: STACS2003, 20th Annual Symposium on Theoretical Aspects of Computer Science, Berlin, Germany, February 27 - March 1, 2003, Proceedings. Ed. by Helmut Alt and Michel Habib. Vol. 2607. Lecture Notes in Computer Science. Springer, 2003, pp. 145–156.doi:10.1007/3-540-36494-3_14. url: http://dx.doi.org/10.1007/3-540-36494-3_14.
 .. [USENIX:ADPS16] Edem Alkim, Léo Ducas, Thomas Pöppelmann, & Peter Schwabe (2016). Post-quantum key exchange - A New Hope. In T. Holz, & S. Savage, 25th USENIX Security Symposium, USENIX Security 16 (pp. 327–343). USENIX Association.
-.. [INDOCRYPT:EspJouKha20] Espitau, T., Joux, A. and Kharchenko, N., 2020, December. On a dual/hybrid approach to small secret LWE. In International Conference on Cryptology in India (pp. 440-462). Springer, Cham. https://ia.cr/2020/515
-.. [EPRINT:CHHS19] Cheon, J.H., Hhan, M., Hong, S. and Son, Y., 2019. A hybrid of dual and meet-in-the-middle attack on sparse and ternary secret LWE. IEEE Access, 7, pp.89497-89506. https://ia.cr/2019/1114pri
-.. [EPRINT:SonChe19] Son, Y. and Cheon, J.H., 2019. Revisiting the Hybrid Attack on sparse abd ternary LWE. Workshop on Applied Homomorphic Cryptography, WAHC2019.

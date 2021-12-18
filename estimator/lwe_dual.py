@@ -20,7 +20,8 @@ from .lwe_parameters import LWEParameters
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
 from .io import Logging
-from .conf import red_cost_model_default, mitm_opt
+from .conf import red_cost_model as red_cost_model_default
+from .conf import mitm_opt as mitm_opt_default
 from .errors import OutOfBoundsError
 from .nd import NoiseDistribution
 from .lwe_brute_force import exhaustive_search, mitm
@@ -296,7 +297,7 @@ class DualHybrid:
         - When ζ > 1 and ``solver`` is ``mitm`` this function estimates the dual MITM
             hybrid attack roughly following [EPRINT:CHHS19]_
 
-        EXAMPLE::
+        EXAMPLES::
 
             >>> from estimator import *
             >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
@@ -304,34 +305,33 @@ class DualHybrid:
             rop: ≈2^115.5, mem: ≈2^70.0, m: 1018, red: ≈2^115.4, δ: 1.005021, β: 284, d: 2041, ↻: ≈2^69.0, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^111.3, mem: ≈2^106.4, m: 983, red: ≈2^111.2, δ: 1.005204, β: 269, d: 1957, ↻: ≈2^56.4, ζ: 50...
-            >>> LWE.dual_mitm_hybrid(params)
+            >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^141.1, mem: ≈2^139.1, m: 1189, k: 132, ↻: 139, red: ≈2^140.8, δ: 1.004164, β: 375, d: 2021...
-            >>> LWE.dual_mitm_hybrid(params, mitm_optimization="numerical")
+            >>> LWE.dual_hybrid(params, mitm_optimization="numerical")
             rop: ≈2^140.6, m: 1191, k: 128, mem: ≈2^136.0, ↻: 133, red: ≈2^140.2, δ: 1.004179, β: 373, d: 2052...
 
-            >>> from dataclasses import replace
-            >>> params = replace(params, Xs=ND.SparseTernary(params.n, 32))
+            >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
             rop: ≈2^112.8, mem: ≈2^64.0, m: 953, red: ≈2^112.7, δ: 1.005178, β: 271, d: 1976, ↻: ≈2^65.0, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^97.8, mem: ≈2^81.9, m: 730, red: ≈2^97.4, δ: 1.006813, β: 175, d: 1453, ↻: ≈2^36.3, ζ: 301...
-            >>> LWE.dual_mitm_hybrid(params)
+            >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^103.4, mem: ≈2^81.5, m: 724, k: 310, ↻: ≈2^27.3, red: ≈2^102.7, δ: 1.006655, β: 182...
 
-            >>> params = replace(params, Xs=ND.CenteredBinomial(8))
+            >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
             rop: ≈2^123.2, mem: ≈2^81.2, m: 1151, red: ≈2^123.0, δ: 1.004727, β: 311, d: 2174, ↻: ≈2^77.1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^122.4, mem: ≈2^116.6, m: 1143, red: ≈2^122.2, δ: 1.004758, β: 308, d: 2157, ↻: ≈2^75.8, ζ: 10...
-            >>> LWE.dual_mitm_hybrid(params)
+            >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^181.7, mem: ≈2^179.2, m: 1554, k: 42, ↻: 179, red: ≈2^181.4, δ: 1.003315, β: 519, d: 2513...
 
-            >>> params = replace(params, Xs=ND.DiscreteGaussian(3.0))
+            >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
             rop: ≈2^125.5, mem: ≈2^85.4, m: 1190, red: ≈2^125.3, δ: 1.004648, β: 319, d: 2213, ↻: ≈2^79.5, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^125.1, mem: ≈2^117.7, m: 1187, red: ≈2^125.0, δ: 1.004657, β: 318, d: 2204, ↻: ≈2^75.9, ζ: 7...
-            >>> LWE.dual_mitm_hybrid(params)
+            >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^175.0, mem: ≈2^168.9, m: 1547, k: 27, ↻: 169, red: ≈2^175.0, δ: 1.003424, β: 496, d: 2544, ζ: 27...
         """
 
@@ -404,6 +404,26 @@ def dual(
     red_cost_model=red_cost_model_default,
     use_lll=True,
 ):
+    """
+    Dual hybrid attack as in [PQCBook:MicReg09]_.
+
+    :param params: LWE parameters.
+    :param success_probability: The success probability to target.
+    :param red_cost_model: How to cost lattice reduction.
+    :param use_lll: use LLL calls to produce more small vectors.
+
+    The returned cost dictionary has the following entries:
+
+    - ``rop``: Total number of word operations (≈ CPU cycles).
+    - ``mem``: Total amount of memory used by solver (in elements mod q).
+    - ``red``: Number of word operations in lattice reduction.
+    - ``δ``: Root-Hermite factor targeted by lattice reduction.
+    - ``β``: BKZ block size.
+    - ``prob``: Probability of success in guessing.
+    - ``repetitions``: How often we are required to repeat the attack.
+    - ``d``: Lattice dimension.
+
+    """
     Cost.register_impermanent(
         rop=True,
         mem=False,
@@ -436,29 +456,42 @@ def dual_hybrid(
     success_probability: float = 0.99,
     red_cost_model=red_cost_model_default,
     use_lll=True,
+    mitm_optimization=False,
     opt_step=2,
 ):
-    ret = DH(
-        solver=exhaustive_search,
-        params=params,
-        success_probability=success_probability,
-        red_cost_model=red_cost_model,
-        use_lll=use_lll,
-        opt_step=opt_step,
-    )
-    ret["tag"] = "dual_hybrid"
-    return ret
+    """
+    Dual hybrid attack from [INDOCRYPT:EspJouKha20]_.
 
+    :param params: LWE parameters.
+    :param success_probability: The success probability to target.
+    :param red_cost_model: How to cost lattice reduction.
+    :param use_lll: Use LLL calls to produce more small vectors.
+    :param mitm_optimization: One of "analytical" or "numerical". If ``True`` a default from the
+           ``conf`` module is picked, ``False`` disables MITM.
+    :param opt_step: Control robustness of optimizer.
 
-def dual_mitm_hybrid(
-    params: LWEParameters,
-    success_probability: float = 0.99,
-    red_cost_model=red_cost_model_default,
-    use_lll=True,
-    mitm_optimization=mitm_opt,
-    opt_step=2,
-):
-    solver = partial(mitm, optimization=mitm_optimization)
+    The returned cost dictionary has the following entries:
+
+    - ``rop``: Total number of word operations (≈ CPU cycles).
+    - ``mem``: Total amount of memory used by solver (in elements mod q).
+    - ``red``: Number of word operations in lattice reduction.
+    - ``δ``: Root-Hermite factor targeted by lattice reduction.
+    - ``β``: BKZ block size.
+    - ``ζ``: Number of guessed coordinates.
+    - ``h1``: Number of non-zero components among guessed coordinates (if secret distribution is sparse)
+    - ``prob``: Probability of success in guessing.
+    - ``repetitions``: How often we are required to repeat the attack.
+    - ``d``: Lattice dimension.
+    """
+
+    if mitm_optimization is True:
+        mitm_optimization = mitm_opt_default
+
+    if mitm_optimization:
+        solver = partial(mitm, optimization=mitm_optimization)
+    else:
+        solver = exhaustive_search
+
     ret = DH(
         solver=solver,
         params=params,
@@ -467,5 +500,8 @@ def dual_mitm_hybrid(
         use_lll=use_lll,
         opt_step=opt_step,
     )
-    ret["tag"] = "dual_mitm_hybrid"
+    if mitm_optimization:
+        ret["tag"] = "dual_mitm_hybrid"
+    else:
+        ret["tag"] = "dual_hybrid"
     return ret
