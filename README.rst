@@ -7,15 +7,9 @@ Security Estimates for Lattice Problems
  :target: https://lattice-estimator.readthedocs.io/en/latest/?badge=latest
  :alt: Documentation Status
 
-This `Sage <http://sagemath.org>`__ module provides functions for estimating the concrete security
-of
-`Learning with Errors <https://en.wikipedia.org/wiki/Learning_with_errors>`__,
-`SIS <https://en.wikipedia.org/wiki/Short_integer_solution_problem>`__ and
-`NTRU <https://en.wikipedia.org/wiki/NTRU>`__ instances.
+This `Sage <http://sagemath.org>`__ module provides functions for estimating the concrete security of `Learning with Errors <https://en.wikipedia.org/wiki/Learning_with_errors>`__ instances.
 
-The main purpose of this estimator is to give designers an easy way to choose parameters resisting
-known attacks and to enable cryptanalysts to compare their results and ideas with other techniques
-known in the literature.
+The main purpose of this estimator is to give designers an easy way to choose parameters resisting known attacks and to enable cryptanalysts to compare their results and ideas with other techniques known in the literature.
 
 Quick Start
 -----------
@@ -49,8 +43,8 @@ Status
 
 We have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-estimator/src/master/>`__:
 
-- ``[x]`` |lwe-primal-binder| :doc:`Primal attacks on LWE <../algorithms/lwe-primal>` 
-- ``[X]`` |lwe-dual-binder| :doc:`Dual attacks on LWE <../algorithms/lwe-dual>`
+- ``[x]`` |lwe-primal-binder| :doc:`primal attacks on LWE <../algorithms/lwe-primal>` 
+- ``[X]`` |lwe-dual-binder| :doc:`dual attacks on LWE <../algorithms/lwe-dual>`
 - ``[x]`` |lwe-bkw-binder| :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>` 
 - ``[X]`` |gb-binder| :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`
 
@@ -66,10 +60,10 @@ We have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-e
 .. |gb-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fgb.ipynb
             
-But we are also planning:
+but we are also planning:
 
-- ``[ ]`` Attacks on NTRU pulic keys (using overstretched parameters)
-- ``[ ]`` SIS attacks
+- ``[ ]`` attacks on `NTRU <https://en.wikipedia.org/wiki/NTRU>`__ pulic keys (using overstretched parameters)
+- ``[ ]`` attack on `SIS <https://en.wikipedia.org/wiki/Short_integer_solution_problem>`__ instances
          
 Evolution
 ---------
@@ -77,6 +71,13 @@ Evolution
 This code is evolving, new results are added and bugs are fixed. Hence, estimations from earlier
 versions might not match current estimations. This is annoying but unavoidable. We recommend to also
 state the commit that was used when referencing this project.
+
+.. warning :: We give no API/interface stability guarantees. We try to be mindful but we may reorganize the code without advance warning.
+
+Bugs
+----
+
+Please report bugs through the `GitHub issue tracker <https://github.com/malb/lattice-estimator/issues>`__.
 
 Contributions
 -------------
@@ -108,7 +109,7 @@ If you use this estimator in your work, please cite
 
 A pre-print is available as
 
-    Cryptology ePrint Archive, Report 2015/046, 2015. https://eprint.iacr.org/2015/046
+    | Cryptology ePrint Archive, Report 2015/046, 2015. https://eprint.iacr.org/2015/046
 
 An updated version of the material covered in the above survey is available in
 `Rachel Player's PhD thesis <https://pure.royalholloway.ac.uk/portal/files/29983580/2018playerrphd.pdf>`__.
