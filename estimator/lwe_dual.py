@@ -14,7 +14,7 @@ from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .reduction import ADPS16, BDGL16
 from .reduction import LLL
-from .util import binary_search, robust_bin_search
+from .util import local_minimum, binary_search_robust
 from .cost import Cost
 from .lwe_parameters import LWEParameters
 from .prob import drop as prob_drop
@@ -24,7 +24,7 @@ from .conf import red_cost_model as red_cost_model_default
 from .conf import mitm_opt as mitm_opt_default
 from .errors import OutOfBoundsError
 from .nd import NoiseDistribution
-from .lwe_brute_force import exhaustive_search, mitm
+from .lwe_guess import exhaustive_search, mitm
 
 
 class DualHybrid:
@@ -243,7 +243,7 @@ class DualHybrid:
         beta = beta_upper
         while beta == beta_upper:
             beta_upper *= 2
-            cost = robust_bin_search(f, 2, beta_upper, "beta", step=opt_step)
+            cost = binary_search_robust(f, 2, beta_upper, "beta", step=opt_step)
             beta = cost["beta"]
 
         cost["zeta"] = zeta
@@ -361,21 +361,24 @@ class DualHybrid:
                 use_lll=True,
                 log_level=None,
             ):
-                f = partial(
-                    self.optimize_blocksize,
-                    solver=solver,
-                    params=params,
-                    zeta=zeta,
-                    success_probability=success_probability,
-                    red_cost_model=red_cost_model,
-                    use_lll=use_lll,
-                    log_level=log_level + 1,
-                )
                 h = params.Xs.get_hamming_weight(params.n)
                 h1_min = max(0, h - (params.n - zeta))
-                h1_max = min(zeta, h) - 1  # subtracting 1 as workaround for issue #6
+                h1_max = min(zeta, h)
                 Logging.log("dual", log_level, f"h1 ∈ [{h1_min},{h1_max}] (zeta={zeta})")
-                return binary_search(f, h1_min, h1_max, "h1")
+                with local_minimum(h1_min, h1_max, log_level=log_level + 1) as it:
+                    for h1 in it:
+                        cost = self.optimize_blocksize(
+                            h1=h1,
+                            solver=solver,
+                            params=params,
+                            zeta=zeta,
+                            success_probability=success_probability,
+                            red_cost_model=red_cost_model,
+                            use_lll=use_lll,
+                            log_level=log_level + 2,
+                        )
+                        it.update(cost)
+                    return it.y
 
         else:
             _optimize_blocksize = self.optimize_blocksize
@@ -390,7 +393,7 @@ class DualHybrid:
             log_level=log_level + 1,
         )
 
-        cost = robust_bin_search(f, 1, params.n - 1, "zeta", step=opt_step)
+        cost = binary_search_robust(f, 1, params.n - 1, "zeta", step=opt_step)
         cost["problem"] = params
         return cost
 

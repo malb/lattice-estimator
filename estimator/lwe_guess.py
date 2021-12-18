@@ -17,7 +17,6 @@ from .errors import InsufficientSamplesError
 from .lwe_parameters import LWEParameters
 from .prob import amplify as prob_amplify
 from .prob import drop as prob_drop
-from .util import binary_search
 from .util import local_minimum
 
 
@@ -294,28 +293,27 @@ class MITM:
             size_sea = sd_rng ** (n - k)
             success_probability_ = 1
 
-        # for search we effectively build a second table and for each entry, we expect
-        # 2^( m * 4 * B / q) = 2^(delta * m) table look ups + a l_oo computation (costing m)
-        # for every hit in the table (which has probability T/2^m)
-        def cost_search(m):
-            return (m, size_sea * (2 * m + 2 ** (delta * m) * (1 + size_tab * m / 2 ** m)))
-
         # we set m such that it approximately minimizes the search cost per query as
         # a reasonable starting point and then optimize around it
         m_ = ceil(max(log2(size_tab) + log2(log2(size_tab)), 1))
         a, b = self.local_range(m_)
-        m_, cost_search = binary_search(
-            cost_search, a, b, "m", smallerf=lambda x, best: x[1] <= best[1]
-        )
-        m_ = min(m_, params.m)
+        with local_minimum(a, b, smallerf=lambda x, best: x[1] <= best[1]) as it:
+            for m in it:
+                # for search we effectively build a second table and for each entry, we expect
+                # 2^( m * 4 * B / q) = 2^(delta * m) table look ups + a l_oo computation (costing m)
+                # for every hit in the table (which has probability T/2^m)
+                cost = (m, size_sea * (2 * m + 2 ** (delta * m) * (1 + size_tab * m / 2 ** m)))
+                it.update(cost)
+            m, cost_search = it.y
+        m = min(m, params.m)
 
         # building the table costs 2*T*m using the generalization [ia.cr/2021/152] of
         # the recursive algorithm from [ia.cr/2020/515]
-        cost_table = size_tab * 2 * m_
+        cost_table = size_tab * 2 * m
 
-        ret = Cost(rop=(cost_table + cost_search), m=m_, k=k)
-        ret["mem"] = size_tab * (k + m_) + size_sea * (n - k + m_)
-        repeat = prob_amplify(success_probability, sd_p ** n * nd_p ** m_ * success_probability_)
+        ret = Cost(rop=(cost_table + cost_search), m=m, k=k)
+        ret["mem"] = size_tab * (k + m) + size_sea * (n - k + m)
+        repeat = prob_amplify(success_probability, sd_p ** n * nd_p ** m * success_probability_)
         return ret.repeat(times=repeat)
 
     def __call__(self, params: LWEParameters, success_probability=0.99, optimization=mitm_opt):
@@ -362,13 +360,15 @@ class MITM:
         if "analytical" in optimization:
             return self.mitm_analytical(params=params, success_probability=success_probability)
         elif "numerical" in optimization:
-            f = partial(self.cost, params=params, success_probability=success_probability)
-            ret = binary_search(f, 1, params.n - 1, "k")
-
-            # if the noise is large, the curve might not be convex, so the above minimum
-            # is not correct. Interestingly, in these cases, it seems that k=1 might be smallest
-            ret1 = f(k=1)
-            return min(ret, ret1)
+            with local_minimum(1, params.n - 1) as it:
+                for k in it:
+                    cost = self.cost(k=k, params=params, success_probability=success_probability)
+                    it.update(cost)
+                ret = it.y
+                # if the noise is large, the curve might not be convex, so the above minimum
+                # is not correct. Interestingly, in these cases, it seems that k=1 might be smallest
+                ret1 = self.cost(k=1, params=params, success_probability=success_probability)
+                return min(ret, ret1)
         else:
             raise ValueError("Unknown optimization method for MITM.")
 
