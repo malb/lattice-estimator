@@ -49,8 +49,8 @@ Status
 
 We have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-estimator/src/master/>`__:
 
-- ``[x]`` |lwe-primal-binder| :doc:`Primal attack on LWE <../algorithms/lwe-primal>` 
-- ``[X]`` |lwe-dual-binder| :doc:`Dual attack on LWE <../algorithms/lwe-dual>`
+- ``[x]`` |lwe-primal-binder| :doc:`Primal attacks on LWE <../algorithms/lwe-primal>` 
+- ``[X]`` |lwe-dual-binder| :doc:`Dual attacks on LWE <../algorithms/lwe-dual>`
 - ``[x]`` |lwe-bkw-binder| :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>` 
 - ``[X]`` |gb-binder| :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`
 
