@@ -27,7 +27,7 @@ To get a more precise answer we may use the CN11 simulator by Chen and Nguyen [A
 
     primal_usvp(params, red_shape_model=Simulator.CN11)
 
-We can then improve on this result by first preprocessing the basis with blocksize β followed by a
+We can then improve on this result by first preprocessing the basis with block size β followed by a
 single SVP call in dimension η [RSA:LiuNgu13]_. We call this the BDD approach since this is
 essentially the same strategy as preprocessing a basis and then running a CVP solver::
 

@@ -12,7 +12,7 @@ from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .util import local_minimum
 from .cost import Cost
-from .lwe import LWEParameters
+from .lwe_parameters import LWEParameters
 from .simulator import normalize as simulator_normalize
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
@@ -152,17 +152,17 @@ class PrimalUSVP:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> primal_usvp(Kyber512)
+            >>> lwe.primal_usvp(Kyber512)
             rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
 
-            >>> params = LWEParameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
-            >>> primal_usvp(params, red_shape_model="cn11")
+            >>> params = lwe.Parameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
+            >>> lwe.primal_usvp(params, red_shape_model="cn11")
             rop: ≈2^91.2, red: ≈2^91.2, δ: 1.006114, β: 209, d: 388, tag: usvp
 
-            >>> primal_usvp(params, red_shape_model=Simulator.CN11)
+            >>> lwe.primal_usvp(params, red_shape_model=Simulator.CN11)
             rop: ≈2^91.2, red: ≈2^91.2, δ: 1.006114, β: 209, d: 388, tag: usvp
 
-            >>> primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
+            >>> lwe.primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
             rop: ≈2^91.3, red: ≈2^91.3, δ: 1.006114, β: 209, d: 400, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
@@ -487,16 +487,16 @@ class PrimalHybrid:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
+            >>> lwe.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
             rop: ≈2^93.9, red: ≈2^93.5, svp: ≈2^91.7, β: 169, η: 23, ζ: 255, |S|: ≈2^50.6, d: 520, prob: 0.001...
 
-            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
+            >>> lwe.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
             rop: ≈2^90.0, red: ≈2^89.5, svp: ≈2^88.0, β: 88, η: 2, ζ: 327, |S|: ≈2^39.8, d: 326, prob: ≈2^-29.3...
 
-            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
+            >>> lwe.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
             rop: ≈2^83.7, red: ≈2^82.8, svp: ≈2^82.7, β: 168, η: 23, ζ: 256, |S|: ≈2^103.9, d: 518, prob: 0.708...
 
-            >>> primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
+            >>> lwe.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
             rop: ≈2^85.8, red: ≈2^84.9, svp: ≈2^84.7, β: 104, η: 2, ζ: 368, |S|: ≈2^91.0, d: 311, prob: ≈2^-20.4...
 
         """

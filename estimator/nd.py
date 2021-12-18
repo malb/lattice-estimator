@@ -73,6 +73,7 @@ class NoiseDistribution:
     All noise distributions are instances of this class.
 
     """
+
     # cut-off for Gaussian distributions
     gaussian_tail_bound = 2
 
@@ -190,7 +191,7 @@ class NoiseDistribution:
         # NOTE: somewhat arbitrary
         return self.density < 0.5
 
-    def support_size(self, n=None, fraction=1.):
+    def support_size(self, n=None, fraction=1.0):
         """
         Compute the size of the support covering the probability given as fraction.
 
@@ -225,7 +226,9 @@ class NoiseDistribution:
             p = self.gaussian_tail_prob
 
             if p ** n < fraction:
-                raise NotImplementedError(f"TODO(nd.support-size): raise t. {RR(p ** n)}, {n}, {fraction}")
+                raise NotImplementedError(
+                    f"TODO(nd.support-size): raise t. {RR(p ** n)}, {n}, {fraction}"
+                )
 
             b = 2 * t * sigmaf(self.stddev) + 1
             return (2 * b + 1) ** n

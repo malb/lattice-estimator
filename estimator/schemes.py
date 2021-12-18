@@ -1,5 +1,5 @@
 from .nd import NoiseDistribution, stddevf
-from .lwe import LWEParameters
+from .lwe_parameters import LWEParameters
 
 #
 # Kyber

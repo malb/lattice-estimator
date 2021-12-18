@@ -26,10 +26,10 @@ Quick Start
     >>> Kyber512
     LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
 
-    >>> primal_usvp(Kyber512)
+    >>> lwe.primal_usvp(Kyber512)
     rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
     
-    >>> primal_bdd(Kyber512)
+    >>> lwe.primal_bdd(Kyber512)
     rop: ≈2^137.8, red: ≈2^136.5, svp: ≈2^137.1, β: 365, η: 400, d: 981, tag: bdd
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.

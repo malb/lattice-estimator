@@ -244,7 +244,7 @@ def f_name(f):
 
 
 def batch_estimate(params, algorithm, jobs=1, log_level=0, **kwds):
-    from .lwe import LWEParameters
+    from .lwe_parameters import LWEParameters
 
     if isinstance(params, LWEParameters):
         params = (params,)

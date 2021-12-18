@@ -11,4 +11,4 @@ red_cost_model_classical_poly_space = ABLR21
 red_shape_model_default = "gsa"
 red_simulator_default = GSA
 
-default_mitm_opt = "analytical"
+mitm_opt = "analytical"
