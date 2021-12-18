@@ -427,9 +427,11 @@ class PrimalHybrid:
 
         # step 1. optimize β
         with local_minimum(
-            40, baseline_cost["beta"] + 1, log_level=log_level + 1, test_step_size=2
+            40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
         ) as it:
             for beta in it:
+                it.update(f(beta))
+            for beta in it.neighborhood:
                 it.update(f(beta))
             cost = it.y
 
@@ -490,13 +492,13 @@ class PrimalHybrid:
 
             >>> from estimator import *
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
-            rop: ≈2^93.9, red: ≈2^93.5, svp: ≈2^91.7, β: 169, η: 23, ζ: 255, |S|: ≈2^50.6, d: 520, prob: 0.001...
+            rop: ≈2^90.6, red: ≈2^90.3, svp: ≈2^88.5, β: 96, η: 18, ζ: 322, |S|: ≈2^39.7, d: 344, prob: ≈2^-27.7...
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
             rop: ≈2^90.0, red: ≈2^89.5, svp: ≈2^88.0, β: 88, η: 2, ζ: 327, |S|: ≈2^39.8, d: 326, prob: ≈2^-29.3...
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
-            rop: ≈2^83.7, red: ≈2^82.8, svp: ≈2^82.7, β: 168, η: 23, ζ: 256, |S|: ≈2^103.9, d: 518, prob: 0.708...
+            rop: ≈2^83.9, red: ≈2^83.4, svp: ≈2^82.2, β: 166, η: 28, ζ: 256, |S|: ≈2^94.2, d: 515, prob: 0.428, ↻: 9, tag: hybrid
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
             rop: ≈2^85.8, red: ≈2^84.9, svp: ≈2^84.7, β: 104, η: 2, ζ: 368, |S|: ≈2^91.0, d: 311, prob: ≈2^-20.4...

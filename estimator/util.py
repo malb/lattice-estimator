@@ -6,12 +6,12 @@ from sage.all import ceil, floor
 from .io import Logging
 
 
-class local_minimum:
+class local_minimum_base:
     """
     An iterator context for finding a local minimum using binary search.
 
-    We use the neighborhood of a point to decide the next direction to go into (gradient descent
-    style), so the algorithm is not plain binary search (see ``update()`` function.)
+    We use the immediate neighborhood of a point to decide the next direction to go into (gradient
+    descent style), so the algorithm is not plain binary search (see ``update()`` function.)
 
     .. note :: We combine an iterator and a context to give the caller access to the result.
     """
@@ -21,9 +21,8 @@ class local_minimum:
         start,
         stop,
         smallerf=lambda x, best: x <= best,
-        log_level=5,
         suppress_bounds_warning=False,
-        test_step_size=1,
+        log_level=5,
     ):
         """
         Create a fresh local minimum search context.
@@ -32,7 +31,6 @@ class local_minimum:
         :param stop:  end point (exclusive)
         :param smallerf: a function to decide if ``lhs`` is smaller than ``rhs``.
         :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
-        :param test_step_size: when exploring the neighborhood of a point, how far our shall we go
 
         """
 
@@ -40,7 +38,6 @@ class local_minimum:
             raise ValueError(f"Incorrect bounds {start} > {stop}.")
 
         self._suppress_bounds_warning = suppress_bounds_warning
-        self._test_step_size = test_step_size
         self._log_level = log_level
         self._start = start
         self._stop = stop - 1
@@ -129,7 +126,7 @@ class local_minimum:
             # if it's a result of a long jump figure out the next direction
             if abs(self._direction) != 1:
                 self._direction = -1
-                self._next_x = self._last_x - self._test_step_size
+                self._next_x = self._last_x - 1
             # going down worked, so let's keep on doing that.
             elif self._direction == -1:
                 self._direction = -2
@@ -144,7 +141,7 @@ class local_minimum:
             # going downwards didn't help, let's try up
             if self._direction == -1:
                 self._direction = 1
-                self._next_x = self._last_x + 2 * self._test_step_size
+                self._next_x = self._last_x + 2
             # going up didn't help either, so we stop
             elif self._direction == 1:
                 self._next_x = None
@@ -161,8 +158,67 @@ class local_minimum:
             self._next_x = None
 
 
+class local_minimum(local_minimum_base):
+    """
+    An iterator context for finding a local minimum using binary search.
+
+    We use the neighborhood of a point to decide the next direction to go into (gradient descent
+    style), so the algorithm is not plain binary search (see ``update()`` function.)
+
+    We also zoom out by a factor ``precision``, find an approximate local minimum and then
+    search the neighbourhood for the smallest value.
+
+    .. note :: We combine an iterator and a context to give the caller access to the result.
+
+    """
+
+    def __init__(
+        self,
+        start,
+        stop,
+        precision=1,
+        smallerf=lambda x, best: x <= best,
+        suppress_bounds_warning=False,
+        log_level=5,
+    ):
+        """
+        Create a fresh local minimum search context.
+
+        :param start: starting point
+        :param stop:  end point (exclusive)
+        :param precision: only consider every ``precision``-th value in the main loop
+        :param smallerf: a function to decide if ``lhs`` is smaller than ``rhs``.
+        :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
+
+        """
+        self._precision = precision
+        self._orig_bounds = (start, stop)
+        start = ceil(start / precision)
+        stop = floor(stop / precision)
+        local_minimum_base.__init__(self, start, stop, smallerf, suppress_bounds_warning, log_level)
+
+    def __next__(self):
+        x = local_minimum_base.__next__(self)
+        return x * self._precision
+
+    @property
+    def x(self):
+        return self._best[0] * self._precision
+
+    @property
+    def neighborhood(self):
+        """
+        An iterator over the neighborhood of the currently best value.
+        """
+
+        start, stop = self._orig_bounds
+
+        for x in range(max(start, self.x - self._precision), min(stop, self.x + self._precision)):
+            yield x
+
+
 def binary_search(
-    f, start, stop, param, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds
+    f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds
 ):
     """
     Searches for the best value in the interval [start,stop] depending on the given comparison function.
@@ -171,59 +227,21 @@ def binary_search(
     :param stop: stop of range to search (exclusive)
     :param param: the parameter to modify when calling `f`
     :param smallerf: comparison is performed by evaluating ``smallerf(current, best)``
+    :param step: initially only consider every `steps`-th value
     """
 
-    with local_minimum(start, stop + 1, smallerf=smallerf, log_level=log_level) as it:
+    with local_minimum(start, stop + 1, step, smallerf=smallerf, log_level=log_level) as it:
         for x in it:
             kwds_ = dict(kwds)
             kwds_[param] = x
             it.update(f(*args, **kwds_))
+
+        for x in it.neighborhood:
+            kwds_ = dict(kwds)
+            kwds_[param] = x
+            it.update(f(*args, **kwds_))
+
         return it.y
-
-
-def binary_search_robust(
-    f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds
-):
-    """
-    A version of binary search that is more robust w.r.t. small local irregularities in f. The idea
-    is to zoom out by a factor `step`, find an approximate local minimum and then search the
-    vicinity for the smallest value.
-
-    :param start: start of range to search
-    :param stop: stop of range to search (exclusive)
-    :param param: the parameter to modify when calling `f`
-    :param step: initially only consider every `steps`-th value
-    :param smallerf: comparison is performed by evaluating ``smallerf(current, best)``
-    """
-
-    with local_minimum(
-                ceil(start / step),
-                floor(stop / step),
-                smallerf=smallerf,
-                log_level=log_level) as it:
-        if stop - start > step:
-            for x in it:
-                kwds_ = dict(kwds)
-                kwds_[param] = step * x
-                it.update(f(**kwds_))
-
-            p = step * it.x
-            y = it.y
-        else:
-            p = round((stop - start)/2)
-            kwds_ = dict(kwds)
-            kwds_[param] = p
-            y = f(**kwds_)
-        lower = max(start, p - step)
-        upper = min(stop, p + step)
-        if lower >= upper:
-            return y
-        cst = []
-        for p in range(lower, upper):
-            kwds_ = dict(kwds)
-            kwds_[param] = p
-            cst.append(f(**kwds_))
-        return min(cst)
 
 
 def _batch_estimatef(f, x, log_level=0, f_repr=None):
