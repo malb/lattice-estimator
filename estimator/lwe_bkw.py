@@ -3,7 +3,7 @@
 See :ref:`Coded-BKW for LWE` for what is available.
 """
 from sage.all import ceil, log, floor, sqrt, var, find_root, erf, oo
-from .lwe import LWEParameters
+from .lwe_parameters import LWEParameters
 from .util import local_minimum
 from .cost import Cost
 from .errors import InsufficientSamplesError
@@ -268,7 +268,7 @@ class CodedBKW:
 
             >>> from sage.all import oo
             >>> from estimator import *
-            >>> coded_bkw(Kyber512.updated(m=oo))
+            >>> LWE.coded_bkw(Kyber512.updated(m=oo))
             rop: ≈2^155.9, m: ≈2^143.7, mem: ≈2^144.7, b: 12, t1: 3, t2: 17, ℓ: 11, #cod: 417, #top: 0, #test: 60, ...
 
         We may need to amplify the number of samples, which modifies the noise distribution::

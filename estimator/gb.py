@@ -20,7 +20,7 @@ from sage.all import (
     RealField,
 )
 from .cost import Cost
-from .lwe import LWEParameters
+from .lwe_parameters import LWEParameters
 from .io import Logging
 
 
@@ -194,21 +194,21 @@ class AroraGB:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> params = LWEParameters(n=64, q=7681, Xs=ND.DiscreteGaussian(3.0), Xe=ND.DiscreteGaussian(3.0), m=2**50)
-            >>> arora_gb(params)
+            >>> params = LWE.Parameters(n=64, q=7681, Xs=ND.DiscreteGaussian(3.0), Xe=ND.DiscreteGaussian(3.0), m=2**50)
+            >>> LWE.arora_gb(params)
             rop: ≈2^307.1, m: ≈2^46.8, dreg: 99, t: 25, mem: ≈2^307.1, tag: arora-gb
 
         TESTS::
 
-            >>> arora_gb(params.updated(m=2**120))
+            >>> LWE.arora_gb(params.updated(m=2**120))
             rop: ≈2^282.6, m: ≈2^101.1, dreg: 83, t: 36, mem: ≈2^282.6, tag: arora-gb
-            >>> arora_gb(params.updated(Xe=ND.UniformMod(7)))
+            >>> LWE.arora_gb(params.updated(Xe=ND.UniformMod(7)))
             rop: ≈2^60.6, dreg: 7, mem: ≈2^60.6, t: 3, m: ≈2^30.3, tag: arora-gb
-            >>> arora_gb(params.updated(Xe=ND.CenteredBinomial(8)))
+            >>> LWE.arora_gb(params.updated(Xe=ND.CenteredBinomial(8)))
             rop: ≈2^122.3, dreg: 19, mem: ≈2^122.3, t: 8, m: ≈2^50.0, tag: arora-gb
-            >>> arora_gb(params.updated(Xs=ND.UniformMod(5), Xe=ND.CenteredBinomial(4), m=1024))
+            >>> LWE.arora_gb(params.updated(Xs=ND.UniformMod(5), Xe=ND.CenteredBinomial(4), m=1024))
             rop: ≈2^227.2, dreg: 54, mem: ≈2^227.2, t: 4, m: 1024, tag: arora-gb
-            >>> arora_gb(params.updated(Xs=ND.UniformMod(3), Xe=ND.CenteredBinomial(4), m=1024))
+            >>> LWE.arora_gb(params.updated(Xs=ND.UniformMod(3), Xe=ND.CenteredBinomial(4), m=1024))
             rop: ≈2^189.9, dreg: 39, mem: ≈2^189.9, t: 4, m: 1024, tag: arora-gb
 
         ..  [EPRINT:ACFP14] Martin R. Albrecht, Carlos Cid, Jean-Charles Faugère & Ludovic Perret. (2014).

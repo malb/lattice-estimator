@@ -34,18 +34,18 @@ def _delta(beta):
 
     if __name__ == '__main__':
         for beta in (5, 10, 15, 20, 25, 28, 30, 35, 40):
-            delta_0 = []
+            delta = []
             t = []
             i = 0
               while i < trials:
-                threads = int(open("delta_0.nthreads").read()) # make sure this file exists
+                threads = int(open("delta.nthreads").read()) # make sure this file exists
                 pool = Pool(threads)
                 A = [(IntegerMatrix.random(d, "qary", beta=d//2, bits=50), beta) for j in range(threads)]
-                for (t_, delta_0_) in pool.imap_unordered(f, A):
+                for (t_, delta_) in pool.imap_unordered(f, A):
                     t.append(t_)
-                    delta_0.append(delta_0_)
+                    delta.append(delta_)
                 i += threads
-                print u"β: %2d, δ_0: %.5f, time: %5.1fs, (%2d,%2d)"%(beta, mean(delta_0), mean(t), i, threads)
+                print u"β: %2d, δ_0: %.5f, time: %5.1fs, (%2d,%2d)"%(beta, mean(delta), mean(t), i, threads)
             print
     ```
 
@@ -188,7 +188,7 @@ def _beta_simple(delta):
 
 def beta(delta):
     """
-    Estimate required blocksize β for a given root-hermite factor δ based on [PhD:Chen13]_.
+    Estimate required block size β for a given root-hermite factor δ based on [PhD:Chen13]_.
 
     :param delta: Root-hermite factor.
 
