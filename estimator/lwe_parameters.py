@@ -68,9 +68,9 @@ class LWEParameters:
 
             >>> from estimator import *
             >>> Kyber512
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
             >>> Kyber512.updated(m=1337)
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1337, tag='Kyber 512')
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=1337, tag='Kyber 512')
 
         """
         d = dict(self.__dict__)
@@ -88,9 +88,9 @@ class LWEParameters:
             >>> from sage.all import binomial, log
             >>> from estimator import *
             >>> Kyber512
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
             >>> Kyber512.amplify_m(2**100)
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=3.46), m=126765..., tag='Kyber 512')
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=4.58), m=..., tag='Kyber 512')
 
         We can produce 2^100 samples by random ± linear combinations of 12 vectors::
 
