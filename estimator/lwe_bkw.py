@@ -269,18 +269,18 @@ class CodedBKW:
             >>> from sage.all import oo
             >>> from estimator import *
             >>> LWE.coded_bkw(Kyber512.updated(m=oo))
-            rop: ≈2^155.9, m: ≈2^143.7, mem: ≈2^144.7, b: 12, t1: 3, t2: 17, ℓ: 11, #cod: 417, #top: 0, #test: 60, ...
+            rop: ≈2^163.7, m: ≈2^149.4, mem: ≈2^144.9, b: 12, t1: 6, t2: 16, ℓ: 11, #cod: 383, #top: 3, #test: 54, ...
 
         We may need to amplify the number of samples, which modifies the noise distribution::
 
             >>> from sage.all import oo
             >>> from estimator import *
             >>> Kyber512
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
             >>> cost = coded_bkw(Kyber512); cost
-            rop: ≈2^167.2, m: ≈2^155.1, mem: ≈2^156.1, b: 13, t1: 0, t2: 16, ℓ: 12, #cod: 444, #top: 1, #test: 67, ...
+            rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448, #top: 0...
             >>> cost["problem"]
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.00), Xe=D(σ=4.90), m=493584224..., tag='Kyber 512')
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=6.24), m=..., tag='Kyber 512')
 
         .. note :: See also [C:KirFou15]_.
 

@@ -126,12 +126,12 @@ class guess_composition:
             >>> from estimator import *
             >>> from estimator.lwe_guess import guess_composition
             >>> guess_composition(LWE.primal_usvp)(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^102.0, red: ≈2^102.0, δ: 1.008079, β: 130, d: 474, tag: usvp, ↻: ≈2^31.8, ζ: 235, |S|: 1, ...
+            rop: ≈2^102.8, red: ≈2^102.8, δ: 1.008705, β: 113, d: 421, tag: usvp, ↻: ≈2^37.5, ζ: 265, |S|: 1, ...
 
         Compare::
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^85.8, red: ≈2^84.9, svp: ≈2^84.7, β: 104, η: 2, ζ: 368, |S|: ≈2^91.0, d: 311, prob: ≈2^-20...
+            rop: ≈2^86.6, red: ≈2^85.7, svp: ≈2^85.6, β: 104, η: 2, ζ: 371, |S|: ≈2^91.1, d: 308, prob: ≈2^-21.3, ...
 
         """
         if params.Xs.is_sparse:

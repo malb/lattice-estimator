@@ -15,8 +15,8 @@ Kyber512 = LWEParameters(
     n=2 * 256,
     q=3329,
     Xs=NoiseDistribution.CenteredBinomial(3),
-    Xe=NoiseDistribution.CenteredBinomial(2),
-    m=4 * 256,
+    Xe=NoiseDistribution.CenteredBinomial(3),
+    m=2 * 256,
     tag="Kyber 512",
 )
 
@@ -154,7 +154,7 @@ TFHE630 = LWEParameters(
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-15) * 2 ** 32),
-    tag="TFHE630"
+    tag="TFHE630",
 )
 
 TFHE1024 = LWEParameters(
@@ -162,7 +162,7 @@ TFHE1024 = LWEParameters(
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-25) * 2 ** 32),
-    tag="TFHE630"
+    tag="TFHE630",
 )
 
 # https://eprint.iacr.org/2018/421.pdf
@@ -172,7 +172,7 @@ TFHE16_500 = LWEParameters(
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2.43 * 10 ** (-5) * 2 ** 32),
-    tag="TFHE16_500"
+    tag="TFHE16_500",
 )
 
 TFHE16_1024 = LWEParameters(
@@ -180,7 +180,7 @@ TFHE16_1024 = LWEParameters(
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.73 * 10 ** (-9) * 2 ** 32),
-    tag="TFHE16_1024"
+    tag="TFHE16_1024",
 )
 
 # https://eprint.iacr.org/2018/421.pdf
@@ -190,7 +190,7 @@ TFHE20_612 = LWEParameters(
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-15) * 2 ** 32),
-    tag="TFHE20_612"
+    tag="TFHE20_612",
 )
 
 TFHE20_1024 = LWEParameters(
@@ -198,7 +198,7 @@ TFHE20_1024 = LWEParameters(
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-26) * 2 ** 32),
-    tag="TFHE20_1024"
+    tag="TFHE20_1024",
 )
 
 # FHEW
@@ -209,7 +209,7 @@ FHEW = LWEParameters(
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-15) * 2 ** 32),
-    tag="FHEW"
+    tag="FHEW",
 )
 
 # SEAL
@@ -223,7 +223,7 @@ SEAL20_1024 = LWEParameters(
     q=2 ** 48 - 2 ** 20 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL20_1024"
+    tag="SEAL20_1024",
 )
 
 SEAL20_2048 = LWEParameters(
@@ -231,7 +231,7 @@ SEAL20_2048 = LWEParameters(
     q=2 ** 94 - 2 ** 20 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL20_2048"
+    tag="SEAL20_2048",
 )
 
 SEAL20_4096 = LWEParameters(
@@ -239,7 +239,7 @@ SEAL20_4096 = LWEParameters(
     q=2 ** 190 - 2 ** 30 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL20_4096"
+    tag="SEAL20_4096",
 )
 
 SEAL20_8192 = LWEParameters(
@@ -247,7 +247,7 @@ SEAL20_8192 = LWEParameters(
     q=2 ** 383 - 2 ** 33 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL20_8192"
+    tag="SEAL20_8192",
 )
 
 SEAL20_16384 = LWEParameters(
@@ -255,7 +255,7 @@ SEAL20_16384 = LWEParameters(
     q=2 ** 767 - 2 ** 56 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL20_16384"
+    tag="SEAL20_16384",
 )
 
 # v2.2
@@ -266,7 +266,7 @@ SEAL22_2048 = LWEParameters(
     q=2 ** 60 - 2 ** 14 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL22_2048"
+    tag="SEAL22_2048",
 )
 
 SEAL22_4096 = LWEParameters(
@@ -274,7 +274,7 @@ SEAL22_4096 = LWEParameters(
     q=2 ** 116 - 2 ** 18 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL22_4096"
+    tag="SEAL22_4096",
 )
 
 SEAL22_8192 = LWEParameters(
@@ -282,7 +282,7 @@ SEAL22_8192 = LWEParameters(
     q=2 ** 226 - 2 ** 26 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL22_8192"
+    tag="SEAL22_8192",
 )
 
 SEAL22_16384 = LWEParameters(
@@ -290,7 +290,7 @@ SEAL22_16384 = LWEParameters(
     q=2 ** 435 - 2 ** 33 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL22_16384"
+    tag="SEAL22_16384",
 )
 
 SEAL22_32768 = LWEParameters(
@@ -298,7 +298,7 @@ SEAL22_32768 = LWEParameters(
     q=2 ** 889 - 2 ** 54 - 2 ** 53 - 2 ** 52 + 1,
     Xs=NoiseDistribution.UniformMod(3),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.19),
-    tag="SEAL22_32768"
+    tag="SEAL22_32768",
 )
 
 # The following are not parameters of actual schemes
@@ -313,7 +313,7 @@ HElib80_1024 = LWEParameters(
     q=2 ** 47,
     Xs=NoiseDistribution.SparseTernary(n=1024, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.2),
-    tag="HElib80_1024"
+    tag="HElib80_1024",
 )
 
 HElib80_2048 = LWEParameters(
@@ -321,7 +321,7 @@ HElib80_2048 = LWEParameters(
     q=2 ** 87,
     Xs=NoiseDistribution.SparseTernary(n=2048, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.2),
-    tag="HElib80_2048"
+    tag="HElib80_2048",
 )
 
 HElib80_4096 = LWEParameters(
@@ -329,7 +329,7 @@ HElib80_4096 = LWEParameters(
     q=2 ** 167,
     Xs=NoiseDistribution.SparseTernary(n=4096, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.2),
-    tag="HElib80_4096"
+    tag="HElib80_4096",
 )
 
 # 120-bit security
@@ -338,7 +338,7 @@ HElib120_1024 = LWEParameters(
     q=2 ** 38,
     Xs=NoiseDistribution.SparseTernary(n=1024, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.2),
-    tag="HElib80_1024"
+    tag="HElib80_1024",
 )
 
 HElib120_2048 = LWEParameters(
@@ -346,7 +346,7 @@ HElib120_2048 = LWEParameters(
     q=2 ** 70,
     Xs=NoiseDistribution.SparseTernary(n=2048, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.2),
-    tag="HElib80_2048"
+    tag="HElib80_2048",
 )
 
 HElib120_4096 = LWEParameters(
@@ -354,7 +354,7 @@ HElib120_4096 = LWEParameters(
     q=2 ** 134,
     Xs=NoiseDistribution.SparseTernary(n=4096, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=3.2),
-    tag="HElib80_4096"
+    tag="HElib80_4096",
 )
 
 
@@ -366,7 +366,7 @@ CHHS_1024_25 = LWEParameters(
     q=2 ** 25,
     Xs=NoiseDistribution.SparseTernary(n=1024, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=stddevf(8)),
-    tag="CHHS_1024_25"
+    tag="CHHS_1024_25",
 )
 
 CHHS_2048_38 = LWEParameters(
@@ -374,7 +374,7 @@ CHHS_2048_38 = LWEParameters(
     q=2 ** 38,
     Xs=NoiseDistribution.SparseTernary(n=2048, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=stddevf(8)),
-    tag="CHHS_2048_38"
+    tag="CHHS_2048_38",
 )
 
 CHHS_2048_45 = LWEParameters(
@@ -382,7 +382,7 @@ CHHS_2048_45 = LWEParameters(
     q=2 ** 45,
     Xs=NoiseDistribution.SparseTernary(n=2048, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=stddevf(8)),
-    tag="CHHS_2048_45"
+    tag="CHHS_2048_45",
 )
 
 CHHS_4096_67 = LWEParameters(
@@ -390,7 +390,7 @@ CHHS_4096_67 = LWEParameters(
     q=2 ** 67,
     Xs=NoiseDistribution.SparseTernary(n=4096, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=stddevf(8)),
-    tag="CHHS_4096_67"
+    tag="CHHS_4096_67",
 )
 
 CHHS_4096_82 = LWEParameters(
@@ -398,5 +398,5 @@ CHHS_4096_82 = LWEParameters(
     q=2 ** 82,
     Xs=NoiseDistribution.SparseTernary(n=4096, p=32),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=stddevf(8)),
-    tag="CHHS_4096_82"
+    tag="CHHS_4096_82",
 )

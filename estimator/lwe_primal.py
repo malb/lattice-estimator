@@ -155,7 +155,7 @@ class PrimalUSVP:
 
             >>> from estimator import *
             >>> LWE.primal_usvp(Kyber512)
-            rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
+            rop: ≈2^148.0, red: ≈2^148.0, δ: 1.003941, β: 406, d: 998, tag: usvp
 
             >>> params = LWE.Parameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> LWE.primal_usvp(params, red_shape_model="cn11")
@@ -492,16 +492,16 @@ class PrimalHybrid:
 
             >>> from estimator import *
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
-            rop: ≈2^90.6, red: ≈2^90.3, svp: ≈2^88.5, β: 96, η: 18, ζ: 322, |S|: ≈2^39.7, d: 344, prob: ≈2^-27.7...
+            rop: ≈2^94.9, red: ≈2^94.3, svp: ≈2^93.3, β: 178, η: 21, ζ: 256, |S|: ≈2^56.6, d: 531, prob: 0.003, ...
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
-            rop: ≈2^90.0, red: ≈2^89.5, svp: ≈2^88.0, β: 88, η: 2, ζ: 327, |S|: ≈2^39.8, d: 326, prob: ≈2^-29.3...
+            rop: ≈2^94.7, red: ≈2^94.0, svp: ≈2^93.3, β: 169, η: 2, ζ: 256, |S|: ≈2^62.4, d: 519, prob: 0.001, ...
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
-            rop: ≈2^83.9, red: ≈2^83.4, svp: ≈2^82.2, β: 166, η: 28, ζ: 256, |S|: ≈2^94.2, d: 515, prob: 0.428...
+            rop: ≈2^75.4, red: ≈2^75.0, svp: ≈2^73.3, β: 102, η: 15, ζ: 322, |S|: ≈2^82.9, d: 354, prob: 0.001, ...
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
-            rop: ≈2^85.8, red: ≈2^84.9, svp: ≈2^84.7, β: 104, η: 2, ζ: 368, |S|: ≈2^91.0, d: 311, prob: ≈2^-20.4...
+            rop: ≈2^86.6, red: ≈2^85.7, svp: ≈2^85.6, β: 104, η: 2, ζ: 371, |S|: ≈2^91.1, d: 308, prob: ≈2^-21.3, ...
 
         """
 

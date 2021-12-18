@@ -18,22 +18,21 @@ Quick Start
 
     >>> from estimator import *
     >>> Kyber512
-    LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
+    LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
 
     >>> LWE.primal_usvp(Kyber512)
-    rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
+    rop: ≈2^148.0, red: ≈2^148.0, δ: 1.003941, β: 406, d: 998, tag: usvp
     
     >>> r = LWE.estimate.rough(Kyber512)
-    usvp                 :: rop: ≈2^111.5, red: ≈2^111.5, δ: 1.004111, β: 382, d: 973, tag: usvp
-    dual_hybrid          :: rop: ≈2^134.5, mem: ≈2^130.2, m: 512, red: ≈2^134.3, δ: 1.003611, β: 460, d: 1009, ...
+    usvp                 :: rop: ≈2^118.6, red: ≈2^118.6, δ: 1.003941, β: 406, d: 998, tag: usvp
+    dual_hybrid          :: rop: ≈2^144.4, mem: ≈2^141.5, m: 512, red: ≈2^144.0, δ: 1.003438, β: 493...
 
     >>> r = LWE.estimate(Kyber512)
-    bkw                  :: rop: ≈2^167.2, m: ≈2^155.1, mem: ≈2^156.1, b: 13, t1: 0, t2: 16, ℓ: 12, #cod: 444, #top: 1, ...
-    usvp                 :: rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
-    bdd                  :: rop: ≈2^137.8, red: ≈2^136.8, svp: ≈2^136.8, β: 366, η: 399, d: 978, tag: bdd
-    dual                 :: rop: ≈2^165.3, mem: ≈2^127.5, m: 581, red: ≈2^165.2, δ: 1.003573, β: 467, d: 1092, ...
-    dual_hybrid          :: rop: ≈2^157.7, mem: ≈2^153.6, m: 512, red: ≈2^157.4, δ: 1.003726, β: 440, d: 1008, ...
-    
+    bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, ...
+    usvp                 :: rop: ≈2^148.0, red: ≈2^148.0, δ: 1.003941, β: 406, d: 998, tag: usvp
+    bdd                  :: rop: ≈2^144.5, red: ≈2^143.8, svp: ≈2^143.0, β: 391, η: 421, d: 1013, tag: bdd
+    dual                 :: rop: ≈2^170.2, mem: ≈2^132.7, m: 512, red: ≈2^170.0, δ: 1.003479, β: 485, ...
+    dual_hybrid          :: rop: ≈2^166.8, mem: ≈2^161.9, m: 512, red: ≈2^166.6, δ: 1.003541, β: 473, ...
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.

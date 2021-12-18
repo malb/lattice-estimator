@@ -7,9 +7,9 @@ NIST PQC Round 3 Finalists
 
    >>> from estimator import *
    >>> Kyber512
-   LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.00), m=1024, tag='Kyber 512')
+   LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
    >>> LWE.primal_bdd(Kyber512)
-   rop: ≈2^137.8, red: ≈2^136.8, svp: ≈2^136.8, β: 366, η: 399, d: 978, tag: bdd
+   rop: ≈2^144.5, red: ≈2^143.8, svp: ≈2^143.0, β: 391, η: 421, d: 1013, tag: bdd
 
 ::
 
