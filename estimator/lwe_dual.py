@@ -14,7 +14,7 @@ from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .reduction import ADPS16, BDGL16
 from .reduction import LLL
-from .util import local_minimum, binary_search_robust
+from .util import local_minimum
 from .cost import Cost
 from .lwe_parameters import LWEParameters
 from .prob import drop as prob_drop
@@ -206,7 +206,7 @@ class DualHybrid:
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
         use_lll=True,
-        log_level=None,
+        log_level=5,
         opt_step=2,
     ):
         """
@@ -243,7 +243,12 @@ class DualHybrid:
         beta = beta_upper
         while beta == beta_upper:
             beta_upper *= 2
-            cost = binary_search_robust(f, 2, beta_upper, "beta", step=opt_step)
+            with local_minimum(2, beta_upper, opt_step) as it:
+                for beta in it:
+                    it.update(f(beta=beta))
+                for beta in it.neighborhood:
+                    it.update(f(beta=beta))
+                cost = it.y
             beta = cost["beta"]
 
         cost["zeta"] = zeta
@@ -393,7 +398,13 @@ class DualHybrid:
             log_level=log_level + 1,
         )
 
-        cost = binary_search_robust(f, 1, params.n - 1, "zeta", step=opt_step)
+        with local_minimum(1, params.n - 1, opt_step) as it:
+            for zeta in it:
+                it.update(f(zeta=zeta))
+            for zeta in it.neighborhood:
+                it.update(f(zeta=zeta))
+            cost = it.y
+
         cost["problem"] = params
         return cost
 
