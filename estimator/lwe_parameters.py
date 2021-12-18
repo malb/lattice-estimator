@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from sage.all import oo, binomial, log, sqrt, ceil
+from sage.all import oo, binomial, log, sqrt, ceil, oo
 from dataclasses import dataclass
 from copy import copy
 from .nd import NoiseDistribution
