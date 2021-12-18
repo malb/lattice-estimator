@@ -19,4 +19,4 @@ We can improve these results by considering a dual hybrid attack as in [EC:Albre
 
 Further improvements are possible using a meet-in-the-middle approach [EPRINT:CHHS19]_::
 
-   LWE.dual_mitm_hybrid()
+   LWE.dual_hybrid(params, mitm_optimization=True)

@@ -29,8 +29,17 @@ Quick Start
     >>> LWE.primal_usvp(Kyber512)
     rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
     
-    >>> LWE.primal_bdd(Kyber512)
-    rop: ≈2^137.8, red: ≈2^136.5, svp: ≈2^137.1, β: 365, η: 400, d: 981, tag: bdd
+    >>> r = LWE.estimate.rough(Kyber512)
+    usvp                 :: rop: ≈2^111.5, red: ≈2^111.5, δ: 1.004111, β: 382, d: 973, tag: usvp
+    dual_hybrid          :: rop: ≈2^134.5, mem: ≈2^130.2, m: 512, red: ≈2^134.3, δ: 1.003611, β: 460, d: 1009, ...
+
+    >>> r = LWE.estimate(Kyber512)
+    bkw                  :: rop: ≈2^167.2, m: ≈2^155.1, mem: ≈2^156.1, b: 13, t1: 0, t2: 16, ℓ: 12, #cod: 444, #top: 1...
+    usvp                 :: rop: ≈2^141.2, red: ≈2^141.2, δ: 1.004111, β: 382, d: 973, tag: usvp
+    bdd                  :: rop: ≈2^137.8, red: ≈2^136.5, svp: ≈2^137.1, β: 365, η: 400, d: 981, tag: bdd
+    dual                 :: rop: ≈2^165.3, mem: ≈2^127.5, m: 581, red: ≈2^165.2, δ: 1.003573, β: 467, d: 1092, ...
+    dual_hybrid          :: rop: ≈2^157.7, mem: ≈2^153.6, m: 512, red: ≈2^157.4, δ: 1.003726, β: 440, d: 1008, ...
+    
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.
@@ -38,15 +47,18 @@ Quick Start
 Status
 ------
 
-We do not have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-estimator/src/master/>`__ yet:
+We have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-estimator/src/master/>`__:
 
 - ``[x]`` |lwe-primal-binder| :doc:`Primal attack on LWE <../algorithms/lwe-primal>` 
+- ``[X]`` |lwe-dual-binder| :doc:`Dual attack on LWE <../algorithms/lwe-dual>`
 - ``[x]`` |lwe-bkw-binder| :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>` 
 - ``[X]`` |gb-binder| :doc:`Aroroa-GB attack on LWE <../algorithms/gb>`
-- ``[X]`` :doc:`Dual attack on LWE <../algorithms/lwe-dual>`
 
 .. |lwe-primal-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb
+
+.. |lwe-dual-binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-dual.ipynb
 
 .. |lwe-bkw-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-bkw.ipynb
@@ -54,7 +66,7 @@ We do not have feature parity with the `old estimator <https://bitbucket.org/mal
 .. |gb-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fgb.ipynb
             
-We are also planning:
+But we are also planning:
 
 - ``[ ]`` Attacks on NTRU pulic keys (using overstretched parameters)
 - ``[ ]`` SIS attacks
