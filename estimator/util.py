@@ -181,7 +181,7 @@ def binary_search(
         return it.y
 
 
-def robust_bin_search(
+def binary_search_robust(
     f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds
 ):
     """
