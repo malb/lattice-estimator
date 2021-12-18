@@ -7,7 +7,6 @@ some form of additive composition, i.e. this strategy is rarely the most efficie
 
 """
 
-from functools import partial
 from sage.all import log, floor, ceil, binomial
 from sage.all import sqrt, pi, exp, RR, ZZ, oo, round, e
 
