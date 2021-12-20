@@ -100,6 +100,11 @@ class DualHybrid:
             Xs=slv_Xs,
             Xe=slv_Xe,
         )
+
+        # The m_ we compute there is the optimal number of samples that we pick from the input LWE
+        # instance. We then need to return it because it determines the lattice dimension for the
+        # reduction.
+
         return slv_params, m_
 
     @staticmethod
