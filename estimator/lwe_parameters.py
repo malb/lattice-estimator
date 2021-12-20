@@ -52,7 +52,8 @@ class LWEParameters:
                 n=self.n, q=self.q, Xs=self.Xe, Xe=self.Xe, m=self.m - self.n, tag=self.tag
             )
         # swap secret and noise
-        if self.Xe < self.Xs and self.m == self.n:
+        # TODO: this is somewhat arbitrary
+        if self.Xe < self.Xs and self.m < 2 * self.n:
             return LWEParameters(n=self.n, q=self.q, Xs=self.Xe, Xe=self.Xs, m=self.n, tag=self.tag)
 
         # nothing to do
