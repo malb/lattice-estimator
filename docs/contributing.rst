@@ -69,6 +69,7 @@ Tests
 -----
 
 - The easiest way to run test is to run ``pytest`` or ``python -m pytest`` in the root directory of this repository. These tests are also run on each commit. Code that isn't tested is broken, so ideally every function should have an example doctest.
+  - To install the depdencies for testing, run ``pip install -r requirements.txt``.
 - We also enforce a coding style using `flake8 <https://flake8.pycqa.org/en/latest/>`__.
 - You should also test building the documentation locally before creating a pull request (see below).
 
@@ -89,3 +90,4 @@ You can produce Jupyter notebooks, run::
 
 You will need `sphinxcontrib-jupyter <https://github.com/QuantEcon/sphinxcontrib-jupyter>`__ installed for this to work.
 
+Note that `sphinxcontrib-jupyter <https://github.com/QuantEcon/sphinxcontrib-jupyter>`__ currently has a `bug <https://github.com/QuantEcon/sphinxcontrib-jupyter/issues/339>`__ which means ``make html && make jupyter`` will fail. However, ``make html && make clean && make jupyter`` should succeed.
