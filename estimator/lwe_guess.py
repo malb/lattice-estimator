@@ -12,11 +12,13 @@ from sage.all import sqrt, pi, exp, RR, ZZ, oo, round, e
 
 from .conf import mitm_opt
 from .cost import Cost
-from .errors import InsufficientSamplesError
+from .errors import InsufficientSamplesError, OutOfBoundsError
 from .lwe_parameters import LWEParameters
 from .prob import amplify as prob_amplify
 from .prob import drop as prob_drop
+from .prob import amplify_sigma
 from .util import local_minimum
+from .nd import sigmaf
 
 
 def log2(x):
@@ -375,3 +377,41 @@ class MITM:
 
 
 mitm = MITM()
+
+
+class Distinghuisher:
+    def __call__(self, params: LWEParameters, success_probability=0.99):
+        """
+        Estimate cost of distinguishing a 0-dimensional LWE instance from uniformly random,
+        which is essentially the number of samples required.
+
+        :param params: LWE parameters
+        :param success_probability: the targeted success probability
+        :return: A cost dictionary
+
+        The returned cost dictionary has the following entries:
+
+        - ``rop``: Total number of word operations (≈ CPU cycles).
+        - ``mem``: memory requirement in integers mod q.
+        - ``m``: Required number of samples to distinguish.
+
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> params = LWE.Parameters(n=0, q=2 ** 32, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(2 ** 32))
+            >>> distinghuish(params)
+            rop: ≈2^60.0, mem: ≈2^60.0, m: ≈2^60.0
+
+        """
+
+        if params.n > 0:
+            raise OutOfBoundsError("Secret dimension should be 0 for distinguishing. Try exhaustive search for n > 0.")
+        m = amplify_sigma(success_probability, sigmaf(params.Xe.stddev), params.q)
+        if (m > params.m):
+            raise InsufficientSamplesError("Not enough samples to distinguish with target advantage.")
+        return Cost(rop=m, mem=m, m=m)
+
+    __name__ = "distinguish"
+
+
+distinghuish = Distinghuisher()
