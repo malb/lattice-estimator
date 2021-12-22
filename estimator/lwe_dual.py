@@ -24,7 +24,7 @@ from .conf import red_cost_model as red_cost_model_default
 from .conf import mitm_opt as mitm_opt_default
 from .errors import OutOfBoundsError
 from .nd import NoiseDistribution
-from .lwe_guess import exhaustive_search, mitm, distinghuish
+from .lwe_guess import exhaustive_search, mitm, distinguish
 
 
 class DualHybrid:
@@ -454,7 +454,7 @@ def dual(
     )
 
     ret = DH.optimize_blocksize(
-        solver=distinghuish,
+        solver=distinguish,
         params=params,
         zeta=0,
         h1=0,
