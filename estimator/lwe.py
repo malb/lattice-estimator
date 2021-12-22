@@ -5,7 +5,7 @@ High-level LWE interface
 
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
 from .lwe_bkw import coded_bkw
-from .lwe_guess import exhaustive_search, mitm, distinghuish  # noqa
+from .lwe_guess import exhaustive_search, mitm, distinguish  # noqa
 from .lwe_dual import dual, dual_hybrid
 from .lwe_guess import guess_composition
 from .gb import arora_gb  # noqa
