@@ -379,7 +379,7 @@ class MITM:
 mitm = MITM()
 
 
-class Distinghuisher:
+class Distinguisher:
     def __call__(self, params: LWEParameters, success_probability=0.99):
         """
         Estimate cost of distinguishing a 0-dimensional LWE instance from uniformly random,
@@ -399,7 +399,7 @@ class Distinghuisher:
 
             >>> from estimator import *
             >>> params = LWE.Parameters(n=0, q=2 ** 32, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(2 ** 32))
-            >>> distinghuish(params)
+            >>> distinguish(params)
             rop: ≈2^60.0, mem: ≈2^60.0, m: ≈2^60.0
 
         """
@@ -414,4 +414,4 @@ class Distinghuisher:
     __name__ = "distinguish"
 
 
-distinghuish = Distinghuisher()
+distinguish = Distinguisher()
