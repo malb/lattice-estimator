@@ -5,7 +5,7 @@ High-level LWE interface
 
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
 from .lwe_bkw import coded_bkw
-from .lwe_guess import exhaustive_search, mitm  # noqa
+from .lwe_guess import exhaustive_search, mitm, distinghuish  # noqa
 from .lwe_dual import dual, dual_hybrid
 from .lwe_guess import guess_composition
 from .gb import arora_gb  # noqa
@@ -103,7 +103,7 @@ class Estimate:
             bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448...
             usvp                 :: rop: ≈2^148.0, red: ≈2^148.0, δ: 1.003941, β: 406, d: 998, tag: usvp
             bdd                  :: rop: ≈2^144.5, red: ≈2^143.8, svp: ≈2^143.0, β: 391, η: 421, d: 1013, tag: bdd
-            dual                 :: rop: ≈2^170.2, mem: ≈2^132.7, m: 512, red: ≈2^170.0, δ: 1.003479, β: 485, d: 1023...
+            dual                 :: rop: ≈2^169.9, mem: ≈2^130.0, m: 512, red: ≈2^169.7, δ: 1.003484, β: 484, d: 1024...
             dual_hybrid          :: rop: ≈2^166.8, mem: ≈2^161.9, m: 512, red: ≈2^166.6, δ: 1.003541, β: 473, d: 1011...
 
         """

@@ -360,6 +360,10 @@ class NoiseDistribution:
         """
         if m is None:
             m = p
+
+        if n == 0:
+            # this might happen in the dual attack
+            return NoiseDistribution(stddev=0, mean=0, density=0, bounds=(-1, 1), tag="SparseTernary", n=0)
         mean = RR(p / n - m / n)
         stddev = RR(sqrt((p + m) / n))
         density = RR((p + m) / n)
