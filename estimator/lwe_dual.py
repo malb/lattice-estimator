@@ -24,7 +24,7 @@ from .conf import red_cost_model as red_cost_model_default
 from .conf import mitm_opt as mitm_opt_default
 from .errors import OutOfBoundsError
 from .nd import NoiseDistribution
-from .lwe_guess import exhaustive_search, mitm
+from .lwe_guess import exhaustive_search, mitm, distinghuish
 
 
 class DualHybrid:
@@ -312,7 +312,7 @@ class DualHybrid:
             >>> from estimator import *
             >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^115.5, mem: ≈2^70.0, m: 1018, red: ≈2^115.4, δ: 1.005021, β: 284, d: 2041, ↻: ≈2^69.0, tag: dual
+            rop: ≈2^115.5, mem: ≈2^68.0, m: 1018, red: ≈2^115.4, δ: 1.005021, β: 284, d: 2042, ↻: ≈2^68.0, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^111.3, mem: ≈2^106.4, m: 983, red: ≈2^111.2, δ: 1.005204, β: 269, d: 1957, ↻: ≈2^56.4, ζ: 50...
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -322,7 +322,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
-            rop: ≈2^112.8, mem: ≈2^64.0, m: 953, red: ≈2^112.7, δ: 1.005178, β: 271, d: 1976, ↻: ≈2^65.0, tag: dual
+            rop: ≈2^111.7, mem: ≈2^66.0, m: 950, red: ≈2^111.5, δ: 1.005191, β: 270, d: 1974, ↻: ≈2^66.0, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^97.8, mem: ≈2^81.9, m: 730, red: ≈2^97.4, δ: 1.006813, β: 175, d: 1453, ↻: ≈2^36.3, ζ: 301...
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -330,7 +330,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
-            rop: ≈2^123.2, mem: ≈2^81.2, m: 1151, red: ≈2^123.0, δ: 1.004727, β: 311, d: 2174, ↻: ≈2^77.1, tag: dual
+            rop: ≈2^123.1, mem: ≈2^75.4, m: 1151, red: ≈2^123.0, δ: 1.004727, β: 311, d: 2175, ↻: ≈2^75.4, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^122.4, mem: ≈2^116.6, m: 1143, red: ≈2^122.2, δ: 1.004758, β: 308, d: 2157, ↻: ≈2^75.8, ζ: 10...
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -338,7 +338,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^125.5, mem: ≈2^85.4, m: 1190, red: ≈2^125.3, δ: 1.004648, β: 319, d: 2213, ↻: ≈2^79.5, tag: dual
+            rop: ≈2^125.4, mem: ≈2^78.0, m: 1190, red: ≈2^125.3, δ: 1.004648, β: 319, d: 2214, ↻: ≈2^78.0, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^125.1, mem: ≈2^117.7, m: 1187, red: ≈2^125.0, δ: 1.004657, β: 318, d: 2204, ↻: ≈2^75.9, ζ: 7...
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -454,9 +454,9 @@ def dual(
     )
 
     ret = DH.optimize_blocksize(
-        solver=exhaustive_search,
+        solver=distinghuish,
         params=params,
-        zeta=1,
+        zeta=0,
         h1=0,
         success_probability=success_probability,
         red_cost_model=red_cost_model,
