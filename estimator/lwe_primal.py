@@ -244,7 +244,7 @@ primal_usvp = PrimalUSVP()
 class PrimalHybrid:
     @classmethod
     def babai_cost(cls, d):
-        return Cost(rop=d ** 2)
+        return Cost(rop=max(d, 1) ** 2)
 
     @classmethod
     def svp_dimension(cls, r, D):
@@ -385,14 +385,15 @@ class PrimalHybrid:
 
         return ret
 
+    @classmethod
     def cost_zeta(
-        self,
+        cls,
         zeta: int,
         params: LWEParameters,
         red_shape_model=red_simulator_default,
         red_cost_model=red_cost_model_default,
         m: int = oo,
-        babai: bool = False,
+        babai: bool = True,
         mitm: bool = True,
         optimize_d=True,
         log_level=5,
@@ -414,7 +415,7 @@ class PrimalHybrid:
         Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
-            self.cost,
+            cls.cost,
             params=params,
             zeta=zeta,
             babai=babai,
@@ -447,6 +448,8 @@ class PrimalHybrid:
                 cost = it.y
             Logging.log("bdd", log_level, f"H2: {repr(cost)}")
 
+        if cost is None:
+            return Cost(rop=oo)
         return cost
 
     def __call__(
