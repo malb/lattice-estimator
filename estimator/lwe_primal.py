@@ -393,7 +393,7 @@ class PrimalHybrid:
         red_shape_model=red_simulator_default,
         red_cost_model=red_cost_model_default,
         m: int = oo,
-        babai: bool = False,
+        babai: bool = True,
         mitm: bool = True,
         optimize_d=True,
         log_level=5,
