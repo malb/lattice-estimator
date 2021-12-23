@@ -244,7 +244,7 @@ primal_usvp = PrimalUSVP()
 class PrimalHybrid:
     @classmethod
     def babai_cost(cls, d):
-        return Cost(rop=d ** 2)
+        return Cost(rop=max(d, 1) ** 2)
 
     @classmethod
     def svp_dimension(cls, r, D):
