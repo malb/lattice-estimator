@@ -448,6 +448,8 @@ class PrimalHybrid:
                 cost = it.y
             Logging.log("bdd", log_level, f"H2: {repr(cost)}")
 
+        if cost is None:
+            return Cost(rop=oo)
         return cost
 
     def __call__(
