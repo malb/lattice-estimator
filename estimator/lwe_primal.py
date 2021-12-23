@@ -385,8 +385,9 @@ class PrimalHybrid:
 
         return ret
 
+    @classmethod
     def cost_zeta(
-        self,
+        cls,
         zeta: int,
         params: LWEParameters,
         red_shape_model=red_simulator_default,
@@ -414,7 +415,7 @@ class PrimalHybrid:
         Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
-            self.cost,
+            cls.cost,
             params=params,
             zeta=zeta,
             babai=babai,
