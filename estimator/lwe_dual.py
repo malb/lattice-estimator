@@ -141,7 +141,7 @@ class DualHybrid:
 
         delta = deltaf(beta)
 
-        if red_cost_model in DualHybrid.full_sieves:
+        if red_cost_model.__name__ in DualHybrid.full_sieves:
             rho = 4.0 / 3
         elif use_lll:
             rho = 2.0
