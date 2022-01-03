@@ -36,7 +36,7 @@ class Estimate:
             >>> from estimator import *
             >>> _ = lwe.estimate.rough(Kyber512)
             usvp                 :: rop: ≈2^118.6, red: ≈2^118.6, δ: 1.003941, β: 406, d: 998, tag: usvp
-            dual_hybrid          :: rop: ≈2^144.4, mem: ≈2^141.5, m: 512, red: ≈2^144.0, δ: 1.003438, β: 493, ...
+            dual_hybrid          :: rop: ≈2^127.2, mem: ≈2^123.3, m: 512, red: ≈2^127.0, δ: 1.003756, β: 435, ...
 
 
         """
