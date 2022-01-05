@@ -90,12 +90,15 @@ class AroraGB:
         """
         d = params.Xe.bounds[1] - params.Xe.bounds[0] + 1
         dn = cls.equations_for_secret(params)
-        cost = gb_cost(params.n, [(d, params.m)] + dn)
+
+        m = min(params.m, params.n ** d)
+
+        cost = gb_cost(params.n, [(d, m)] + dn)
         cost["t"] = (d - 1) // 2
         if cost["dreg"] < oo and binomial(params.n + cost["dreg"], cost["dreg"]) < params.m:
             cost["m"] = binomial(params.n + cost["dreg"], cost["dreg"])
         else:
-            cost["m"] = params.m
+            cost["m"] = m
         cost.register_impermanent(t=False, m=True)
         return cost
 
