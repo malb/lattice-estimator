@@ -45,6 +45,8 @@ class Estimate:
         from .reduction import ADPS16
         from .util import batch_estimate, f_name
 
+        from sage.all import oo
+
         algorithms = {}
 
         algorithms["usvp"] = partial(primal_usvp, red_cost_model=ADPS16, red_shape_model="gsa")
@@ -69,11 +71,19 @@ class Estimate:
             else:
                 algorithms["arora-gb"] = arora_gb.cost_bounded
 
-        res = batch_estimate(params, algorithms.values(), log_level=1, jobs=jobs)
-        res = res[params]
+        res_raw = batch_estimate(params, algorithms.values(), log_level=1, jobs=jobs)
+        res_raw = res_raw[params]
+        res = {}
+        for algorithm in algorithms:
+            for k, v in res_raw.items():
+                if f_name(algorithms[algorithm]) == k:
+                    res[algorithm] = v
+
         for algorithm in algorithms:
             for k, v in res.items():
-                if f_name(algorithms[algorithm]) == k:
+                if algorithm == k:
+                    if v["rop"] == oo:
+                        continue
                     print(f"{algorithm:20s} :: {repr(v)}")
         return res
 
