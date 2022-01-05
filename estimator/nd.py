@@ -211,7 +211,7 @@ class NoiseDistribution:
             n = self.n
 
         if "SparseTernary" in self.tag:
-            h = self.h
+            h = self.get_hamming_weight(n)
             # TODO: this is assuming that the non-zero entries are uniform over {-1,1}
             # need p and m for more accurate calculation
             size = 2 ** h * binomial(n, h) * RR(fraction)
@@ -235,14 +235,12 @@ class NoiseDistribution:
         return ceil(size)
 
     def get_hamming_weight(self, n=None):
-        if hasattr(self, "h"):
-            return self.h
-
         if not n:
             if not self.n:
                 raise ValueError("Length required to determine hamming weight.")
             n = self.n
-        return round(n * self.density)
+
+        return round(n * float(self.density))
 
     @staticmethod
     def DiscreteGaussian(stddev, mean=0, n=None):
@@ -370,5 +368,5 @@ class NoiseDistribution:
         D = NoiseDistribution(
             stddev=stddev, mean=mean, density=density, bounds=(-1, 1), tag="SparseTernary", n=n
         )
-        D.h = p + m
+
         return D

@@ -9,7 +9,7 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.all import oo, ceil, sqrt, log, cached_function, exp
+from sage.all import oo, ceil, sqrt, log, cached_function, exp, RR
 from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .reduction import ADPS16, BDGL16
@@ -65,7 +65,6 @@ class DualHybrid:
             )
 
         # Compute new secret distribution
-
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(params.n)
             if not 0 <= h1 <= h:
@@ -196,7 +195,7 @@ class DualHybrid:
         rep = 1
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(params.n)
-            probability = prob_drop(params.n, h, zeta, h1)
+            probability = RR(prob_drop(params.n, h, zeta, h1))
             rep = prob_amplify(success_probability, probability)
         # don't need more samples to re-run attack, since we may
         # just guess different components of the secret
