@@ -2,7 +2,7 @@
 """
 See :ref:`Coded-BKW for LWE` for what is available.
 """
-from sage.all import ceil, log, floor, sqrt, var, find_root, erf, oo
+from sage.all import ZZ, ceil, log, floor, sqrt, var, find_root, erf, oo
 from .lwe_parameters import LWEParameters
 from .util import local_minimum
 from .cost import Cost
@@ -153,7 +153,7 @@ class CodedBKW:
             cost["rop"] = oo
             cost["m"] = oo
             return cost
-        m = (t1 + t2) * (params.q ** b - 1) / 2 + M
+        m = (t1 + t2) * ZZ(params.q ** b - 1) / 2 + M
         cost["m"] = float(m)
         cost.register_impermanent(m=True)
 
@@ -167,14 +167,14 @@ class CodedBKW:
 
         # Equation (8)
         C1 = sum(
-            [(params.n + 1 - i * b) * (m - i * (params.q ** b - 1) / 2) for i in range(1, t1 + 1)]
+            [(params.n + 1 - i * b) * (m - i * ZZ(params.q ** b - 1) / 2) for i in range(1, t1 + 1)]
         )
         assert C1 >= 0
 
         # Equation (9)
         C2_ = sum(
             [
-                4 * (M + i * (params.q ** b - 1) / 2) * CodedBKW.N(i, sigma_set, b, params.q)
+                4 * (M + i * ZZ(params.q ** b - 1) / 2) * CodedBKW.N(i, sigma_set, b, params.q)
                 for i in range(1, t2 + 1)
             ]
         )
@@ -182,7 +182,7 @@ class CodedBKW:
         for i in range(1, t2 + 1):
             C2 += float(
                 ntop + ntest + sum([CodedBKW.N(j, sigma_set, b, params.q) for j in range(1, i + 1)])
-            ) * (M + (i - 1) * (params.q ** b - 1) / 2)
+            ) * (M + (i - 1) * ZZ(params.q ** b - 1) / 2)
         assert C2 >= 0
 
         # Equation (10)
@@ -192,7 +192,7 @@ class CodedBKW:
         # Equation (11)
         C4_ = 4 * M * ntest
         C4 = C4_ + (2 * zeta + 1) ** ntop * (
-            cfft * params.q ** (ell + 1) * (ell + 1) * log(params.q, 2) + params.q ** (ell + 1)
+            cfft * ZZ(params.q ** (ell + 1)) * (ell + 1) * log(params.q, 2) + params.q ** (ell + 1)
         )
         assert C4 >= 0
 
@@ -281,6 +281,11 @@ class CodedBKW:
             rop: ≈2^184.3, m: ≈2^172.2, mem: ≈2^173.2, b: 13, t1: 0, t2: 18, ℓ: 12, #cod: 456, #top: 0...
             >>> cost["problem"]
             LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=10.39), m=..., tag='LightSaber')
+
+        TESTS::
+
+            >>> LWE.coded_bkw(schemes.TFHE630)
+            rop: ≈2^153.1, m: ≈2^139.4, mem: ≈2^132.6, b: 4, t1: 0, t2: 24, ℓ: 3, #cod: 552, #top: 0, #test: 78, ...
 
         .. note :: See also [C:KirFou15]_.
 
