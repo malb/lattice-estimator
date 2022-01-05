@@ -92,10 +92,10 @@ def amplify(target_success_probability, success_probability, majority=False):
 
     prec = max(
         53,
-        2 * ceil(abs(log(success_probability, 2))),
-        2 * ceil(abs(log(1 - success_probability, 2))),
-        2 * ceil(abs(log(target_success_probability, 2))),
-        2 * ceil(abs(log(1 - target_success_probability, 2))),
+        2 * ceil(abs(float(log(success_probability, 2)))),
+        2 * ceil(abs(float(log(1 - success_probability, 2)))),
+        2 * ceil(abs(float(log(target_success_probability, 2)))),
+        2 * ceil(abs(float(log(1 - target_success_probability, 2)))),
     )
     prec = min(prec, 2048)
     RR = RealField(prec)
