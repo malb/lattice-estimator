@@ -243,7 +243,7 @@ class DualHybrid:
         # don't have a reliable upper bound for beta
         # we choose n - k arbitrarily and adjust later if
         # necessary
-        beta_upper = max(params.n - zeta, 40)
+        beta_upper = min(max(params.n - zeta, 40), 1024)
         beta = beta_upper
         while beta == beta_upper:
             beta_upper *= 2
