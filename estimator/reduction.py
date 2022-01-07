@@ -3,7 +3,7 @@
 Cost estimates for lattice redution.
 """
 
-from sage.all import ZZ, RR, pi, e, find_root, ceil, log, oo, round
+from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round
 from scipy.optimize import newton
 
 
@@ -244,10 +244,123 @@ class ReductionCost:
         else:
             return d ** 3  # ignoring B for backward compatibility
 
+    def short_vectors(self, beta, d, N=None):
+        """
+        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
+        to reduce the basis.
+
+        The output of this function is a tuple of three values:
+
+        - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
+          vector expected from an SVP oracle by this factor.
+        - `c` is the cost of outputting `N` vectors
+        - `N` the number of vectors output, which may be larger than the value put in for `N`.
+
+        This baseline implementation uses rerandomize+LLL as in [EC:Albrecht17]_.
+
+        :param beta: Cost parameter (≈ SVP dimension).
+        :param d: Lattice dimension.
+        :param N: Number of vectors requested.
+        :returns: ``(ρ, c, N)``
+
+        EXAMPLES::
+
+            >>> from estimator.reduction import RC
+            >>> RC.CheNgu12.short_vectors(100, 500, 1)
+            (1.0, 4.19115401...e13, 1)
+            >>> RC.CheNgu12.short_vectors(100, 500)
+            (2.0, 125000000000, 1000)
+            >>> RC.CheNgu12.short_vectors(100, 500, 1000)
+            (2.0, 125000000000, 1000)
+
+        """
+        if N == 1:  # just call SVP
+            return 1.0, self(beta, 1), 1
+        elif N is None:
+            N = 1000  # pick something
+
+        return 2.0, N * RC.LLL(d), N
+
+    def short_vectors_simple(self, beta, d, N=None):
+        """
+        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
+        to reduce the basis.
+
+        The output of this function is a tuple of three values:
+
+        - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
+          vector expected from an SVP oracle by this factor.
+        - `c` is the cost of outputting `N` vectors
+        - `N` the number of vectors output, which may be larger than the value put in for `N`.
+
+        This naive baseline implementation uses rerandomize+BKZ.
+
+        :param beta: Cost parameter (≈ SVP dimension).
+        :param d: Lattice dimension.
+        :param N: Number of vectors requested.
+        :returns: ``(ρ, c, N)``
+
+        EXAMPLES::
+
+            >>> from estimator.reduction import RC
+            >>> RC.CheNgu12.short_vectors_simple(100, 500, 1)
+            (1.0, 4.1911...e13, 1)
+            >>> RC.CheNgu12.short_vectors_simple(100, 500)
+            (1.0, 1.6764...e20, 1000)
+            >>> RC.CheNgu12.short_vectors_simple(100, 500, 1000)
+            (1.0, 1.6764...e20, 1000)
+
+        """
+        if N == 1:  # just call SVP
+            return 1.0, self(beta, 1), 1
+        elif N is None:
+            N = 1000  # pick something
+        return 1.0, N * self(beta, d), N
+
+    def _short_vectors_sieve(self, beta, d, N=None):
+        """
+        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
+        to reduce the basis.
+
+        The output of this function is a tuple of three values:
+
+        - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
+          vector expected from an SVP oracle by this factor.
+        - `c` is the cost of outputting `N` vectors
+        - `N` the number of vectors output, which may be larger than the value put in for `N`.
+
+        This implementation uses that a sieve outputs many somehwat short vectors [Kyber17]_.
+
+        :param beta: Cost parameter (≈ SVP dimension).
+        :param d: Lattice dimension.
+        :param N: Number of vectors requested.
+        :returns: ``(ρ, c, N)``
+
+        EXAMPLES::
+
+            >>> from estimator.reduction import RC
+            >>> RC.ADPS16.short_vectors(100, 500, 1)
+            (1.0, 6.1670...e8, 1)
+            >>> RC.ADPS16.short_vectors(100, 500)
+            (1.1547, 6.1670...e8, 1763487)
+            >>> RC.ADPS16.short_vectors(100, 500, 1000)
+            (1.1547, 6.1670...e8, 1763487)
+
+        """
+        if N == 1:  # just call SVP
+            return 1.0, self(beta, 1), 1
+        elif N is None:
+            N = floor(2 ** (0.2075 * beta))  # pick something
+
+        c = N / floor(2 ** (0.2075 * beta))
+
+        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
+
 
 class BDGL16(ReductionCost):
 
     __name__ = "BDGL16"
+    short_vectors = ReductionCost._short_vectors_sieve
 
     @classmethod
     def _small(cls, beta, d, B=None):
@@ -314,6 +427,7 @@ class BDGL16(ReductionCost):
 class LaaMosPol14(ReductionCost):
 
     __name__ = "LaaMosPol14"
+    short_vectors = ReductionCost._short_vectors_sieve
 
     def __call__(self, beta, d, B=None):
         """
@@ -448,6 +562,7 @@ class ABLR21(ReductionCost):
 class ADPS16(ReductionCost):
 
     __name__ = "ADPS16"
+    short_vectors = ReductionCost._short_vectors_sieve
 
     def __call__(self, beta, d, B=None, mode="classical"):
         """
@@ -568,6 +683,38 @@ class Kyber(ReductionCost):
         beta_ = beta - self.d4f(beta)
         gate_count = 2 ** (self.NN_AGPS[nn]["a"] * beta_ + self.NN_AGPS[nn]["b"])
         return self.LLL(d, B=B) + svp_calls * gate_count
+
+    def short_vectors(self, beta, d, N=None):
+        """
+        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
+        to reduce the basis.
+
+        The output of this function is a tuple of three values:
+
+        - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
+          vector expected from an SVP oracle by this factor.
+        - `c` is the cost of outputting `N` vectors
+        - `N` the number of vectors output, which may be larger than the value put in for `N`.
+
+        This baseline implementation uses rerandomize+LLL as in [EC:Albrecht17]_.
+
+        :param beta: Cost parameter (≈ SVP dimension).
+        :param d: Lattice dimension.
+        :param N: Number of vectors requested.
+        :returns: ``(ρ, c, N)``
+
+        EXAMPLES::
+
+            >>> from estimator.reduction import RC
+            >>> RC.Kyber.short_vectors(100, 500, 1)
+            (1.0, 351964.058115432, 1)
+            >>> RC.Kyber.short_vectors(100, 500)
+            (1.1547, 1.532...e9, 9)
+            >>> RC.Kyber.short_vectors(100, 500, 1000)
+            (1.1547, 1.716...e11, 1008)
+
+        """
+        return self._short_vectors_sieve(floor(self.d4f(beta)), d, N)
 
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):

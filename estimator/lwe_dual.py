@@ -284,7 +284,7 @@ class DualHybrid:
         :param params: LWE parameters
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
-        :param use_lll: use LLL calls to produce more small vectors
+        :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_
         :param opt_step: control robustness of optimizer
 
         The returned cost dictionary has the following entries:
@@ -428,7 +428,7 @@ def dual(
     :param params: LWE parameters.
     :param success_probability: The success probability to target.
     :param red_cost_model: How to cost lattice reduction.
-    :param use_lll: use LLL calls to produce more small vectors.
+    :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_.
 
     The returned cost dictionary has the following entries:
 
@@ -483,7 +483,7 @@ def dual_hybrid(
     :param params: LWE parameters.
     :param success_probability: The success probability to target.
     :param red_cost_model: How to cost lattice reduction.
-    :param use_lll: Use LLL calls to produce more small vectors.
+    :param use_lll: Use LLL calls to produce more small vectors [EC:Albrecht17]_.
     :param mitm_optimization: One of "analytical" or "numerical". If ``True`` a default from the
            ``conf`` module is picked, ``False`` disables MITM.
     :param opt_step: Control robustness of optimizer.
