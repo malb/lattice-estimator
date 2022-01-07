@@ -12,8 +12,7 @@ from dataclasses import replace
 from sage.all import oo, ceil, sqrt, log, cached_function, exp
 from .reduction import delta as deltaf
 from .reduction import cost as costf
-from .reduction import ADPS16, BDGL16
-from .reduction import LLL
+from .reduction import RC
 from .util import local_minimum
 from .cost import Cost
 from .lwe_parameters import LWEParameters
@@ -32,7 +31,7 @@ class DualHybrid:
     Estimate cost of solving LWE using dual attacks.
     """
 
-    full_sieves = [ADPS16.__name__, BDGL16.__name__]
+    full_sieves = [RC.ADPS16.__name__, RC.BDGL16.__name__]
 
     @staticmethod
     @cached_function
@@ -175,7 +174,7 @@ class DualHybrid:
                 # oo for our purposes
                 return Cost(rop=oo)
         elif use_lll:
-            cost_red["rop"] += cost_slv["m"] * LLL(d, log(params.q, 2))
+            cost_red["rop"] += cost_slv["m"] * RC.LLL(d, log(params.q, 2))
             cost_red["repetitions"] = cost_slv["m"]
         else:
             cost_red = cost_red.repeat(cost_slv["m"])
