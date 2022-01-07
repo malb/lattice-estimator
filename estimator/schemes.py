@@ -1,6 +1,8 @@
 from .nd import NoiseDistribution, stddevf
 from .lwe_parameters import LWEParameters
 
+# NIST PQC Round 3 Finalists
+
 #
 # Kyber
 #
@@ -124,6 +126,24 @@ NISTPQC_R3 = (
     NTRUHRSS701Enc,
 )
 
+
+# FrodoKEM
+# https://frodokem.org/files/FrodoKEM-specification-20210604.pdf#page=24
+
+Frodo640 = LWEParameters(
+    n=640,
+    q=2 ** 15,
+    Xs=NoiseDistribution.DiscreteGaussian(2.8),
+    Xe=NoiseDistribution.DiscreteGaussian(2.8),
+    m=2
+    * (8 + 8)
+    * 640
+    * 64,  # https://frodokem.org/files/FrodoKEM-specification-20210604.pdf#page=36
+    tag="Frodo640",
+)
+
+# HES v1.1
+
 HESv111024128error = LWEParameters(
     n=1024,
     q=2 ** 27,
@@ -149,6 +169,7 @@ HESv11 = (HESv111024128error, HESv111024128ternary)
 
 # TFHE
 # https://tfhe.github.io/tfhe/security_and_params.html
+
 TFHE630 = LWEParameters(
     n=630,
     q=2 ** 32,
@@ -167,6 +188,7 @@ TFHE1024 = LWEParameters(
 
 # https://eprint.iacr.org/2018/421.pdf
 # Table 3, page 55
+
 TFHE16_500 = LWEParameters(
     n=500,
     q=2 ** 32,
@@ -204,6 +226,7 @@ TFHE20_1024 = LWEParameters(
 # FHEW
 # https://eprint.iacr.org/2014/816.pdf
 # page 14
+
 FHEW = LWEParameters(
     n=500,
     q=2 ** 32,
@@ -261,6 +284,7 @@ SEAL20_16384 = LWEParameters(
 # v2.2
 # https://www.microsoft.com/en-us/research/wp-content/uploads/2017/06/sealmanual_v2.2.pdf
 # Table 3, page 20
+
 SEAL22_2048 = LWEParameters(
     n=2048,
     q=2 ** 60 - 2 ** 14 + 1,
@@ -308,6 +332,7 @@ SEAL22_32768 = LWEParameters(
 # https://eprint.iacr.org/2017/047.pdf
 # Table 1, page 6
 # 80-bit security
+
 HElib80_1024 = LWEParameters(
     n=1024,
     q=2 ** 47,
@@ -333,6 +358,7 @@ HElib80_4096 = LWEParameters(
 )
 
 # 120-bit security
+
 HElib120_1024 = LWEParameters(
     n=1024,
     q=2 ** 38,
@@ -361,6 +387,7 @@ HElib120_4096 = LWEParameters(
 # Test parameters from CHHS
 # https://eprint.iacr.org/2019/1114.pdf
 # Table 4, page 18
+
 CHHS_1024_25 = LWEParameters(
     n=1024,
     q=2 ** 25,
