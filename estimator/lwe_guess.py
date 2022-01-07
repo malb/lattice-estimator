@@ -46,6 +46,10 @@ class guess_composition:
 
         baseline_cost = f(params, **kwds)
 
+        if baseline_cost["rop"] == oo:
+            # yeah, no
+            return baseline_cost
+
         max_zeta = min(floor(log(baseline_cost["rop"], base)), params.n)
 
         with local_minimum(0, max_zeta, log_level=log_level) as it:
@@ -405,10 +409,14 @@ class Distinguisher:
         """
 
         if params.n > 0:
-            raise OutOfBoundsError("Secret dimension should be 0 for distinguishing. Try exhaustive search for n > 0.")
+            raise OutOfBoundsError(
+                "Secret dimension should be 0 for distinguishing. Try exhaustive search for n > 0."
+            )
         m = amplify_sigma(success_probability, sigmaf(params.Xe.stddev), params.q)
-        if (m > params.m):
-            raise InsufficientSamplesError("Not enough samples to distinguish with target advantage.")
+        if m > params.m:
+            raise InsufficientSamplesError(
+                "Not enough samples to distinguish with target advantage."
+            )
         return Cost(rop=m, mem=m, m=m)
 
     __name__ = "distinguish"
