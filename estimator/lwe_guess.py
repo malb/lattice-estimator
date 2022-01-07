@@ -59,7 +59,7 @@ class guess_composition:
                 repeated_cost = cost.repeat(search_space)
                 repeated_cost["zeta"] = zeta
                 it.update(repeated_cost)
-            return it.y
+            return it.y if it.y else Cost(rop=oo)
 
     @classmethod
     def gammaf(cls, n, h, zeta, base, g=lambda x: x):
