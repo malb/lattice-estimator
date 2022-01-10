@@ -135,10 +135,7 @@ Frodo640 = LWEParameters(
     q=2 ** 15,
     Xs=NoiseDistribution.DiscreteGaussian(2.8),
     Xe=NoiseDistribution.DiscreteGaussian(2.8),
-    m=2
-    * (8 + 8)
-    * 640
-    + 64,  # https://frodokem.org/files/FrodoKEM-specification-20210604.pdf#page=36
+    m=640 + 16,
     tag="Frodo640",
 )
 
@@ -147,10 +144,7 @@ Frodo976 = LWEParameters(
     q=2 ** 16,
     Xs=NoiseDistribution.DiscreteGaussian(2.3),
     Xe=NoiseDistribution.DiscreteGaussian(2.3),
-    m=2
-    * (8 + 8)
-    * 976
-    + 64,  # https://frodokem.org/files/FrodoKEM-specification-20210604.pdf#page=36
+    m=976 + 16,
     tag="Frodo976",
 )
 
@@ -159,10 +153,7 @@ Frodo1344 = LWEParameters(
     q=2 ** 16,
     Xs=NoiseDistribution.DiscreteGaussian(1.4),
     Xe=NoiseDistribution.DiscreteGaussian(1.4),
-    m=2
-    * (8 + 8)
-    * 1344
-    + 64,  # https://frodokem.org/files/FrodoKEM-specification-20210604.pdf#page=36
+    m=1344 + 16,
     tag="Frodo1344",
 )
 
