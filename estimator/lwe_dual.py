@@ -9,7 +9,7 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.all import oo, ceil, sqrt, log, cached_function, exp
+from sage.all import oo, ceil, sqrt, log, cached_function, exp, RR
 from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .reduction import ADPS16, BDGL16
@@ -65,7 +65,6 @@ class DualHybrid:
             )
 
         # Compute new secret distribution
-
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(params.n)
             if not 0 <= h1 <= h:
@@ -196,7 +195,7 @@ class DualHybrid:
         rep = 1
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(params.n)
-            probability = prob_drop(params.n, h, zeta, h1)
+            probability = RR(prob_drop(params.n, h, zeta, h1))
             rep = prob_amplify(success_probability, probability)
         # don't need more samples to re-run attack, since we may
         # just guess different components of the secret
@@ -244,7 +243,7 @@ class DualHybrid:
         # don't have a reliable upper bound for beta
         # we choose n - k arbitrarily and adjust later if
         # necessary
-        beta_upper = max(params.n - zeta, 40)
+        beta_upper = min(max(params.n - zeta, 40), 1024)
         beta = beta_upper
         while beta == beta_upper:
             beta_upper *= 2
@@ -343,6 +342,12 @@ class DualHybrid:
             rop: ≈2^125.1, mem: ≈2^117.7, m: 1187, red: ≈2^125.0, δ: 1.004657, β: 318, d: 2204, ↻: ≈2^75.9, ζ: 7...
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^175.0, mem: ≈2^168.9, m: 1547, k: 27, ↻: 169, red: ≈2^175.0, δ: 1.003424, β: 496, d: 2544, ζ: 27...
+
+            >>> LWE.dual_hybrid(NTRUHPS2048509Enc)
+            rop: ≈2^152.2, mem: ≈2^149.3, m: 487, red: ≈2^151.8, δ: 1.003849, β: 420, d: 962, ↻: ≈2^103.1, ζ: 33...
+
+            >>> LWE.dual(schemes.CHHS_4096_67)
+            rop: ≈2^215.1, mem: ≈2^155.0, m: ≈2^11.9, red: ≈2^215.1, δ: 1.002875, β: 632, d: 7851, ↻: ≈2^155.0...
         """
 
         Cost.register_impermanent(
