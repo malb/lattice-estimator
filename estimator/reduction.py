@@ -7,211 +7,209 @@ from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round
 from scipy.optimize import newton
 
 
-def _delta(beta):
-    """
-    Compute δ from block size β without enforcing β ∈ ZZ.
-
-    δ for β ≤ 40 were computed as follows:
-
-    ```
-    # -*- coding: utf-8 -*-
-    from fpylll import BKZ, IntegerMatrix
-
-    from multiprocessing import Pool
-    from sage.all import mean, sqrt, exp, log, cputime
-
-    d, trials = 320, 32
-
-    def f((A, beta)):
-
-        par = BKZ.Param(block_size=beta, strategies=BKZ.DEFAULT_STRATEGY, flags=BKZ.AUTO_ABORT)
-        q = A[-1, -1]
-        d = A.nrows
-        t = cputime()
-        A = BKZ.reduction(A, par, float_type="dd")
-        t = cputime(t)
-        return t, exp(log(A[0].norm()/sqrt(q).n())/d)
-
-    if __name__ == '__main__':
-        for beta in (5, 10, 15, 20, 25, 28, 30, 35, 40):
-            delta = []
-            t = []
-            i = 0
-              while i < trials:
-                threads = int(open("delta.nthreads").read()) # make sure this file exists
-                pool = Pool(threads)
-                A = [(IntegerMatrix.random(d, "qary", beta=d//2, bits=50), beta) for j in range(threads)]
-                for (t_, delta_) in pool.imap_unordered(f, A):
-                    t.append(t_)
-                    delta.append(delta_)
-                i += threads
-                print u"β: %2d, δ_0: %.5f, time: %5.1fs, (%2d,%2d)"%(beta, mean(delta), mean(t), i, threads)
-            print
-    ```
-
-    """
-    small = (
-        (2, 1.02190),  # noqa
-        (5, 1.01862),  # noqa
-        (10, 1.01616),
-        (15, 1.01485),
-        (20, 1.01420),
-        (25, 1.01342),
-        (28, 1.01331),
-        (40, 1.01295),
-    )
-
-    if beta <= 2:
-        return RR(1.0219)
-    elif beta < 40:
-        for i in range(1, len(small)):
-            if small[i][0] > beta:
-                return RR(small[i - 1][1])
-    elif beta == 40:
-        return RR(small[-1][1])
-    else:
-        return RR(beta / (2 * pi * e) * (pi * beta) ** (1 / beta)) ** (1 / (2 * (beta - 1)))
-
-
-def delta(beta):
-    """
-    Compute root-Hermite factor δ from block size β.
-
-    :param beta: Block size.
-    """
-    beta = ZZ(round(beta))
-    return _delta(beta)
-
-
-def _beta_secant(delta):
-    """
-    Estimate required block size β for a given root-Hermite factor δ based on [PhD:Chen13]_.
-
-    :param delta: Root-Hermite factor.
-
-    EXAMPLE::
-
-        >>> import estimator.reduction
-        >>> estimator.reduction._beta_secant(1.0121)
-        50
-        >>> estimator.reduction._beta_secant(1.0093)
-        100
-        >>> estimator.reduction._beta_secant(1.0024) # Chen reports 800
-        808
-
-    """
-    # newton() will produce a "warning", if two subsequent function values are
-    # indistinguishable (i.e. equal in terms of machine precision). In this case
-    # newton() will return the value beta in the middle between the two values
-    # k1,k2 for which the function values were indistinguishable.
-    # Since f approaches zero for beta->+Infinity, this may be the case for very
-    # large inputs, like beta=1e16.
-    # For now, these warnings just get printed and the value beta is used anyways.
-    # This seems reasonable, since for such large inputs the exact value of beta
-    # doesn't make such a big difference.
-    try:
-        beta = newton(
-            lambda beta: RR(_delta(beta) - delta),
-            100,
-            fprime=None,
-            args=(),
-            tol=1.48e-08,
-            maxiter=500,
-        )
-        beta = ceil(beta)
-        if beta < 40:
-            # newton may output beta < 40. The old beta method wouldn't do this. For
-            # consistency, call the old beta method, i.e. consider this try as "failed".
-            raise RuntimeError("β < 40")
-        return beta
-    except (RuntimeError, TypeError):
-        # if something fails, use old beta method
-        beta = _beta_simple(delta)
-        return beta
-
-
-def _beta_find_root(delta):
-    """
-    Estimate required block size β for a given root-Hermite factor δ based on [PhD:Chen13]_.
-
-    :param delta: Root-Hermite factor.
-
-    TESTS::
-
-        >>> import estimator.reduction
-        >>> estimator.reduction._beta_find_root(RC.delta(500))
-        500
-
-    """
-    # handle beta < 40 separately
-    beta = ZZ(40)
-    if _delta(beta) < delta:
-        return beta
-
-    try:
-        beta = find_root(lambda beta: RR(_delta(beta) - delta), 40, 2 ** 16, maxiter=500)
-        beta = ceil(beta - 1e-8)
-    except RuntimeError:
-        # finding root failed; reasons:
-        # 1. maxiter not sufficient
-        # 2. no root in given interval
-        beta = _beta_simple(delta)
-    return beta
-
-
-def _beta_simple(delta):
-    """
-    Estimate required block size β for a given root-Hermite factor δ based on [PhD:Chen13]_.
-
-    :param delta: Root-Hermite factor.
-
-    TESTS::
-
-        >>> import estimator.reduction
-        >>> estimator.reduction._beta_simple(RC.delta(500))
-        501
-
-    """
-    beta = ZZ(40)
-
-    while _delta(2 * beta) > delta:
-        beta *= 2
-    while _delta(beta + 10) > delta:
-        beta += 10
-    while True:
-        if _delta(beta) < delta:
-            break
-        beta += 1
-
-    return beta
-
-
-def beta(delta):
-    """
-    Estimate required block size β for a given root-hermite factor δ based on [PhD:Chen13]_.
-
-    :param delta: Root-hermite factor.
-
-    EXAMPLE::
-
-        >>> from estimator.reduction import RC
-        >>> 50 == RC.beta(1.0121)
-        True
-        >>> 100 == RC.beta(1.0093)
-        True
-        >>> RC.beta(1.0024) # Chen reports 800
-        808
-
-    """
-    # TODO: decide for one strategy (secant, find_root, old) and its error handling
-    beta = _beta_find_root(delta)
-    return beta
-
-
-# BKZ Estimates
-
-
 class ReductionCost:
+    @staticmethod
+    def _delta(beta):
+        """
+        Compute δ from block size β without enforcing β ∈ ZZ.
+
+        δ for β ≤ 40 were computed as follows:
+
+        ```
+        # -*- coding: utf-8 -*-
+        from fpylll import BKZ, IntegerMatrix
+
+        from multiprocessing import Pool
+        from sage.all import mean, sqrt, exp, log, cputime
+
+        d, trials = 320, 32
+
+        def f((A, beta)):
+
+            par = BKZ.Param(block_size=beta, strategies=BKZ.DEFAULT_STRATEGY, flags=BKZ.AUTO_ABORT)
+            q = A[-1, -1]
+            d = A.nrows
+            t = cputime()
+            A = BKZ.reduction(A, par, float_type="dd")
+            t = cputime(t)
+            return t, exp(log(A[0].norm()/sqrt(q).n())/d)
+
+        if __name__ == '__main__':
+            for beta in (5, 10, 15, 20, 25, 28, 30, 35, 40):
+                delta = []
+                t = []
+                i = 0
+                  while i < trials:
+                    threads = int(open("delta.nthreads").read()) # make sure this file exists
+                    pool = Pool(threads)
+                    A = [(IntegerMatrix.random(d, "qary", beta=d//2, bits=50), beta) for j in range(threads)]
+                    for (t_, delta_) in pool.imap_unordered(f, A):
+                        t.append(t_)
+                        delta.append(delta_)
+                    i += threads
+                    print u"β: %2d, δ_0: %.5f, time: %5.1fs, (%2d,%2d)"%(beta, mean(delta), mean(t), i, threads)
+                print
+        ```
+
+        """
+        small = (
+            (2, 1.02190),  # noqa
+            (5, 1.01862),  # noqa
+            (10, 1.01616),
+            (15, 1.01485),
+            (20, 1.01420),
+            (25, 1.01342),
+            (28, 1.01331),
+            (40, 1.01295),
+        )
+
+        if beta <= 2:
+            return RR(1.0219)
+        elif beta < 40:
+            for i in range(1, len(small)):
+                if small[i][0] > beta:
+                    return RR(small[i - 1][1])
+        elif beta == 40:
+            return RR(small[-1][1])
+        else:
+            return RR(beta / (2 * pi * e) * (pi * beta) ** (1 / beta)) ** (1 / (2 * (beta - 1)))
+
+    @staticmethod
+    def delta(beta):
+        """
+        Compute root-Hermite factor δ from block size β.
+
+        :param beta: Block size.
+        """
+        beta = ZZ(round(beta))
+        return ReductionCost._delta(beta)
+
+    @staticmethod
+    def _beta_secant(delta):
+        """
+        Estimate required block size β for a given root-Hermite factor δ based on [PhD:Chen13]_.
+
+        :param delta: Root-Hermite factor.
+
+        EXAMPLE::
+
+            >>> from estimator.reduction import ReductionCost
+            >>> ReductionCost._beta_secant(1.0121)
+            50
+            >>> ReductionCost._beta_secant(1.0093)
+            100
+            >>> ReductionCost._beta_secant(1.0024) # Chen reports 800
+            808
+
+        """
+        # newton() will produce a "warning", if two subsequent function values are
+        # indistinguishable (i.e. equal in terms of machine precision). In this case
+        # newton() will return the value beta in the middle between the two values
+        # k1,k2 for which the function values were indistinguishable.
+        # Since f approaches zero for beta->+Infinity, this may be the case for very
+        # large inputs, like beta=1e16.
+        # For now, these warnings just get printed and the value beta is used anyways.
+        # This seems reasonable, since for such large inputs the exact value of beta
+        # doesn't make such a big difference.
+        try:
+            beta = newton(
+                lambda beta: RR(ReductionCost._delta(beta) - delta),
+                100,
+                fprime=None,
+                args=(),
+                tol=1.48e-08,
+                maxiter=500,
+            )
+            beta = ceil(beta)
+            if beta < 40:
+                # newton may output beta < 40. The old beta method wouldn't do this. For
+                # consistency, call the old beta method, i.e. consider this try as "failed".
+                raise RuntimeError("β < 40")
+            return beta
+        except (RuntimeError, TypeError):
+            # if something fails, use old beta method
+            beta = ReductionCost._beta_simple(delta)
+            return beta
+
+    @staticmethod
+    def _beta_find_root(delta):
+        """
+        Estimate required block size β for a given root-Hermite factor δ based on [PhD:Chen13]_.
+
+        :param delta: Root-Hermite factor.
+
+        TESTS::
+
+            >>> from estimator.reduction import ReductionCost
+            >>> ReductionCost._beta_find_root(RC.delta(500))
+            500
+
+        """
+        # handle beta < 40 separately
+        beta = ZZ(40)
+        if ReductionCost._delta(beta) < delta:
+            return beta
+
+        try:
+            beta = find_root(
+                lambda beta: RR(ReductionCost._delta(beta) - delta), 40, 2 ** 16, maxiter=500
+            )
+            beta = ceil(beta - 1e-8)
+        except RuntimeError:
+            # finding root failed; reasons:
+            # 1. maxiter not sufficient
+            # 2. no root in given interval
+            beta = ReductionCost._beta_simple(delta)
+        return beta
+
+    @staticmethod
+    def _beta_simple(delta):
+        """
+        Estimate required block size β for a given root-Hermite factor δ based on [PhD:Chen13]_.
+
+        :param delta: Root-Hermite factor.
+
+        TESTS::
+
+            >>> from estimator.reduction import ReductionCost
+            >>> ReductionCost._beta_simple(RC.delta(500))
+            501
+
+        """
+        beta = ZZ(40)
+
+        while ReductionCost._delta(2 * beta) > delta:
+            beta *= 2
+        while ReductionCost._delta(beta + 10) > delta:
+            beta += 10
+        while True:
+            if ReductionCost._delta(beta) < delta:
+                break
+            beta += 1
+
+        return beta
+
+    def beta(delta):
+        """
+        Estimate required block size β for a given root-hermite factor δ based on [PhD:Chen13]_.
+
+        :param delta: Root-hermite factor.
+
+        EXAMPLE::
+
+            >>> from estimator.reduction import RC
+            >>> 50 == RC.beta(1.0121)
+            True
+            >>> 100 == RC.beta(1.0093)
+            True
+            >>> RC.beta(1.0024) # Chen reports 800
+            808
+
+        """
+        # TODO: decide for one strategy (secant, find_root, old) and its error handling
+        beta = ReductionCost._beta_find_root(delta)
+        return beta
+
     @classmethod
     def svp_repeat(cls, beta, d):
         """
@@ -244,10 +242,9 @@ class ReductionCost:
         else:
             return d ** 3  # ignoring B for backward compatibility
 
-    def short_vectors(self, beta, d, N=None):
+    def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
         """
-        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
-        to reduce the basis.
+        Cost of outputting many somewhat short vectors.
 
         The output of this function is a tuple of three values:
 
@@ -261,30 +258,44 @@ class ReductionCost:
         :param beta: Cost parameter (≈ SVP dimension).
         :param d: Lattice dimension.
         :param N: Number of vectors requested.
+        :param B: Bit-size of entries.
+        :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
+               If ``False`` we assume the basis is already BKZ-β reduced.
         :returns: ``(ρ, c, N)``
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
-            >>> RC.CheNgu12.short_vectors(100, 500, 1)
-            (1.0, 4.19115401...e13, 1)
+            >>> RC.CheNgu12.short_vectors(100, 500, N=1)
+            (1.0, 1.67646...e17, 1)
+            >>> RC.CheNgu12.short_vectors(100, 500, N=1, preprocess=False)
+            (1.0, 1, 1)
             >>> RC.CheNgu12.short_vectors(100, 500)
+            (2.0, 1.67646...e17, 1000)
+            >>> RC.CheNgu12.short_vectors(100, 500, preprocess=False)
             (2.0, 125000000000, 1000)
-            >>> RC.CheNgu12.short_vectors(100, 500, 1000)
+            >>> RC.CheNgu12.short_vectors(100, 500, N=1000)
+            (2.0, 1.67646...e17, 1000)
+            >>> RC.CheNgu12.short_vectors(100, 500, N=1000, preprocess=False)
             (2.0, 125000000000, 1000)
 
         """
+
+        if preprocess:
+            cost = self(beta, d, B=B)
+        else:
+            cost = 0
+
         if N == 1:  # just call SVP
-            return 1.0, self(beta, 1), 1
+            return 1.0, cost + 1, 1
         elif N is None:
             N = 1000  # pick something
 
-        return 2.0, N * RC.LLL(d), N
+        return 2.0, cost + N * RC.LLL(d), N
 
-    def short_vectors_simple(self, beta, d, N=None):
+    def short_vectors_simple(self, beta, d, N=None, B=None, preprocess=True):
         """
-        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
-        to reduce the basis.
+        Cost of outputting many somewhat short vectors.
 
         The output of this function is a tuple of three values:
 
@@ -298,29 +309,33 @@ class ReductionCost:
         :param beta: Cost parameter (≈ SVP dimension).
         :param d: Lattice dimension.
         :param N: Number of vectors requested.
+        :param B: Bit-size of entries.
+        :param preprocess: This option is ignore.
         :returns: ``(ρ, c, N)``
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
             >>> RC.CheNgu12.short_vectors_simple(100, 500, 1)
-            (1.0, 4.1911...e13, 1)
+            (1.0, 1.67646160799173e17, 1)
             >>> RC.CheNgu12.short_vectors_simple(100, 500)
-            (1.0, 1.6764...e20, 1000)
+            (1.0, 1.67646160799173e20, 1000)
             >>> RC.CheNgu12.short_vectors_simple(100, 500, 1000)
-            (1.0, 1.6764...e20, 1000)
+            (1.0, 1.67646160799173e20, 1000)
 
         """
-        if N == 1:  # just call SVP
-            return 1.0, self(beta, 1), 1
+        if N == 1:
+            if preprocess:
+                return 1.0, self(beta, d, B=B), 1
+            else:
+                return 1.0, 1, 1
         elif N is None:
             N = 1000  # pick something
-        return 1.0, N * self(beta, d), N
+        return 1.0, N * self(beta, d, B=B), N
 
-    def _short_vectors_sieve(self, beta, d, N=None):
+    def _short_vectors_sieve(self, beta, d, N=None, B=None, preprocess=True):
         """
-        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
-        to reduce the basis.
+        Cost of outputting many somewhat short vectors.
 
         The output of this function is a tuple of three values:
 
@@ -334,22 +349,29 @@ class ReductionCost:
         :param beta: Cost parameter (≈ SVP dimension).
         :param d: Lattice dimension.
         :param N: Number of vectors requested.
+        :param B: Bit-size of entries.
+        :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
+               If ``False`` we assume the basis is already BKZ-β reduced.
         :returns: ``(ρ, c, N)``
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
             >>> RC.ADPS16.short_vectors(100, 500, 1)
-            (1.0, 6.1670...e8, 1)
+            (1.0, 6.16702733460158e8, 1)
             >>> RC.ADPS16.short_vectors(100, 500)
-            (1.1547, 6.1670...e8, 1763487)
+            (1.1547, 6.16702733460158e8, 1763487)
             >>> RC.ADPS16.short_vectors(100, 500, 1000)
-            (1.1547, 6.1670...e8, 1763487)
+            (1.1547, 6.16702733460158e8, 1763487)
+
 
         """
         print(f"beta={type(beta)}:{beta}, d={type(d)}:{d}")
-        if N == 1:  # just call SVP
-            return 1.0, self(beta, 1), 1
+        if N == 1:
+            if preprocess:
+                return 1.0, self(beta, d, B=B), 1
+            else:
+                return 1.0, 1, 1
         elif N is None:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
@@ -710,14 +732,14 @@ class Kyber(ReductionCost):
 
             # ~ >>> from estimator.reduction import RC
             # ~ >>> RC.Kyber.short_vectors(100, 500, 1)
-            # ~ (1.0, 351964.058115432, 1)
+            # ~ (1.0, 2.385337497510881e+17, 1)
             # ~ >>> RC.Kyber.short_vectors(100, 500)
-            # ~ (1.1547, 1.532...e9, 9)
+            # ~ (1.1547, 2.385337497510881e+17, 176584)
             # ~ >>> RC.Kyber.short_vectors(100, 500, 1000)
-            # ~ (1.1547, 1.716...e11, 1008)
+            # ~ (1.1547, 2.385337497510881e+17, 176584)
 
         # ~ """
-        # ~ return self._short_vectors_sieve(floor(self.d4f(beta)), d, N)
+        # ~ return self._short_vectors_sieve(beta - floor(self.d4f(beta)), d, N)
 
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
@@ -747,7 +769,7 @@ def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
         cost_model = cost_model()
 
     cost = cost_model(beta, d, B)
-    delta_ = delta(beta)
+    delta_ = ReductionCost.delta(beta)
     cost = Cost(rop=cost, red=cost, delta=delta_, beta=beta, d=d, **kwds)
     cost.register_impermanent(rop=True, red=True, delta=False, beta=False, d=False)
     if predicate is not None and not predicate:
@@ -756,9 +778,13 @@ def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
     return cost
 
 
+beta = ReductionCost.beta  # noqa
+delta = ReductionCost.delta  # noqa
+
+
 class RC:
-    beta = beta
-    delta = delta
+    beta = ReductionCost.beta
+    delta = ReductionCost.delta
 
     LLL = ReductionCost.LLL
     ABFKSW20 = ABFKSW20()
