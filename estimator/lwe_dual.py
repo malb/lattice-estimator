@@ -140,12 +140,14 @@ class DualHybrid:
 
         delta = deltaf(beta)
 
-        if red_cost_model.__name__ in DualHybrid.full_sieves:
-            rho = 4.0 / 3
-        elif use_lll:
-            rho = 2.0
-        else:
-            rho = 1.0
+        # ~ if red_cost_model.__name__ in DualHybrid.full_sieves:
+            # ~ rho = 4.0 / 3
+        # ~ elif use_lll:
+            # ~ rho = 2.0
+        # ~ else:
+            # ~ rho = 1.0
+        # only care about the scaling factor and don't know d -> use beta as dummy
+        rho, _, _ = red_cost_model.short_vectors(beta=beta, d=beta)
 
         params_slv, m_ = DualHybrid.dual_reduce(
             delta, params, zeta, h1, rho, log_level=log_level + 1
@@ -157,6 +159,8 @@ class DualHybrid:
 
         d = m_ + params.n - zeta
         cost_red = costf(red_cost_model, beta, d)
+        
+        """
         if red_cost_model.__name__ in DualHybrid.full_sieves:
             # if we use full sieving, we get many short vectors
             # we compute in logs to avoid overflows in case m
@@ -178,7 +182,10 @@ class DualHybrid:
             cost_red["repetitions"] = cost_slv["m"]
         else:
             cost_red = cost_red.repeat(cost_slv["m"])
-
+        """
+        _, cost_rep, _ = red_cost_model.short_vectors(beta, d, cost_slv["m"])
+        cost_red["rop"] += cost_rep
+        
         Logging.log("dual", log_level + 2, f"red: {repr(cost_red)}")
 
         total_cost = cost_slv.combine(cost_red)
@@ -318,7 +325,7 @@ class DualHybrid:
             rop: ≈2^141.1, mem: ≈2^139.1, m: 1189, k: 132, ↻: 139, red: ≈2^140.8, δ: 1.004164, β: 375, d: 2021...
             >>> LWE.dual_hybrid(params, mitm_optimization="numerical")
             rop: ≈2^140.6, m: 1191, k: 128, mem: ≈2^136.0, ↻: 133, red: ≈2^140.2, δ: 1.004179, β: 373, d: 2052...
-
+params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
             rop: ≈2^111.7, mem: ≈2^66.0, m: 950, red: ≈2^111.5, δ: 1.005191, β: 270, d: 1974, ↻: ≈2^66.0, tag: dual
