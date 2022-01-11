@@ -347,15 +347,17 @@ class ReductionCost:
             (1.1547, 6.1670...e8, 1763487)
 
         """
+        print(f"beta={type(beta)}:{beta}, d={type(d)}:{d}")
         if N == 1:  # just call SVP
             return 1.0, self(beta, 1), 1
         elif N is None:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
         c = N / floor(2 ** (0.2075 * beta))
-
-        # ~ return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
-        return 4.0 / 3, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
+        print(N, c)
+        print(type(N), type(c))
+        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
+        # ~ return 4.0 / 3, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
 
 
 class BDGL16(ReductionCost):

@@ -146,7 +146,7 @@ class DualHybrid:
             # ~ rho = 2.0
         # ~ else:
             # ~ rho = 1.0
-        # only care about the scaling factor and don't know d -> use beta as dummy
+        # only care about the scaling factor and don't know d yet -> use beta as dummy d
         rho, _, _ = red_cost_model.short_vectors(beta=beta, d=beta)
 
         params_slv, m_ = DualHybrid.dual_reduce(
@@ -184,7 +184,7 @@ class DualHybrid:
             cost_red = cost_red.repeat(cost_slv["m"])
         """
         _, cost_rep, _ = red_cost_model.short_vectors(beta, d, cost_slv["m"])
-        cost_red["rop"] += cost_rep
+        cost_red["rop"] += cost_rep["rop"]
         
         Logging.log("dual", log_level + 2, f"red: {repr(cost_red)}")
 
