@@ -705,14 +705,14 @@ class Kyber(ReductionCost):
 
             >>> from estimator.reduction import RC
             >>> RC.Kyber.short_vectors(100, 500, 1)
-            (1.0, 351964.058115432, 1)
+            (1.0, 573398436601174.2, 1)
             >>> RC.Kyber.short_vectors(100, 500)
-            (1.1547, 1.532...e9, 9)
+            (1.1547, 2.38...e+17, 176584)
             >>> RC.Kyber.short_vectors(100, 500, 1000)
-            (1.1547, 1.716...e11, 1008)
+            (1.1547, 2.38...e+17, 176584)
 
         """
-        return self._short_vectors_sieve(floor(self.d4f(beta)), d, N)
+        return self._short_vectors_sieve(beta - floor(self.d4f(beta)), d, N)
 
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
