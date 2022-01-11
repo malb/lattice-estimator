@@ -244,10 +244,9 @@ class ReductionCost:
         else:
             return d ** 3  # ignoring B for backward compatibility
 
-    def short_vectors(self, beta, d, N=None):
+    def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
         """
-        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
-        to reduce the basis.
+        Cost of outputting many somewhat short vectors.
 
         The output of this function is a tuple of three values:
 
@@ -261,27 +260,42 @@ class ReductionCost:
         :param beta: Cost parameter (≈ SVP dimension).
         :param d: Lattice dimension.
         :param N: Number of vectors requested.
+        :param B: Bit-size of entries.
+        :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
+               If ``False`` we assume the basis is already BKZ-β reduced.
         :returns: ``(ρ, c, N)``
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
-            >>> RC.CheNgu12.short_vectors(100, 500, 1)
-            (1.0, 4.19115401...e13, 1)
+            >>> RC.CheNgu12.short_vectors(100, 500, N=1)
+            (1.0, 1.67646...e17, 1)
+            >>> RC.CheNgu12.short_vectors(100, 500, N=1, preprocess=False)
+            (1.0, 1, 1)
             >>> RC.CheNgu12.short_vectors(100, 500)
+            (2.0, 1.67646...e17, 1000)
+            >>> RC.CheNgu12.short_vectors(100, 500, preprocess=False)
             (2.0, 125000000000, 1000)
-            >>> RC.CheNgu12.short_vectors(100, 500, 1000)
+            >>> RC.CheNgu12.short_vectors(100, 500, N=1000)
+            (2.0, 1.67646...e17, 1000)
+            >>> RC.CheNgu12.short_vectors(100, 500, N=1000, preprocess=False)
             (2.0, 125000000000, 1000)
 
         """
+
+        if preprocess:
+            cost = self(beta, d, B=B)
+        else:
+            cost = 0
+
         if N == 1:  # just call SVP
-            return 1.0, self(beta, 1), 1
+            return 1.0, cost + 1, 1
         elif N is None:
             N = 1000  # pick something
 
-        return 2.0, N * RC.LLL(d), N
+        return 2.0, cost + N * RC.LLL(d), N
 
-    def short_vectors_simple(self, beta, d, N=None):
+    def short_vectors_simple(self, beta, d, N=None, B=None, preprocess=True):
         """
         Cost of outputting many somewhat short vectors.
 
@@ -297,26 +311,31 @@ class ReductionCost:
         :param beta: Cost parameter (≈ SVP dimension).
         :param d: Lattice dimension.
         :param N: Number of vectors requested.
+        :param B: Bit-size of entries.
+        :param preprocess: This option is ignore.
         :returns: ``(ρ, c, N)``
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
             >>> RC.CheNgu12.short_vectors_simple(100, 500, 1)
-            (1.0, 4.1911...e13, 1)
+            (1.0, 1.67646160799173e17, 1)
             >>> RC.CheNgu12.short_vectors_simple(100, 500)
-            (1.0, 1.6764...e20, 1000)
+            (1.0, 1.67646160799173e20, 1000)
             >>> RC.CheNgu12.short_vectors_simple(100, 500, 1000)
-            (1.0, 1.6764...e20, 1000)
+            (1.0, 1.67646160799173e20, 1000)
 
         """
-        if N == 1:  # just call SVP
-            return 1.0, self(beta, 1), 1
+        if N == 1:
+            if preprocess:
+                return 1.0, self(beta, d, B=B), 1
+            else:
+                return 1.0, 1, 1
         elif N is None:
             N = 1000  # pick something
-        return 1.0, N * self(beta, d), N
+        return 1.0, N * self(beta, d, B=B), N
 
-    def _short_vectors_sieve(self, beta, d, N=None):
+    def _short_vectors_sieve(self, beta, d, N=None, B=None, preprocess=True):
         """
         Cost of outputting many somewhat short vectors.
 
@@ -332,21 +351,28 @@ class ReductionCost:
         :param beta: Cost parameter (≈ SVP dimension).
         :param d: Lattice dimension.
         :param N: Number of vectors requested.
+        :param B: Bit-size of entries.
+        :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
+               If ``False`` we assume the basis is already BKZ-β reduced.
         :returns: ``(ρ, c, N)``
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
             >>> RC.ADPS16.short_vectors(100, 500, 1)
-            (1.0, 6.1670...e8, 1)
+            (1.0, 6.16702733460158e8, 1)
             >>> RC.ADPS16.short_vectors(100, 500)
-            (1.1547, 6.1670...e8, 1763487)
+            (1.1547, 6.16702733460158e8, 1763487)
             >>> RC.ADPS16.short_vectors(100, 500, 1000)
-            (1.1547, 6.1670...e8, 1763487)
+            (1.1547, 6.16702733460158e8, 1763487)
+
 
         """
-        if N == 1:  # just call SVP
-            return 1.0, self(beta, 1), 1
+        if N == 1:
+            if preprocess:
+                return 1.0, self(beta, d, B=B), 1
+            else:
+                return 1.0, 1, 1
         elif N is None:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
@@ -705,11 +731,11 @@ class Kyber(ReductionCost):
 
             >>> from estimator.reduction import RC
             >>> RC.Kyber.short_vectors(100, 500, 1)
-            (1.0, 573398436601174.2, 1)
+            (1.0, 2.385337497510881e+17, 1)
             >>> RC.Kyber.short_vectors(100, 500)
-            (1.1547, 2.38...e+17, 176584)
+            (1.1547, 2.385337497510881e+17, 176584)
             >>> RC.Kyber.short_vectors(100, 500, 1000)
-            (1.1547, 2.38...e+17, 176584)
+            (1.1547, 2.385337497510881e+17, 176584)
 
         """
         return self._short_vectors_sieve(beta - floor(self.d4f(beta)), d, N)
