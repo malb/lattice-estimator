@@ -283,8 +283,7 @@ class ReductionCost:
 
     def short_vectors_simple(self, beta, d, N=None):
         """
-        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
-        to reduce the basis.
+        Cost of outputting many somewhat short vectors.
 
         The output of this function is a tuple of three values:
 
@@ -319,8 +318,7 @@ class ReductionCost:
 
     def _short_vectors_sieve(self, beta, d, N=None):
         """
-        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
-        to reduce the basis.
+        Cost of outputting many somewhat short vectors.
 
         The output of this function is a tuple of three values:
 
