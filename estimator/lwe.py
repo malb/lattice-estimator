@@ -42,27 +42,27 @@ class Estimate:
         """
         # NOTE: Don't import these at the top-level to avoid circular imports
         from functools import partial
-        from .reduction import ADPS16
+        from .reduction import RC
         from .util import batch_estimate, f_name
 
         from sage.all import oo
 
         algorithms = {}
 
-        algorithms["usvp"] = partial(primal_usvp, red_cost_model=ADPS16, red_shape_model="gsa")
+        algorithms["usvp"] = partial(primal_usvp, red_cost_model=RC.ADPS16, red_shape_model="gsa")
 
         if params.Xs.is_sparse:
             algorithms["hybrid"] = partial(
-                primal_hybrid, red_cost_model=ADPS16, red_shape_model="gsa"
+                primal_hybrid, red_cost_model=RC.ADPS16, red_shape_model="gsa"
             )
 
         if params.Xs.is_sparse:
             algorithms["dual_mitm_hybrid"] = partial(
-                dual_hybrid, red_cost_model=ADPS16, mitm_optimization=True
+                dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=True
             )
         else:
             algorithms["dual_hybrid"] = partial(
-                dual_hybrid, red_cost_model=ADPS16, mitm_optimization=False
+                dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=False
             )
 
         if params.m > params.n ** 2 and params.Xe.is_bounded:
