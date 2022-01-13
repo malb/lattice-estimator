@@ -60,7 +60,6 @@ class DualHybrid:
             )
 
         # Compute new secret distribution
-
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(params.n)
             if not 0 <= h1 <= h:
@@ -167,7 +166,7 @@ class DualHybrid:
         rep = 1
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(params.n)
-            probability = prob_drop(params.n, h, zeta, h1)
+            probability = RR(prob_drop(params.n, h, zeta, h1))
             rep = prob_amplify(success_probability, probability)
         # don't need more samples to re-run attack, since we may
         # just guess different components of the secret
@@ -215,7 +214,7 @@ class DualHybrid:
         # don't have a reliable upper bound for beta
         # we choose n - k arbitrarily and adjust later if
         # necessary
-        beta_upper = max(params.n - zeta, 40)
+        beta_upper = min(max(params.n - zeta, 40), 1024)
         beta = beta_upper
         while beta == beta_upper:
             beta_upper *= 2
@@ -314,6 +313,12 @@ class DualHybrid:
             rop: ≈2^111.9, mem: ≈2^103.3, m: 1147, β: 301, d: 2163, ↻: 1, ζ: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^153.1, mem: ≈2^138.7, m: 1478, k: 22, ↻: 1, β: 458, d: 2480, ζ: 22, tag: dual_mitm_hybrid
+
+            >>> LWE.dual_hybrid(NTRUHPS2048509Enc)
+            rop: ≈2^152.2, mem: ≈2^149.3, m: 487, red: ≈2^151.8, δ: 1.003849, β: 420, d: 962, ↻: ≈2^103.1, ζ: 33...
+
+            >>> LWE.dual(schemes.CHHS_4096_67)
+            rop: ≈2^215.1, mem: ≈2^155.0, m: ≈2^11.9, red: ≈2^215.1, δ: 1.002875, β: 632, d: 7851, ↻: ≈2^155.0...
         """
 
         Cost.register_impermanent(
