@@ -9,10 +9,8 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.all import oo, ceil, sqrt, log, cached_function, exp
+from sage.all import oo, ceil, sqrt, log, cached_function
 from .reduction import delta as deltaf
-from .reduction import cost as costf
-from .reduction import RC
 from .util import local_minimum
 from .cost import Cost
 from .lwe_parameters import LWEParameters
@@ -148,18 +146,18 @@ class DualHybrid:
 
         cost = solver(params_slv, success_probability)
         Logging.log("dual", log_level + 2, f"solve: {repr(cost)}")
-        
+
         if cost["rop"] == oo or cost["m"] == oo:
             return replace(cost, beta=beta)
-        
+
         d = m_ + params.n - zeta
         _, cost_red, _ = red_cost_model.short_vectors(beta, d, cost["m"])
         Logging.log("dual", log_level + 2, f"red: {repr(Cost(rop=cost_red))}")
-        
+
         cost["rop"] += cost_red
         cost["m"] = m_
         cost["beta"] = beta
-        
+
         if d < params.n - zeta:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
         cost["d"] = d
@@ -221,7 +219,7 @@ class DualHybrid:
         beta = beta_upper
         while beta == beta_upper:
             beta_upper *= 2
-            with local_minimum(2, beta_upper, opt_step) as it:
+            with local_minimum(40, beta_upper, opt_step) as it:
                 for beta in it:
                     it.update(f(beta=beta))
                 for beta in it.neighborhood:
@@ -292,7 +290,7 @@ class DualHybrid:
             rop: ≈2^141.1, mem: ≈2^139.1, m: 1189, k: 132, ↻: 139, red: ≈2^140.8, δ: 1.004164, β: 375, d: 2021...
             >>> LWE.dual_hybrid(params, mitm_optimization="numerical")
             rop: ≈2^140.6, m: 1191, k: 128, mem: ≈2^136.0, ↻: 133, red: ≈2^140.2, δ: 1.004179, β: 373, d: 2052...
-params = params.updated(Xs=ND.DiscreteGaussian(3.0))
+
             >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
             rop: ≈2^111.7, mem: ≈2^66.0, m: 950, red: ≈2^111.5, δ: 1.005191, β: 270, d: 1974, ↻: ≈2^66.0, tag: dual

@@ -366,7 +366,6 @@ class ReductionCost:
 
 
         """
-        
         if N == 1:
             if preprocess:
                 return 1.0, self(beta, d, B=B), 1
@@ -376,8 +375,8 @@ class ReductionCost:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
         c = N / floor(2 ** (0.2075 * beta))
+
         return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
-        # ~ return 4.0 / 3, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
 
 
 class BDGL16(ReductionCost):
