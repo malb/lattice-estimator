@@ -12,8 +12,7 @@ from dataclasses import replace
 from sage.all import oo, ceil, sqrt, log, cached_function, exp, RR
 from .reduction import delta as deltaf
 from .reduction import cost as costf
-from .reduction import ADPS16, BDGL16
-from .reduction import LLL
+from .reduction import RC
 from .util import local_minimum
 from .cost import Cost
 from .lwe_parameters import LWEParameters
@@ -32,7 +31,7 @@ class DualHybrid:
     Estimate cost of solving LWE using dual attacks.
     """
 
-    full_sieves = [ADPS16.__name__, BDGL16.__name__]
+    full_sieves = [RC.ADPS16.__name__, RC.BDGL16.__name__]
 
     @staticmethod
     @cached_function
@@ -174,7 +173,7 @@ class DualHybrid:
                 # oo for our purposes
                 return Cost(rop=oo)
         elif use_lll:
-            cost_red["rop"] += cost_slv["m"] * LLL(d, log(params.q, 2))
+            cost_red["rop"] += cost_slv["m"] * RC.LLL(d, log(params.q, 2))
             cost_red["repetitions"] = cost_slv["m"]
         else:
             cost_red = cost_red.repeat(cost_slv["m"])
@@ -284,7 +283,7 @@ class DualHybrid:
         :param params: LWE parameters
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
-        :param use_lll: use LLL calls to produce more small vectors
+        :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_
         :param opt_step: control robustness of optimizer
 
         The returned cost dictionary has the following entries:
@@ -434,7 +433,7 @@ def dual(
     :param params: LWE parameters.
     :param success_probability: The success probability to target.
     :param red_cost_model: How to cost lattice reduction.
-    :param use_lll: use LLL calls to produce more small vectors.
+    :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_.
 
     The returned cost dictionary has the following entries:
 
@@ -489,7 +488,7 @@ def dual_hybrid(
     :param params: LWE parameters.
     :param success_probability: The success probability to target.
     :param red_cost_model: How to cost lattice reduction.
-    :param use_lll: Use LLL calls to produce more small vectors.
+    :param use_lll: Use LLL calls to produce more small vectors [EC:Albrecht17]_.
     :param mitm_optimization: One of "analytical" or "numerical". If ``True`` a default from the
            ``conf`` module is picked, ``False`` disables MITM.
     :param opt_step: Control robustness of optimizer.

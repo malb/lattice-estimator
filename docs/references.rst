@@ -12,6 +12,7 @@ References
 .. [C:HowgraveGraham07] Nick Howgrave-Graham. A hybrid lattice-reduction and meet-in-the-middle attack against NTRU. In A. Menezes, CRYPTO 2007 (pp. 150–169). : Springer, Heidelberg.
 .. [C:KirFou15] Paul Kirchner & Pierre-Alain Fouque. An improved BKW algorithm for LWE with applications to cryptography and lattices. In R. Gennaro, & M. J. B. Robshaw, CRYPTO 2015, Part~I (pp. 43–62). : Springer, Heidelberg.
 .. [CheNgu12] Yuanmi Chen and Phong Q. Nguyen. BKZ 2.0: Better lattice security estimates (Full Version). 2012. http://www.di.ens.fr/~ychen/research/Full_BKZ.pdf
+.. [EC:Albrecht17]  Albrecht, M. R. (2017). On dual lattice attacks against small-secret LWE and parameter choices in  HElib and SEAL. In J. Coron, & J. B. Nielsen, EUROCRYPT 2017, Part II (pp. 103–129). : Springer, Heidelberg.
 .. [EC:Ducas18] Léo Ducas (2018). Shortest vector from lattice sieving: A few dimensions for free. In J. B. Nielsen, & V. Rijmen, EUROCRYPT 2018, Part I (pp. 125–145). : Springer, Heidelberg.
 .. [EPRINT:CHHS19] Cheon, J.H., Hhan, M., Hong, S. and Son, Y., 2019. A hybrid of dual and meet-in-the-middle attack on sparse and ternary secret LWE. IEEE Access, 7, pp.89497-89506. https://ia.cr/2019/1114pri
 .. [EPRINT:LaaMosPol14] Thijs Laarhoven, Michele Mosca, & Joop van de Pol. Finding shortest lattice vectors faster using quantum search. Cryptology ePrint Archive, Report 2014/907, 2014. https://eprint.iacr.org/2014/907.
@@ -19,7 +20,8 @@ References
 .. [EPRINT:Wun16] Wunderer, T. (2016). Revisiting the hybrid attack: improved analysis and refined security estimates. https://eprint.iacr.org/2016/733
 .. [INDOCRYPT:EspJouKha20] Espitau, T., Joux, A. and Kharchenko, N., 2020, December. On a dual/hybrid approach to small secret LWE. In International Conference on Cryptology in India (pp. 440-462). Springer, Cham. https://ia.cr/2020/515
 .. [JMC:AlbPlaSco15] Albrecht, M. R., Player, R., & Scott, S. (2015). On the concrete hardness of Learning with Errors. Journal of Mathematical Cryptology, 9(3), 169–203.
-.. [Kyber20] Roberto Avanzi, Joppe Bos, Léo Ducas, Eike Kiltz, Tancrède Lepoint,Vadim Lyubashevsky, John M. Schanck, Peter Schwabe, Gregor Seiler, Damien Stehlé. CRYSTALS-KYBER. 2020 https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf
+.. [Kyber17] Roberto Avanzi, Joppe Bos, Léo Ducas, Eike Kiltz, Tancrède Lepoint, Vadim Lyubashevsky, John M. Schanck, Peter Schwabe, Gregor Seiler, Damien Stehlé. CRYSTALS-KYBER. 2017                     
+.. [Kyber20] Roberto Avanzi, Joppe Bos, Léo Ducas, Eike Kiltz, Tancrède Lepoint, Vadim Lyubashevsky, John M. Schanck, Peter Schwabe, Gregor Seiler, Damien Stehlé. CRYSTALS-KYBER. 2020 https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf
 .. [PKC:PosVir21] Eamonn W. Postlethwaite & Fernando Virdia. On the success probability of solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer, Heidelberg.
 .. [PQCBook:MicReg09] Micciancio, D., & Regev, O. (2009). Lattice-based cryptography. In D. J. Bernstein, J. Buchmann, & E. Dahmen (Eds.), Post-Quantum Cryptography (pp. 147–191). Berlin, Heidelberg, New York: Springer, Heidelberg.
 .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement complètement homomorphe. PhD thesis, Paris 7, 2013.
