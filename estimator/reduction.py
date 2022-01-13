@@ -366,7 +366,7 @@ class ReductionCost:
 
 
         """
-        print(f"beta={type(beta)}:{beta}, d={type(d)}:{d}")
+        
         if N == 1:
             if preprocess:
                 return 1.0, self(beta, d, B=B), 1
@@ -376,8 +376,6 @@ class ReductionCost:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
         c = N / floor(2 ** (0.2075 * beta))
-        print(N, c)
-        print(type(N), type(c))
         return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
         # ~ return 4.0 / 3, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
 
@@ -709,37 +707,37 @@ class Kyber(ReductionCost):
         gate_count = 2 ** (self.NN_AGPS[nn]["a"] * beta_ + self.NN_AGPS[nn]["b"])
         return self.LLL(d, B=B) + svp_calls * gate_count
 
-    # ~ def short_vectors(self, beta, d, N=None):
-        # ~ """
-        # ~ Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
-        # ~ to reduce the basis.
+    def short_vectors(self, beta, d, N=None):
+        """
+        Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
+        to reduce the basis.
 
-        # ~ The output of this function is a tuple of three values:
+        The output of this function is a tuple of three values:
 
-        # ~ - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
-          # ~ vector expected from an SVP oracle by this factor.
-        # ~ - `c` is the cost of outputting `N` vectors
-        # ~ - `N` the number of vectors output, which may be larger than the value put in for `N`.
+        - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
+          vector expected from an SVP oracle by this factor.
+        - `c` is the cost of outputting `N` vectors
+        - `N` the number of vectors output, which may be larger than the value put in for `N`.
 
-        # ~ This baseline implementation uses rerandomize+LLL as in [EC:Albrecht17]_.
+        This baseline implementation uses rerandomize+LLL as in [EC:Albrecht17]_.
 
-        # ~ :param beta: Cost parameter (≈ SVP dimension).
-        # ~ :param d: Lattice dimension.
-        # ~ :param N: Number of vectors requested.
-        # ~ :returns: ``(ρ, c, N)``
+        :param beta: Cost parameter (≈ SVP dimension).
+        :param d: Lattice dimension.
+        :param N: Number of vectors requested.
+        :returns: ``(ρ, c, N)``
 
-        # ~ EXAMPLES::
+        EXAMPLES::
 
-            # ~ >>> from estimator.reduction import RC
-            # ~ >>> RC.Kyber.short_vectors(100, 500, 1)
-            # ~ (1.0, 2.385337497510881e+17, 1)
-            # ~ >>> RC.Kyber.short_vectors(100, 500)
-            # ~ (1.1547, 2.385337497510881e+17, 176584)
-            # ~ >>> RC.Kyber.short_vectors(100, 500, 1000)
-            # ~ (1.1547, 2.385337497510881e+17, 176584)
+            >>> from estimator.reduction import RC
+            >>> RC.Kyber.short_vectors(100, 500, 1)
+            (1.0, 2.385337497510881e+17, 1)
+            >>> RC.Kyber.short_vectors(100, 500)
+            (1.1547, 2.385337497510881e+17, 176584)
+            >>> RC.Kyber.short_vectors(100, 500, 1000)
+            (1.1547, 2.385337497510881e+17, 176584)
 
-        # ~ """
-        # ~ return self._short_vectors_sieve(beta - floor(self.d4f(beta)), d, N)
+        """
+        return self._short_vectors_sieve(beta - floor(self.d4f(beta)), d, N)
 
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):

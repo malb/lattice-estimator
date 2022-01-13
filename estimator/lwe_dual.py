@@ -31,8 +31,6 @@ class DualHybrid:
     Estimate cost of solving LWE using dual attacks.
     """
 
-    full_sieves = [RC.ADPS16.__name__, RC.BDGL16.__name__]
-
     @staticmethod
     @cached_function
     def dual_reduce(
@@ -140,12 +138,6 @@ class DualHybrid:
 
         delta = deltaf(beta)
 
-        # ~ if red_cost_model.__name__ in DualHybrid.full_sieves:
-            # ~ rho = 4.0 / 3
-        # ~ elif use_lll:
-            # ~ rho = 2.0
-        # ~ else:
-            # ~ rho = 1.0
         # only care about the scaling factor and don't know d yet -> use beta as dummy d
         rho, _, _ = red_cost_model.short_vectors(beta=beta, d=beta)
 
@@ -154,50 +146,25 @@ class DualHybrid:
         )
         Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
 
-        cost_slv = solver(params_slv, success_probability)
-        Logging.log("dual", log_level + 2, f"solve: {repr(cost_slv)}")
-
+        cost = solver(params_slv, success_probability)
+        Logging.log("dual", log_level + 2, f"solve: {repr(cost)}")
+        
+        if cost["rop"] == oo or cost["m"] == oo:
+            return replace(cost, beta=beta)
+        
         d = m_ + params.n - zeta
-        cost_red = costf(red_cost_model, beta, d)
+        _, cost_red, _ = red_cost_model.short_vectors(beta, d, cost["m"])
+        Logging.log("dual", log_level + 2, f"red: {repr(Cost(rop=cost_red))}")
         
-        """
-        if red_cost_model.__name__ in DualHybrid.full_sieves:
-            # if we use full sieving, we get many short vectors
-            # we compute in logs to avoid overflows in case m
-            # or beta happen to be large
-            try:
-                log_rep = max(0, log(cost_slv["m"]) - (beta / 2) * log(4 / 3))
-                if log_rep > 10 ** 10:
-                    # sage's ceil function seems to completely freak out for large
-                    # inputs, but then m is huge, so unlikely to be relevant
-                    raise OverflowError()
-                cost_red = cost_red.repeat(ceil(exp(log_rep)))
-            except OverflowError:
-                # if we get an overflow, m must be huge
-                # so we can probably approximate the cost with
-                # oo for our purposes
-                return Cost(rop=oo)
-        elif use_lll:
-            cost_red["rop"] += cost_slv["m"] * RC.LLL(d, log(params.q, 2))
-            cost_red["repetitions"] = cost_slv["m"]
-        else:
-            cost_red = cost_red.repeat(cost_slv["m"])
-        """
-        _, cost_rep, _ = red_cost_model.short_vectors(beta, d, cost_slv["m"])
-        cost_red["rop"] += cost_rep["rop"]
+        cost["rop"] += cost_red
+        cost["m"] = m_
+        cost["beta"] = beta
         
-        Logging.log("dual", log_level + 2, f"red: {repr(cost_red)}")
-
-        total_cost = cost_slv.combine(cost_red)
-        total_cost["m"] = m_
-        total_cost["rop"] = cost_red["rop"] + cost_slv["rop"]
-        total_cost["mem"] = cost_slv["mem"]
-
         if d < params.n - zeta:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
-        total_cost["d"] = d
+        cost["d"] = d
 
-        Logging.log("dual", log_level, f"{repr(total_cost)}")
+        Logging.log("dual", log_level, f"{repr(cost)}")
 
         rep = 1
         if params.Xs.is_sparse:
@@ -206,7 +173,7 @@ class DualHybrid:
             rep = prob_amplify(success_probability, probability)
         # don't need more samples to re-run attack, since we may
         # just guess different components of the secret
-        return total_cost.repeat(times=rep, select={"m": False})
+        return cost.repeat(times=rep, select={"m": False})
 
     @staticmethod
     def optimize_blocksize(
