@@ -9,7 +9,7 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.all import oo, ceil, sqrt, log, cached_function
+from sage.all import oo, ceil, sqrt, log, cached_function, RR
 from .reduction import delta as deltaf
 from .util import local_minimum
 from .cost import Cost
@@ -315,10 +315,10 @@ class DualHybrid:
             rop: ≈2^153.1, mem: ≈2^138.7, m: 1478, k: 22, ↻: 1, β: 458, d: 2480, ζ: 22, tag: dual_mitm_hybrid
 
             >>> LWE.dual_hybrid(NTRUHPS2048509Enc)
-            rop: ≈2^152.2, mem: ≈2^149.3, m: 487, red: ≈2^151.8, δ: 1.003849, β: 420, d: 962, ↻: ≈2^103.1, ζ: 33...
+            rop: ≈2^127.3, mem: ≈2^124.2, m: 442, β: 365, d: 911, ↻: 1, ζ: 39, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
-            rop: ≈2^215.1, mem: ≈2^155.0, m: ≈2^11.9, red: ≈2^215.1, δ: 1.002875, β: 632, d: 7851, ↻: ≈2^155.0...
+            rop: ≈2^197.1, mem: ≈2^115.0, m: ≈2^11.8, β: 617, d: 7783, ↻: 1, tag: dual
         """
 
         Cost.register_impermanent(
