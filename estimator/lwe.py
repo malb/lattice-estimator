@@ -36,33 +36,33 @@ class Estimate:
             >>> from estimator import *
             >>> _ = lwe.estimate.rough(Kyber512)
             usvp                 :: rop: ≈2^118.6, red: ≈2^118.6, δ: 1.003941, β: 406, d: 998, tag: usvp
-            dual_hybrid          :: rop: ≈2^127.2, mem: ≈2^123.3, m: 512, red: ≈2^127.0, δ: 1.003756, β: 435, ...
+            dual_hybrid          :: rop: ≈2^121.9, mem: ≈2^116.8, m: 512, β: 417, d: 1013, ↻: 1, ζ: 11...
 
 
         """
         # NOTE: Don't import these at the top-level to avoid circular imports
         from functools import partial
-        from .reduction import ADPS16
+        from .reduction import RC
         from .util import batch_estimate, f_name
 
         from sage.all import oo
 
         algorithms = {}
 
-        algorithms["usvp"] = partial(primal_usvp, red_cost_model=ADPS16, red_shape_model="gsa")
+        algorithms["usvp"] = partial(primal_usvp, red_cost_model=RC.ADPS16, red_shape_model="gsa")
 
         if params.Xs.is_sparse:
             algorithms["hybrid"] = partial(
-                primal_hybrid, red_cost_model=ADPS16, red_shape_model="gsa"
+                primal_hybrid, red_cost_model=RC.ADPS16, red_shape_model="gsa"
             )
 
         if params.Xs.is_sparse:
             algorithms["dual_mitm_hybrid"] = partial(
-                dual_hybrid, red_cost_model=ADPS16, mitm_optimization=True
+                dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=True
             )
         else:
             algorithms["dual_hybrid"] = partial(
-                dual_hybrid, red_cost_model=ADPS16, mitm_optimization=False
+                dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=False
             )
 
         if params.m > params.n ** 2 and params.Xe.is_bounded:
@@ -114,8 +114,9 @@ class Estimate:
             bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448...
             usvp                 :: rop: ≈2^148.0, red: ≈2^148.0, δ: 1.003941, β: 406, d: 998, tag: usvp
             bdd                  :: rop: ≈2^144.5, red: ≈2^143.8, svp: ≈2^143.0, β: 391, η: 421, d: 1013, tag: bdd
-            dual                 :: rop: ≈2^169.9, mem: ≈2^130.0, m: 512, red: ≈2^169.7, δ: 1.003484, β: 484, d: 1024...
-            dual_hybrid          :: rop: ≈2^166.8, mem: ≈2^161.9, m: 512, red: ≈2^166.6, δ: 1.003541, β: 473, d: 1011...
+            dual                 :: rop: ≈2^144.4, mem: ≈2^81.0, m: 512, β: 431, d: 1024, ↻: 1, tag: dual
+            dual_hybrid          :: rop: ≈2^140.2, mem: ≈2^136.8, m: 512, β: 414, d: 1003, ↻: 1, ζ: 21, tag: dual_hybrid
+
 
         """
         from sage.all import oo
