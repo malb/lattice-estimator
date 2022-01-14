@@ -9,10 +9,8 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.all import oo, ceil, sqrt, log, cached_function, exp, RR
+from sage.all import oo, ceil, sqrt, log, cached_function, RR
 from .reduction import delta as deltaf
-from .reduction import cost as costf
-from .reduction import RC
 from .util import local_minimum
 from .cost import Cost
 from .lwe_parameters import LWEParameters
@@ -30,8 +28,6 @@ class DualHybrid:
     """
     Estimate cost of solving LWE using dual attacks.
     """
-
-    full_sieves = [RC.ADPS16.__name__, RC.BDGL16.__name__]
 
     @staticmethod
     @cached_function
@@ -139,57 +135,33 @@ class DualHybrid:
 
         delta = deltaf(beta)
 
-        if red_cost_model.__name__ in DualHybrid.full_sieves:
-            rho = 4.0 / 3
-        elif use_lll:
-            rho = 2.0
-        else:
-            rho = 1.0
+        # only care about the scaling factor and don't know d yet -> use beta as dummy d
+        rho, _, _ = red_cost_model.short_vectors(beta=beta, d=beta)
 
         params_slv, m_ = DualHybrid.dual_reduce(
             delta, params, zeta, h1, rho, log_level=log_level + 1
         )
         Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
 
-        cost_slv = solver(params_slv, success_probability)
-        Logging.log("dual", log_level + 2, f"solve: {repr(cost_slv)}")
+        cost = solver(params_slv, success_probability)
+        Logging.log("dual", log_level + 2, f"solve: {repr(cost)}")
+
+        if cost["rop"] == oo or cost["m"] == oo:
+            return replace(cost, beta=beta)
 
         d = m_ + params.n - zeta
-        cost_red = costf(red_cost_model, beta, d)
-        if red_cost_model.__name__ in DualHybrid.full_sieves:
-            # if we use full sieving, we get many short vectors
-            # we compute in logs to avoid overflows in case m
-            # or beta happen to be large
-            try:
-                log_rep = max(0, log(cost_slv["m"]) - (beta / 2) * log(4 / 3))
-                if log_rep > 10 ** 10:
-                    # sage's ceil function seems to completely freak out for large
-                    # inputs, but then m is huge, so unlikely to be relevant
-                    raise OverflowError()
-                cost_red = cost_red.repeat(ceil(exp(log_rep)))
-            except OverflowError:
-                # if we get an overflow, m must be huge
-                # so we can probably approximate the cost with
-                # oo for our purposes
-                return Cost(rop=oo)
-        elif use_lll:
-            cost_red["rop"] += cost_slv["m"] * RC.LLL(d, log(params.q, 2))
-            cost_red["repetitions"] = cost_slv["m"]
-        else:
-            cost_red = cost_red.repeat(cost_slv["m"])
+        _, cost_red, _ = red_cost_model.short_vectors(beta, d, cost["m"])
+        Logging.log("dual", log_level + 2, f"red: {repr(Cost(rop=cost_red))}")
 
-        Logging.log("dual", log_level + 2, f"red: {repr(cost_red)}")
-
-        total_cost = cost_slv.combine(cost_red)
-        total_cost["m"] = m_
-        total_cost["rop"] = cost_red["rop"] + cost_slv["rop"]
-        total_cost["mem"] = cost_slv["mem"]
+        cost["rop"] += cost_red
+        cost["m"] = m_
+        cost["beta"] = beta
 
         if d < params.n - zeta:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
-        total_cost["d"] = d
+        cost["d"] = d
 
-        Logging.log("dual", log_level, f"{repr(total_cost)}")
+        Logging.log("dual", log_level, f"{repr(cost)}")
 
         rep = 1
         if params.Xs.is_sparse:
@@ -198,7 +170,7 @@ class DualHybrid:
             rep = prob_amplify(success_probability, probability)
         # don't need more samples to re-run attack, since we may
         # just guess different components of the secret
-        return total_cost.repeat(times=rep, select={"m": False})
+        return cost.repeat(times=rep, select={"m": False})
 
     @staticmethod
     def optimize_blocksize(
@@ -246,7 +218,7 @@ class DualHybrid:
         beta = beta_upper
         while beta == beta_upper:
             beta_upper *= 2
-            with local_minimum(2, beta_upper, opt_step) as it:
+            with local_minimum(40, beta_upper, opt_step) as it:
                 for beta in it:
                     it.update(f(beta=beta))
                 for beta in it.neighborhood:
@@ -310,43 +282,43 @@ class DualHybrid:
             >>> from estimator import *
             >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^115.5, mem: ≈2^68.0, m: 1018, red: ≈2^115.4, δ: 1.005021, β: 284, d: 2042, ↻: ≈2^68.0, tag: dual
+            rop: ≈2^103.4, mem: ≈2^47.9, m: 982, β: 269, d: 2006, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^111.3, mem: ≈2^106.4, m: 983, red: ≈2^111.2, δ: 1.005204, β: 269, d: 1957, ↻: ≈2^56.4, ζ: 50...
+            rop: ≈2^99.3, mem: ≈2^93.9, m: 944, β: 253, d: 1921, ↻: 1, ζ: 47, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^141.1, mem: ≈2^139.1, m: 1189, k: 132, ↻: 139, red: ≈2^140.8, δ: 1.004164, β: 375, d: 2021...
+            rop: ≈2^125.1, mem: ≈2^121.9, m: 1153, k: 115, ↻: 1, β: 351, d: 2039, ζ: 138, tag: dual_mitm_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization="numerical")
-            rop: ≈2^140.6, m: 1191, k: 128, mem: ≈2^136.0, ↻: 133, red: ≈2^140.2, δ: 1.004179, β: 373, d: 2052...
+            rop: ≈2^125.1, m: 1154, k: 111, mem: ≈2^118.8, ↻: 1, β: 351, d: 2048, ζ: 130, tag: dual_mitm_hybrid
 
             >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
-            rop: ≈2^111.7, mem: ≈2^66.0, m: 950, red: ≈2^111.5, δ: 1.005191, β: 270, d: 1974, ↻: ≈2^66.0, tag: dual
+            rop: ≈2^100.0, mem: ≈2^45.6, m: 916, β: 256, d: 1940, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^97.8, mem: ≈2^81.9, m: 730, red: ≈2^97.4, δ: 1.006813, β: 175, d: 1453, ↻: ≈2^36.3, ζ: 301...
+            rop: ≈2^89.8, mem: ≈2^77.5, m: 743, β: 181, d: 1518, ↻: 582, ζ: 249, h1: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^103.4, mem: ≈2^81.5, m: 724, k: 310, ↻: ≈2^27.3, red: ≈2^102.7, δ: 1.006655, β: 182...
+            rop: ≈2^96.4, mem: ≈2^79.6, m: 771, k: 277, ↻: ≈2^15.8, β: 198, d: 1349, ζ: 446, h1: 17...
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
-            rop: ≈2^123.1, mem: ≈2^75.4, m: 1151, red: ≈2^123.0, δ: 1.004727, β: 311, d: 2175, ↻: ≈2^75.4, tag: dual
+            rop: ≈2^110.5, mem: ≈2^53.0, m: 1113, β: 295, d: 2137, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^122.4, mem: ≈2^116.6, m: 1143, red: ≈2^122.2, δ: 1.004758, β: 308, d: 2157, ↻: ≈2^75.8, ζ: 10...
+            rop: ≈2^109.6, mem: ≈2^99.1, m: 1105, β: 292, d: 2118, ↻: 1, ζ: 11, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^181.7, mem: ≈2^179.2, m: 1554, k: 42, ↻: 179, red: ≈2^181.4, δ: 1.003315, β: 519, d: 2513...
+            rop: ≈2^148.3, mem: ≈2^142.0, m: 1416, k: 33, ↻: 1, β: 439, d: 2406, ζ: 34, tag: dual_mitm_hybrid
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^125.4, mem: ≈2^78.0, m: 1190, red: ≈2^125.3, δ: 1.004648, β: 319, d: 2214, ↻: ≈2^78.0, tag: dual
+            rop: ≈2^112.2, mem: ≈2^56.0, m: 1150, β: 302, d: 2174, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^125.1, mem: ≈2^117.7, m: 1187, red: ≈2^125.0, δ: 1.004657, β: 318, d: 2204, ↻: ≈2^75.9, ζ: 7...
+            rop: ≈2^111.9, mem: ≈2^103.3, m: 1147, β: 301, d: 2163, ↻: 1, ζ: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^175.0, mem: ≈2^168.9, m: 1547, k: 27, ↻: 169, red: ≈2^175.0, δ: 1.003424, β: 496, d: 2544, ζ: 27...
+            rop: ≈2^153.1, mem: ≈2^138.7, m: 1478, k: 22, ↻: 1, β: 458, d: 2480, ζ: 22, tag: dual_mitm_hybrid
 
             >>> LWE.dual_hybrid(NTRUHPS2048509Enc)
-            rop: ≈2^152.2, mem: ≈2^149.3, m: 487, red: ≈2^151.8, δ: 1.003849, β: 420, d: 962, ↻: ≈2^103.1, ζ: 33...
+            rop: ≈2^127.3, mem: ≈2^124.2, m: 442, β: 365, d: 911, ↻: 1, ζ: 39, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
-            rop: ≈2^215.1, mem: ≈2^155.0, m: ≈2^11.9, red: ≈2^215.1, δ: 1.002875, β: 632, d: 7851, ↻: ≈2^155.0...
+            rop: ≈2^197.1, mem: ≈2^115.0, m: ≈2^11.8, β: 617, d: 7783, ↻: 1, tag: dual
         """
 
         Cost.register_impermanent(
