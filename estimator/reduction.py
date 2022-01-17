@@ -685,9 +685,9 @@ class Kyber(ReductionCost):
             >>> from math import log
             >>> from estimator.reduction import RC
             >>> log(RC.Kyber(500, 1024), 2.0)
-            174.16...
+            176.61534319964488
             >>> log(RC.Kyber(500, 1024, nn="list_decoding-ge19"), 2.0)
-            170.23...
+            172.68208507350872
 
         """
 
@@ -774,7 +774,7 @@ def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
 
     EXAMPLE::
 
-        >>> from estimator.reduction import cost
+        >>> from estimator.reduction import cost, RC
         >>> cost(RC.ABLR21, 120, 500)
         rop: ≈2^68.9, red: ≈2^68.9, δ: 1.008435, β: 120, d: 500
         >>> cost(RC.ABLR21, 120, 500, predicate=False)

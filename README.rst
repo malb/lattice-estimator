@@ -21,19 +21,19 @@ Quick Start
     LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
 
     >>> LWE.primal_usvp(Kyber512)
-    rop: ≈2^148.0, red: ≈2^148.0, δ: 1.003941, β: 406, d: 998, tag: usvp
+    rop: ≈2^150.4, red: ≈2^150.4, δ: 1.003941, β: 406, d: 998, tag: usvp
     
     >>> r = LWE.estimate.rough(Kyber512)
     usvp                 :: rop: ≈2^118.6, red: ≈2^118.6, δ: 1.003941, β: 406, d: 998, tag: usvp
     dual_hybrid          :: rop: ≈2^121.9, mem: ≈2^116.8, m: 512, β: 417, d: 1013, ↻: 1, ζ: 11, tag: dual_hybrid
 
     >>> r = LWE.estimate(Kyber512)
-    arora-gb             :: rop: ≈2^inf, dreg: 25, mem: ≈2^106.3, t: 3, m: ≈2^inf, tag: arora-gb, ↻: ≈2^inf, ...
-    bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, ...
-    usvp                 :: rop: ≈2^148.0, red: ≈2^148.0, δ: 1.003941, β: 406, d: 998, tag: usvp
-    bdd                  :: rop: ≈2^144.5, red: ≈2^143.8, svp: ≈2^143.0, β: 391, η: 421, d: 1013, tag: bdd
-    dual                 :: rop: ≈2^144.4, mem: ≈2^81.0, m: 512, β: 431, d: 1024, ↻: 1, tag: dual
-    dual_hybrid          :: rop: ≈2^140.2, mem: ≈2^136.8, m: 512, β: 414, d: 1003, ↻: 1, ζ: 21, tag: dual_hybrid
+    arora-gb             :: rop: ≈2^inf, dreg: 25, mem: ≈2^106.3, t: 3, m: ≈2^inf, tag: arora-gb, ↻: ≈2^inf, ζ: 480
+    bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448, #top: 0, ...
+    usvp                 :: rop: ≈2^150.4, red: ≈2^150.4, δ: 1.003941, β: 406, d: 998, tag: usvp
+    bdd                  :: rop: ≈2^146.9, red: ≈2^146.3, svp: ≈2^145.4, β: 391, η: 421, d: 1013, tag: bdd
+    dual                 :: rop: ≈2^157.4, mem: ≈2^81.0, m: 512, β: 431, d: 1024, ↻: 1, tag: dual
+    dual_hybrid          :: rop: ≈2^151.7, mem: ≈2^147.5, m: 512, β: 410, d: 999, ↻: 1, ζ: 25, tag: dual_hybrid
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.
