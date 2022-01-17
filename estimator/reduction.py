@@ -699,11 +699,19 @@ class Kyber(ReductionCost):
         elif nn == "quantum":
             nn = "list_decoding-dw"
 
+        # "The cost of progressive BKZ with sieving up to blocksize b is essentially C · (n − b) ≈
+        # 3340 times the cost of sieving for SVP in dimension b." [Kyber20]_
         svp_calls = C * max(d - beta, 1)
         # we do not round to the nearest integer to ensure cost is continuously increasing with β which
         # rounding can violate.
         beta_ = beta - self.d4f(beta)
-        gate_count = 2 ** (self.NN_AGPS[nn]["a"] * beta_ + self.NN_AGPS[nn]["b"])
+        # "The work in [5] is motivated by the quantum/classical speed-up, therefore it does not
+        # consider the required number of calls to AllPairSearch. Naive sieving requires a
+        # polynomial number of calls to this routine, however this number of calls appears rather
+        # small in practice using progressive sieving [40, 64], and we will assume that it needs to
+        # be called only once per dimension during progressive sieving, for a cost of C · 2^137.4
+        # gates^8." [Kyber20]_
+        gate_count = C * 2 ** (self.NN_AGPS[nn]["a"] * beta_ + self.NN_AGPS[nn]["b"])
         return self.LLL(d, B=B) + svp_calls * gate_count
 
     def short_vectors(self, beta, d, N=None):
