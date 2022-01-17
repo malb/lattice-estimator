@@ -140,7 +140,7 @@ class ReductionCost:
 
         TESTS::
 
-            >>> from estimator.reduction import ReductionCost
+            >>> from estimator.reduction import ReductionCost, RC
             >>> ReductionCost._beta_find_root(RC.delta(500))
             500
 
@@ -171,7 +171,7 @@ class ReductionCost:
 
         TESTS::
 
-            >>> from estimator.reduction import ReductionCost
+            >>> from estimator.reduction import ReductionCost, RC
             >>> ReductionCost._beta_simple(RC.delta(500))
             501
 
