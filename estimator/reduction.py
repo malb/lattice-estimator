@@ -714,7 +714,7 @@ class Kyber(ReductionCost):
         gate_count = C * 2 ** (self.NN_AGPS[nn]["a"] * beta_ + self.NN_AGPS[nn]["b"])
         return self.LLL(d, B=B) + svp_calls * gate_count
 
-    def short_vectors(self, beta, d, N=None):
+    def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
         """
         Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
         to reduce the basis.
@@ -731,20 +731,34 @@ class Kyber(ReductionCost):
         :param beta: Cost parameter (≈ SVP dimension).
         :param d: Lattice dimension.
         :param N: Number of vectors requested.
-        :returns: ``(ρ, c, N)``
+        :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
+               If ``False`` we assume the basis is already BKZ-β reduced.
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
             >>> RC.Kyber.short_vectors(100, 500, 1)
-            (1.0, 2.385337497510881e+17, 1)
+            (1.0, 2.736747612813679e+19, 1)
             >>> RC.Kyber.short_vectors(100, 500)
-            (1.1547, 2.385337497510881e+17, 176584)
+            (1.1547, 2.736747612813679e+19, 176584)
             >>> RC.Kyber.short_vectors(100, 500, 1000)
-            (1.1547, 2.385337497510881e+17, 176584)
+            (1.1547, 2.736747612813679e+19, 176584)
 
         """
-        return self._short_vectors_sieve(beta - floor(self.d4f(beta)), d, N)
+
+        beta_ = beta - floor(self.d4f(beta))
+
+        if N == 1:
+            if preprocess:
+                return 1.0, self(beta, d, B=B), 1
+            else:
+                return 1.0, 1, 1
+        elif N is None:
+            N = floor(2 ** (0.2075 * beta_))  # pick something
+
+        c = N / floor(2 ** (0.2075 * beta_))
+
+        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_))
 
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
