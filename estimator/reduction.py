@@ -140,7 +140,7 @@ class ReductionCost:
 
         TESTS::
 
-            >>> from estimator.reduction import ReductionCost
+            >>> from estimator.reduction import ReductionCost, RC
             >>> ReductionCost._beta_find_root(RC.delta(500))
             500
 
@@ -171,7 +171,7 @@ class ReductionCost:
 
         TESTS::
 
-            >>> from estimator.reduction import ReductionCost
+            >>> from estimator.reduction import ReductionCost, RC
             >>> ReductionCost._beta_simple(RC.delta(500))
             501
 
@@ -685,9 +685,9 @@ class Kyber(ReductionCost):
             >>> from math import log
             >>> from estimator.reduction import RC
             >>> log(RC.Kyber(500, 1024), 2.0)
-            174.16...
+            176.61534319964488
             >>> log(RC.Kyber(500, 1024, nn="list_decoding-ge19"), 2.0)
-            170.23...
+            172.68208507350872
 
         """
 
@@ -699,14 +699,22 @@ class Kyber(ReductionCost):
         elif nn == "quantum":
             nn = "list_decoding-dw"
 
+        # "The cost of progressive BKZ with sieving up to blocksize b is essentially C · (n − b) ≈
+        # 3340 times the cost of sieving for SVP in dimension b." [Kyber20]_
         svp_calls = C * max(d - beta, 1)
         # we do not round to the nearest integer to ensure cost is continuously increasing with β which
         # rounding can violate.
         beta_ = beta - self.d4f(beta)
-        gate_count = 2 ** (self.NN_AGPS[nn]["a"] * beta_ + self.NN_AGPS[nn]["b"])
+        # "The work in [5] is motivated by the quantum/classical speed-up, therefore it does not
+        # consider the required number of calls to AllPairSearch. Naive sieving requires a
+        # polynomial number of calls to this routine, however this number of calls appears rather
+        # small in practice using progressive sieving [40, 64], and we will assume that it needs to
+        # be called only once per dimension during progressive sieving, for a cost of C · 2^137.4
+        # gates^8." [Kyber20]_
+        gate_count = C * 2 ** (self.NN_AGPS[nn]["a"] * beta_ + self.NN_AGPS[nn]["b"])
         return self.LLL(d, B=B) + svp_calls * gate_count
 
-    def short_vectors(self, beta, d, N=None):
+    def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
         """
         Cost of outputting many somewhat short vectors assuming BKZ-β has been previously used
         to reduce the basis.
@@ -723,20 +731,34 @@ class Kyber(ReductionCost):
         :param beta: Cost parameter (≈ SVP dimension).
         :param d: Lattice dimension.
         :param N: Number of vectors requested.
-        :returns: ``(ρ, c, N)``
+        :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
+               If ``False`` we assume the basis is already BKZ-β reduced.
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
             >>> RC.Kyber.short_vectors(100, 500, 1)
-            (1.0, 2.385337497510881e+17, 1)
+            (1.0, 2.736747612813679e+19, 1)
             >>> RC.Kyber.short_vectors(100, 500)
-            (1.1547, 2.385337497510881e+17, 176584)
+            (1.1547, 2.736747612813679e+19, 176584)
             >>> RC.Kyber.short_vectors(100, 500, 1000)
-            (1.1547, 2.385337497510881e+17, 176584)
+            (1.1547, 2.736747612813679e+19, 176584)
 
         """
-        return self._short_vectors_sieve(beta - floor(self.d4f(beta)), d, N)
+
+        beta_ = beta - floor(self.d4f(beta))
+
+        if N == 1:
+            if preprocess:
+                return 1.0, self(beta, d, B=B), 1
+            else:
+                return 1.0, 1, 1
+        elif N is None:
+            N = floor(2 ** (0.2075 * beta_))  # pick something
+
+        c = N / floor(2 ** (0.2075 * beta_))
+
+        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_))
 
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
@@ -752,7 +774,7 @@ def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
 
     EXAMPLE::
 
-        >>> from estimator.reduction import cost
+        >>> from estimator.reduction import cost, RC
         >>> cost(RC.ABLR21, 120, 500)
         rop: ≈2^68.9, red: ≈2^68.9, δ: 1.008435, β: 120, d: 500
         >>> cost(RC.ABLR21, 120, 500, predicate=False)

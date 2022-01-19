@@ -132,12 +132,12 @@ class guess_composition:
             >>> from estimator import *
             >>> from estimator.lwe_guess import guess_composition
             >>> guess_composition(LWE.primal_usvp)(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^102.8, red: ≈2^102.8, δ: 1.008705, β: 113, d: 421, tag: usvp, ↻: ≈2^37.5, ζ: 265, |S|: 1, ...
+            rop: ≈2^105.3, red: ≈2^105.3, δ: 1.008705, β: 113, d: 421, tag: usvp, ↻: ≈2^37.5, ζ: 265, |S|: 1,...
 
         Compare::
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^86.6, red: ≈2^85.7, svp: ≈2^85.6, β: 104, η: 2, ζ: 371, |S|: ≈2^91.1, d: 308, prob: ≈2^-21.3, ...
+            rop: ≈2^87.3, red: ≈2^86.3, svp: ≈2^86.3, β: 105, η: 2, ζ: 372, |S|: ≈2^96.9, d: 309, prob: ≈2^-19.1, ...
 
         """
         if params.Xs.is_sparse:
@@ -165,6 +165,7 @@ class ExhaustiveSearch:
         EXAMPLE::
 
             >>> from estimator import *
+            >>> from estimator.lwe_guess import exhaustive_search
             >>> params = LWE.Parameters(n=64, q=2**40, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.2))
             >>> exhaustive_search(params)
             rop: ≈2^73.6, mem: ≈2^72.6, m: 397.198
@@ -341,6 +342,7 @@ class MITM:
         EXAMPLE::
 
             >>> from estimator import *
+            >>> from estimator.lwe_guess import mitm
             >>> params = LWE.Parameters(n=64, q=2**40, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.2))
             >>> mitm(params)
             rop: ≈2^37.0, mem: ≈2^37.2, m: 37, k: 32, ↻: 1
@@ -402,6 +404,7 @@ class Distinguisher:
         EXAMPLE::
 
             >>> from estimator import *
+            >>> from estimator.lwe_guess import distinguish
             >>> params = LWE.Parameters(n=0, q=2 ** 32, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(2 ** 32))
             >>> distinguish(params)
             rop: ≈2^60.0, mem: ≈2^60.0, m: ≈2^60.0
