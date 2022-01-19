@@ -376,11 +376,7 @@ class ReductionCost:
 
         c = N / floor(2 ** (0.2075 * beta))
         
-        # ~ return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
-        print(f"getting reduction cost with beta={beta}")
-        tmp = self(beta, d)
-        print("done")
-        return 1.1547, ceil(c) * tmp, ceil(c) * floor(2 ** (0.2075 * beta))
+        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
 
 
 class BDGL16(ReductionCost):
@@ -709,7 +705,6 @@ class Kyber(ReductionCost):
         # we do not round to the nearest integer to ensure cost is continuously increasing with β which
         # rounding can violate.
         beta_ = beta - self.d4f(beta)
-        print(f"asked for reduction with beta {beta}, actual beta is {beta_}")
         # "The work in [5] is motivated by the quantum/classical speed-up, therefore it does not
         # consider the required number of calls to AllPairSearch. Naive sieving requires a
         # polynomial number of calls to this routine, however this number of calls appears rather
@@ -761,7 +756,6 @@ class Kyber(ReductionCost):
             N = floor(2 ** (0.2075 * beta_))  # pick something
 
         c = N / floor(2 ** (0.2075 * beta_))
-        print(f"asking for short vectors with beta={beta}, actual beta should be {beta - floor(self.d4f(beta))}")
         return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_))
 
 class GJ21(Kyber):
