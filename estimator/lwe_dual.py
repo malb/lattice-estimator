@@ -282,43 +282,43 @@ class DualHybrid:
             >>> from estimator import *
             >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^103.4, mem: ≈2^47.9, m: 982, β: 269, d: 2006, ↻: 1, tag: dual
+            rop: ≈2^113.7, mem: ≈2^47.9, m: 982, β: 269, d: 2006, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^99.3, mem: ≈2^93.9, m: 944, β: 253, d: 1921, ↻: 1, ζ: 47, tag: dual_hybrid
+            rop: ≈2^108.3, mem: ≈2^101.9, m: 937, β: 250, d: 1905, ↻: 1, ζ: 56, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^125.1, mem: ≈2^121.9, m: 1153, k: 115, ↻: 1, β: 351, d: 2039, ζ: 138, tag: dual_mitm_hybrid
+            rop: ≈2^134.9, mem: ≈2^131.0, m: 1138, k: 124, ↻: 1, β: 345, d: 2003, ζ: 159, tag: dual_mitm_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization="numerical")
-            rop: ≈2^125.1, m: 1154, k: 111, mem: ≈2^118.8, ↻: 1, β: 351, d: 2048, ζ: 130, tag: dual_mitm_hybrid
+            rop: ≈2^134.7, m: 1140, k: 1, mem: ≈2^135.0, ↻: 1, β: 344, d: 2035, ζ: 129, tag: dual_mitm_hybrid
 
             >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
-            rop: ≈2^100.0, mem: ≈2^45.6, m: 916, β: 256, d: 1940, ↻: 1, tag: dual
+            rop: ≈2^110.0, mem: ≈2^45.6, m: 916, β: 256, d: 1940, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^89.8, mem: ≈2^77.5, m: 743, β: 181, d: 1518, ↻: 582, ζ: 249, h1: 8, tag: dual_hybrid
+            rop: ≈2^96.3, mem: ≈2^81.2, m: 704, β: 165, d: 1442, ↻: ≈2^11.7, ζ: 286, h1: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^96.4, mem: ≈2^79.6, m: 771, k: 277, ↻: ≈2^15.8, β: 198, d: 1349, ζ: 446, h1: 17...
+            rop: ≈2^101.5, mem: ≈2^81.5, m: 707, k: 301, ↻: ≈2^19.2, β: 172, d: 1223, ζ: 508, h1: 18, ...
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
-            rop: ≈2^110.5, mem: ≈2^53.0, m: 1113, β: 295, d: 2137, ↻: 1, tag: dual
+            rop: ≈2^121.0, mem: ≈2^53.0, m: 1113, β: 295, d: 2137, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^109.6, mem: ≈2^99.1, m: 1105, β: 292, d: 2118, ↻: 1, ζ: 11, tag: dual_hybrid
+            rop: ≈2^119.9, mem: ≈2^111.0, m: 1103, β: 291, d: 2113, ↻: 1, ζ: 14, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^148.3, mem: ≈2^142.0, m: 1416, k: 33, ↻: 1, β: 439, d: 2406, ζ: 34, tag: dual_mitm_hybrid
+            rop: ≈2^160.8, mem: ≈2^158.5, m: 1410, k: 37, ↻: 1, β: 436, d: 2397, ζ: 37, tag: dual_mitm_hybrid
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^112.2, mem: ≈2^56.0, m: 1150, β: 302, d: 2174, ↻: 1, tag: dual
+            rop: ≈2^123.0, mem: ≈2^56.0, m: 1150, β: 302, d: 2174, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^111.9, mem: ≈2^103.3, m: 1147, β: 301, d: 2163, ↻: 1, ζ: 8, tag: dual_hybrid
+            rop: ≈2^122.4, mem: ≈2^115.8, m: 1144, β: 300, d: 2158, ↻: 1, ζ: 10, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^153.1, mem: ≈2^138.7, m: 1478, k: 22, ↻: 1, β: 458, d: 2480, ζ: 22, tag: dual_mitm_hybrid
+            rop: ≈2^166.1, mem: ≈2^162.9, m: 1471, k: 26, ↻: 1, β: 455, d: 2469, ζ: 26, tag: dual_mitm_hybrid
 
             >>> LWE.dual_hybrid(NTRUHPS2048509Enc)
-            rop: ≈2^127.3, mem: ≈2^124.2, m: 442, β: 365, d: 911, ↻: 1, ζ: 39, tag: dual_hybrid
+            rop: ≈2^137.2, mem: ≈2^131.5, m: 437, β: 359, d: 900, ↻: 1, ζ: 45, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
-            rop: ≈2^197.1, mem: ≈2^115.0, m: ≈2^11.8, β: 617, d: 7783, ↻: 1, tag: dual
+            rop: ≈2^213.3, mem: ≈2^115.0, m: ≈2^11.8, β: 617, d: 7783, ↻: 1, tag: dual
         """
 
         Cost.register_impermanent(
