@@ -102,7 +102,7 @@ class DualHybrid:
         return slv_params, m_
 
     @staticmethod
-    @cached_function
+    # ~ @cached_function
     def cost(
         solver,
         params: LWEParameters,

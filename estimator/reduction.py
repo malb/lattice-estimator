@@ -375,8 +375,12 @@ class ReductionCost:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
         c = N / floor(2 ** (0.2075 * beta))
-
-        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
+        
+        # ~ return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
+        print(f"getting reduction cost with beta={beta}")
+        tmp = self(beta, d)
+        print("done")
+        return 1.1547, ceil(c) * tmp, ceil(c) * floor(2 ** (0.2075 * beta))
 
 
 class BDGL16(ReductionCost):
@@ -705,6 +709,7 @@ class Kyber(ReductionCost):
         # we do not round to the nearest integer to ensure cost is continuously increasing with β which
         # rounding can violate.
         beta_ = beta - self.d4f(beta)
+        print(f"asked for reduction with beta {beta}, actual beta is {beta_}")
         # "The work in [5] is motivated by the quantum/classical speed-up, therefore it does not
         # consider the required number of calls to AllPairSearch. Naive sieving requires a
         # polynomial number of calls to this routine, however this number of calls appears rather
@@ -745,7 +750,6 @@ class Kyber(ReductionCost):
             (1.1547, 2.736747612813679e+19, 176584)
 
         """
-
         beta_ = beta - floor(self.d4f(beta))
 
         if N == 1:
@@ -757,9 +761,26 @@ class Kyber(ReductionCost):
             N = floor(2 ** (0.2075 * beta_))  # pick something
 
         c = N / floor(2 ** (0.2075 * beta_))
-
+        print(f"asking for short vectors with beta={beta}, actual beta should be {beta - floor(self.d4f(beta))}")
         return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_))
 
+class GJ21(Kyber):
+
+    __name__ = "GJ21"
+    
+    def short_vectors(self, beta, d, N=None, beta_sieve=None):
+        if N is None:
+            N = floor(2 ** (0.2075 * beta))  # pick something
+
+        if not beta_sieve:
+            beta_sieve = beta - floor(self.d4f(beta))
+        elif beta_sieve > beta:
+            beta_sieve = beta
+
+        c = N / floor(2 ** (0.2075 * beta))
+        nn = "list_decoding-classical"
+        gate_count = 2 ** (self.NN_AGPS[nn]["a"] * beta_sieve + self.NN_AGPS[nn]["b"])
+        return 1.1547, self(beta, d) + ceil(c) * gate_count, ceil(c) * floor(2 ** (0.2075 * beta))
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
     """
@@ -812,4 +833,5 @@ class RC:
     BDGL16 = BDGL16()
     CheNgu12 = CheNgu12()
     Kyber = Kyber()
+    GJ21 = GJ21()
     LaaMosPol14 = LaaMosPol14()
