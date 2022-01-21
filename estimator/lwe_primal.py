@@ -178,7 +178,7 @@ class PrimalUSVP:
         m = params.m + params.n if params.Xs <= params.Xe else params.m
 
         if red_shape_model == "gsa":
-            with local_minimum(40, 2 * params.n) as it:
+            with local_minimum(40, max(2 * params.n, 41)) as it:
                 for beta in it:
                     cost = self.cost_gsa(
                         beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds
@@ -214,8 +214,8 @@ class PrimalUSVP:
         # step 1. find β
 
         with local_minimum(
-            cost_gsa["beta"] - ceil(0.10 * cost_gsa["beta"]),
-            cost_gsa["beta"] + ceil(0.20 * cost_gsa["beta"]),
+            max(cost_gsa["beta"] - ceil(0.10 * cost_gsa["beta"]), 40),
+            max(cost_gsa["beta"] + ceil(0.20 * cost_gsa["beta"]), 40),
         ) as it:
             for beta in it:
                 it.update(f(beta=beta, **kwds))
@@ -491,7 +491,7 @@ class PrimalHybrid:
         - When ζ ≠ 0 and ``babai=False`` this function estimates the hybrid attack as given in
           [SAC:AlbCurWun19]_
 
-        EXAMPLE::
+        EXAMPLES::
 
             >>> from estimator import *
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
@@ -505,6 +505,14 @@ class PrimalHybrid:
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
             rop: ≈2^87.3, red: ≈2^86.3, svp: ≈2^86.3, β: 105, η: 2, ζ: 372, |S|: ≈2^96.9, d: 309, prob: ≈2^-19.1...
+
+        TESTS:
+
+        We test a trivial instance::
+
+            >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
+            >>> LWE.primal_bdd(params)
+            rop: ≈2^49.3, red: ≈2^49.3, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
 
         """
 
