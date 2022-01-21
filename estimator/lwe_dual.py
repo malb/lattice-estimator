@@ -37,6 +37,7 @@ class DualHybrid:
         zeta: int = 0,
         h1: int = 0,
         rho: float = 1.0,
+        t: int = 0,
         log_level=None,
     ):
         """
@@ -84,8 +85,13 @@ class DualHybrid:
         m_ = max(1, ceil(sqrt(red_Xs.n * log(c) / log(delta))) - red_Xs.n)
         m_ = min(params.m, m_)
 
+        # apply the [AC:GuoJoh21] technique, m_ not optimal anymore?
+        d = m_ + red_Xs.n
+        rho /= 2 ** (t / d)
+        
         # Compute new noise as in [INDOCRYPT:EspJouKha20]
-        sigma_ = rho * red_Xs.stddev * delta ** (m_ + red_Xs.n) / c ** (m_ / (m_ + red_Xs.n))
+        # ~ sigma_ = rho * red_Xs.stddev * delta ** (m_ + red_Xs.n) / c ** (m_ / (m_ + red_Xs.n))
+        sigma_ = rho * red_Xs.stddev * delta ** d / c ** (m_ / d)
         slv_Xe = NoiseDistribution.DiscreteGaussian(params.q * sigma_)
 
         slv_params = LWEParameters(
@@ -109,6 +115,7 @@ class DualHybrid:
         beta: int,
         zeta: int = 0,
         h1: int = 0,
+        t: int = 0,
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
         use_lll=True,
@@ -139,11 +146,13 @@ class DualHybrid:
         rho, _, _ = red_cost_model.short_vectors(beta=beta, d=2 * beta)
 
         params_slv, m_ = DualHybrid.dual_reduce(
-            delta, params, zeta, h1, rho, log_level=log_level + 1
+            delta, params, zeta, h1, rho, t, log_level=log_level + 1
         )
         Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
 
         cost = solver(params_slv, success_probability)
+        cost = cost.repeat(times=2 ** t, select={"m" : False})
+
         Logging.log("dual", log_level + 2, f"solve: {repr(cost)}")
 
         if cost["rop"] == oo or cost["m"] == oo:
@@ -156,6 +165,7 @@ class DualHybrid:
         cost["rop"] += cost_red
         cost["m"] = m_
         cost["beta"] = beta
+        cost["t"] = t
 
         if d < params.n - zeta:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
@@ -200,7 +210,7 @@ class DualHybrid:
 
         """
 
-        f = partial(
+        f_t = partial(
             DualHybrid.cost,
             solver=solver,
             params=params,
@@ -212,6 +222,13 @@ class DualHybrid:
             log_level=log_level,
         )
         
+        def f(beta):
+            # ~ with local_minimum(0, params.n - zeta) as it:
+                # ~ for t in it:
+                    # ~ it.update(f_t(beta=beta, t=t))
+                # ~ return it.y
+            return f_t(beta=beta, t=0)
+
         # don't have a reliable upper bound for beta
         # we choose n - k arbitrarily and adjust later if
         # necessary
@@ -331,6 +348,7 @@ class DualHybrid:
             m=True,
             d=False,
             zeta=False,
+            t=False,
         )
 
         Logging.log("dual", log_level, f"costing LWE instance: {repr(params)}")
@@ -431,10 +449,20 @@ def dual(
         d=False,
     )
 
+    # ~ ret = DH.optimize_blocksize(
+        # ~ solver=distinguish,
+        # ~ params=params,
+        # ~ zeta=0,
+        # ~ h1=0,
+        # ~ success_probability=success_probability,
+        # ~ red_cost_model=red_cost_model,
+        # ~ use_lll=use_lll,
+        # ~ log_level=1,
+    # ~ )
     ret = DH.optimize_blocksize(
-        solver=distinguish,
+        solver=exhaustive_search,
         params=params,
-        zeta=0,
+        zeta=1,
         h1=0,
         success_probability=success_probability,
         red_cost_model=red_cost_model,
