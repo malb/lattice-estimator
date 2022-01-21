@@ -3,8 +3,9 @@
 Cost estimates for lattice redution.
 """
 
-from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round
+from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round, exp, sqrt
 from scipy.optimize import newton
+from fpylll.util import gaussian_heuristic as gh
 
 
 class ReductionCost:
@@ -762,19 +763,43 @@ class GJ21(Kyber):
 
     __name__ = "GJ21"
     
-    def short_vectors(self, beta, d, N=None, beta_sieve=None):
-        if N is None:
-            N = floor(2 ** (0.2075 * beta))  # pick something
-
+    def short_vectors(self, beta, d, N=None, nn="classical", beta_sieve=None):
+        C = 5.46
+        
+        if nn == "classical":
+            nn = "list_decoding-classical"
+        elif nn == "quantum":
+            nn = "list_decoding-dw"
+        
         if not beta_sieve:
-            beta_sieve = beta - floor(self.d4f(beta))
-        elif beta_sieve > beta:
-            beta_sieve = beta
+        # ~ if True:
+            beta_ = beta - floor(self.d4f(beta))
+            if beta >= d:
+                beta_sieve = beta_
+            else:
+                beta_sieve = min(d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[nn]["a"]))
+        
+        rho = 1.1547
+        if beta_sieve > beta:
+            # we assume the basis will be BKZ-β reduced
+            log_delta = log(self.delta(beta), 2)
+            # block of dimension beta_sieve has unit volume
+            dummy_r = [1. for _ in range(beta_sieve)]
+            beta_r = [exp(log_delta * (beta_sieve - 1 - 2 * i)) for i in range(beta)]
+            rho *= RR(gh(dummy_r) / gh(beta_r))
 
-        c = N / floor(2 ** (0.2075 * beta))
-        nn = "list_decoding-classical"
-        gate_count = 2 ** (self.NN_AGPS[nn]["a"] * beta_sieve + self.NN_AGPS[nn]["b"])
-        return 1.1547, self(beta, d) + ceil(c) * gate_count, ceil(c) * floor(2 ** (0.2075 * beta))
+        # ~ if N == 1:
+            # ~ if preprocess:
+                # ~ return 1.0, self(beta, d, B=B), 1
+            # ~ else:
+                # ~ return 1.0, 1, 1
+        # ~ el
+        if not N:
+            N = floor(2 ** (0.2075 * beta_sieve))  # pick something
+
+        c = N / floor(2 ** (0.2075 * beta_sieve))
+        sieve_cost = C * 2 ** (self.NN_AGPS[nn]["a"] * beta_sieve + self.NN_AGPS[nn]["b"])
+        return rho, ceil(c) * (self(beta, d) + sieve_cost), ceil(c) * floor(2 ** (0.2075 * beta_sieve))
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
     """

@@ -112,6 +112,7 @@ class DualHybrid:
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
         use_lll=True,
+        beta_sieve = None,
         log_level=None,
     ):
         """
@@ -156,6 +157,9 @@ class DualHybrid:
         cost["rop"] += cost_red
         cost["m"] = m_
         cost["beta"] = beta
+        
+        if beta_sieve:
+            cost["beta0"] = beta_sieve
 
         if d < params.n - zeta:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
@@ -211,6 +215,21 @@ class DualHybrid:
             use_lll=use_lll,
             log_level=log_level,
         )
+        
+        f_opt = f
+        
+        if red_cost_model.__name__ == "GJ21":
+            def f_gj21(beta):
+                with local_minimum(40, 2 * beta, opt_step) as it:
+                    for beta_sieve in it:
+                        it.update(f(beta=beta, beta_sieve=beta_sieve))
+                    for beta in it.neighborhood:
+                        it.update(f(beta=beta, beta_sieve=beta_sieve))
+                    cost = it.y
+                return cost
+            
+            f_opt = f_gj21
+        
         # don't have a reliable upper bound for beta
         # we choose n - k arbitrarily and adjust later if
         # necessary
@@ -220,9 +239,9 @@ class DualHybrid:
             beta_upper *= 2
             with local_minimum(40, beta_upper, opt_step) as it:
                 for beta in it:
-                    it.update(f(beta=beta))
+                    it.update(f_opt(beta=beta))
                 for beta in it.neighborhood:
-                    it.update(f(beta=beta))
+                    it.update(f_opt(beta=beta))
                 cost = it.y
             beta = cost["beta"]
 
@@ -331,6 +350,10 @@ class DualHybrid:
             d=False,
             zeta=False,
         )
+        
+        if red_cost_model.__name__ == "GJ21":
+            Cost.register_impermanent(beta0=False)
+        
         Logging.log("dual", log_level, f"costing LWE instance: {repr(params)}")
 
         params = params.normalize()
