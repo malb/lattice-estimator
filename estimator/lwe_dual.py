@@ -9,7 +9,7 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.all import oo, ceil, sqrt, log, cached_function, RR
+from sage.all import oo, ceil, sqrt, log, cached_function, RR, exp, pi
 from .reduction import delta as deltaf
 from .util import local_minimum
 from .cost import Cost
@@ -150,8 +150,10 @@ class DualHybrid:
         )
         Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
 
-        cost = solver(params_slv, success_probability)
-        cost = cost.repeat(times=2 ** t, select={"m" : False})
+        if t:
+            cost = DualHybrid.gj21_solver(params_slv, success_probability, t)
+        else:
+            cost = solver(params_slv, success_probability)
 
         Logging.log("dual", log_level + 2, f"solve: {repr(cost)}")
 
@@ -181,6 +183,41 @@ class DualHybrid:
         # don't need more samples to re-run attack, since we may
         # just guess different components of the secret
         return cost.repeat(times=rep, select={"m": False})
+
+    @staticmethod
+    def gj21_solver(params, success_probability, t=0):
+
+        # there are two stages: enumeration and distinguishing, so we split up the success_probability
+        probability = sqrt(success_probability)
+
+        try:
+            size = params.Xs.support_size(n=params.n, fraction=probability)
+            size_fft = 2 ** t
+        except NotImplementedError:
+            # not achieving required probability with search space
+            # given our settings that means the search space is huge
+            # so we approximate the cost with oo
+            return Cost(rop=oo, mem=oo, m=1)
+
+        # ~ if quantum:
+            # ~ size = size.sqrt()
+
+        sigma = params.Xe.stddev / params.q
+        m_required = RR(
+            8 * exp(4 * pi * pi * sigma * sigma) * (log(size_fft * size) - log(log(1 / probability)))
+        )
+
+        if params.m < m_required:
+            raise InsufficientSamplesError(
+                f"Exhaustive search: Need {m_required} samples but only {params.m} available."
+            )
+        else:
+            m = m_required
+
+        cost = size * (m + t * size_fft)
+
+        ret = Cost(rop=cost, mem=cost, m=m)
+        return ret
 
     @staticmethod
     def optimize_blocksize(
@@ -221,7 +258,7 @@ class DualHybrid:
             use_lll=use_lll,
             log_level=log_level,
         )
-        
+
         def f(beta):
             # ~ with local_minimum(0, params.n - zeta) as it:
                 # ~ for t in it:
