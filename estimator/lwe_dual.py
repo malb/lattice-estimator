@@ -398,8 +398,8 @@ class DualHybrid:
             >>> LWE.dual(schemes.CHHS_4096_67)
             rop: ≈2^213.3, mem: ≈2^115.0, m: ≈2^11.8, β: 617, d: 7783, ↻: 1, tag: dual
 
-            >>> LWE.dual_hybrid(Kyber512, red_cost_model=RC.ADPS16, gj21=True)
-            rop: ≈2^120.1, mem: ≈2^115.7, m: 512, β: 411, t: 75, d: 1013, ↻: 1, ζ: 11, tag: dual_hybrid
+            >>> LWE.dual_hybrid(Kyber512, red_cost_model=RC.GJ21, gj21=True)
+            rop: ≈2^149.6, mem: ≈2^145.6, m: 510, β: 399, t: 76, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
         """
 
         Cost.register_impermanent(
