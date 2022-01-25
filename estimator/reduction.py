@@ -791,12 +791,12 @@ class GJ21(Kyber):
         EXAMPLES::
 
             >>> from estimator.reduction import RC
-            >>> RC.Kyber.short_vectors(100, 500, 1)
+            >>> RC.GJ21.short_vectors(100, 500, 1)
             (1.0, 2.736747612813679e+19, 1)
-            >>> RC.Kyber.short_vectors(100, 500)
-            (1.1547, 2.736747612813679e+19, 176584)
-            >>> RC.Kyber.short_vectors(100, 500, 1000)
-            (1.1547, 2.736747612813679e+19, 176584)
+            >>> RC.GJ21.short_vectors(100, 500)
+            (1.04794327225585, 5.5622443848794505e+19, 36150192)
+            >>> RC.GJ21.short_vectors(100, 500, 1000)
+            (1.04794327225585, 5.5622443848794505e+19, 36150192)
 
         """
         if nn == "classical":
