@@ -3,7 +3,7 @@
 Cost estimates for lattice redution.
 """
 
-from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round, exp, sqrt
+from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round, exp
 from scipy.optimize import newton
 from fpylll.util import gaussian_heuristic as gh
 
@@ -376,7 +376,7 @@ class ReductionCost:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
         c = N / floor(2 ** (0.2075 * beta))
-        
+
         return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
 
 
@@ -759,10 +759,11 @@ class Kyber(ReductionCost):
         c = N / floor(2 ** (0.2075 * beta_))
         return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_))
 
+
 class GJ21(Kyber):
 
     __name__ = "GJ21"
-    
+
     def short_vectors(self, beta, d, N=None, preprocess=True, B=None, nn="classical", C=5.46):
         """
         Cost of outputting many somewhat short vectors according to [AC:GuoJoh21]_.
@@ -774,7 +775,7 @@ class GJ21(Kyber):
         - `c` is the cost of outputting `N` vectors
         - `N` the number of vectors output, which may be larger than the value put in for `N`.
 
-        This runs a sieve on the first β_0 vectors of the basis after BKZ-β reduction 
+        This runs a sieve on the first β_0 vectors of the basis after BKZ-β reduction
         to produce many short vectors, where β_0 is chosen such that BKZ-β reduction and the sieve
         run in approximately the same time. [AC:GuoJoh21]_
 
@@ -803,11 +804,11 @@ class GJ21(Kyber):
             nn = "list_decoding-classical"
         elif nn == "quantum":
             nn = "list_decoding-dw"
-        
+
         beta_ = beta - floor(self.d4f(beta))
         sieve_dim = beta_
         if beta < d:
-            # set beta_sieve such that complexity of 1 sieve in in dim beta_sieve is approx 
+            # set beta_sieve such that complexity of 1 sieve in in dim beta_sieve is approx
             # the same as the BKZ call
             sieve_dim = min(d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[nn]["a"]))
 
@@ -831,6 +832,7 @@ class GJ21(Kyber):
         c = N / floor(2 ** (0.2075 * sieve_dim))
         sieve_cost = C * 2 ** (self.NN_AGPS[nn]["a"] * sieve_dim + self.NN_AGPS[nn]["b"])
         return rho, ceil(c) * (self(beta, d) + sieve_cost), ceil(c) * floor(2 ** (0.2075 * sieve_dim))
+
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
     """

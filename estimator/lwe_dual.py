@@ -19,7 +19,7 @@ from .prob import amplify as prob_amplify
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import mitm_opt as mitm_opt_default
-from .errors import OutOfBoundsError
+from .errors import OutOfBoundsError, InsufficientSamplesError
 from .nd import NoiseDistribution
 from .lwe_guess import exhaustive_search, mitm, distinguish
 
@@ -88,7 +88,7 @@ class DualHybrid:
         # apply the [AC:GuoJoh21] technique, m_ not optimal anymore?
         d = m_ + red_Xs.n
         rho /= 2 ** (t / d)
-        
+
         # Compute new noise as in [INDOCRYPT:EspJouKha20]
         # ~ sigma_ = rho * red_Xs.stddev * delta ** (m_ + red_Xs.n) / c ** (m_ / (m_ + red_Xs.n))
         sigma_ = rho * red_Xs.stddev * delta ** d / c ** (m_ / d)
@@ -192,7 +192,7 @@ class DualHybrid:
 
         :param params: LWE parameters
         :param success_probability: the targeted success probability
-        :param t: the number of secret coordinates to guess mod 2. 
+        :param t: the number of secret coordinates to guess mod 2.
             For t=0 this is similar to lwe_guess.ExhaustiveSearch.
         :return: A cost dictionary
 
@@ -201,8 +201,8 @@ class DualHybrid:
         - ``rop``: Total number of word operations (≈ CPU cycles).
         - ``mem``: memory requirement in integers mod q.
         - ``m``: Required number of samples to distinguish the correct solution with high probability.
-        
-        .. note :: The parameter t only makes sense in the context of the dual attack, 
+
+        .. note :: The parameter t only makes sense in the context of the dual attack,
             which is why this function is here and not in the lwe_guess module.
         """
 
@@ -276,8 +276,7 @@ class DualHybrid:
             use_lll=use_lll,
             log_level=log_level,
         )
-        
-        
+
         if gj21:
             def f(beta):
                 with local_minimum(0, params.n - zeta) as it:
@@ -285,8 +284,7 @@ class DualHybrid:
                         it.update(f_t(beta=beta, t=t))
                     return it.y
         else:
-            f = f_t        
-        
+            f = f_t
 
         # don't have a reliable upper bound for beta
         # we choose n - k arbitrarily and adjust later if
@@ -399,8 +397,8 @@ class DualHybrid:
 
             >>> LWE.dual(schemes.CHHS_4096_67)
             rop: ≈2^213.3, mem: ≈2^115.0, m: ≈2^11.8, β: 617, d: 7783, ↻: 1, tag: dual
-            
-            >>> LWE.dual_hybrid(Kyber512, red_cost_model=RC.ADPS16, gj21=True)                                                                           
+
+            >>> LWE.dual_hybrid(Kyber512, red_cost_model=RC.ADPS16, gj21=True)
             rop: ≈2^120.1, mem: ≈2^115.7, m: 512, β: 411, t: 75, d: 1013, ↻: 1, ζ: 11, tag: dual_hybrid
         """
 
