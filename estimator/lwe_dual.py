@@ -9,7 +9,7 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.all import oo, ceil, sqrt, log, cached_function, RR
+from sage.all import oo, ceil, sqrt, log, cached_function, RR, exp, pi
 from .reduction import delta as deltaf
 from .util import local_minimum
 from .cost import Cost
@@ -19,7 +19,7 @@ from .prob import amplify as prob_amplify
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import mitm_opt as mitm_opt_default
-from .errors import OutOfBoundsError
+from .errors import OutOfBoundsError, InsufficientSamplesError
 from .nd import NoiseDistribution
 from .lwe_guess import exhaustive_search, mitm, distinguish
 
@@ -37,6 +37,7 @@ class DualHybrid:
         zeta: int = 0,
         h1: int = 0,
         rho: float = 1.0,
+        t: int = 0,
         log_level=None,
     ):
         """
@@ -84,8 +85,13 @@ class DualHybrid:
         m_ = max(1, ceil(sqrt(red_Xs.n * log(c) / log(delta))) - red_Xs.n)
         m_ = min(params.m, m_)
 
+        # apply the [AC:GuoJoh21] technique, m_ not optimal anymore?
+        d = m_ + red_Xs.n
+        rho /= 2 ** (t / d)
+
         # Compute new noise as in [INDOCRYPT:EspJouKha20]
-        sigma_ = rho * red_Xs.stddev * delta ** (m_ + red_Xs.n) / c ** (m_ / (m_ + red_Xs.n))
+        # ~ sigma_ = rho * red_Xs.stddev * delta ** (m_ + red_Xs.n) / c ** (m_ / (m_ + red_Xs.n))
+        sigma_ = rho * red_Xs.stddev * delta ** d / c ** (m_ / d)
         slv_Xe = NoiseDistribution.DiscreteGaussian(params.q * sigma_)
 
         slv_params = LWEParameters(
@@ -109,6 +115,7 @@ class DualHybrid:
         beta: int,
         zeta: int = 0,
         h1: int = 0,
+        t: int = 0,
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
         use_lll=True,
@@ -135,15 +142,19 @@ class DualHybrid:
 
         delta = deltaf(beta)
 
-        # only care about the scaling factor and don't know d yet -> use beta as dummy d
-        rho, _, _ = red_cost_model.short_vectors(beta=beta, d=beta)
+        # only care about the scaling factor and don't know d yet -> use 2 * beta as dummy d
+        rho, _, _ = red_cost_model.short_vectors(beta=beta, d=2 * beta)
 
         params_slv, m_ = DualHybrid.dual_reduce(
-            delta, params, zeta, h1, rho, log_level=log_level + 1
+            delta, params, zeta, h1, rho, t, log_level=log_level + 1
         )
         Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
 
-        cost = solver(params_slv, success_probability)
+        if t:
+            cost = DualHybrid.fft_solver(params_slv, success_probability, t)
+        else:
+            cost = solver(params_slv, success_probability)
+
         Logging.log("dual", log_level + 2, f"solve: {repr(cost)}")
 
         if cost["rop"] == oo or cost["m"] == oo:
@@ -156,6 +167,8 @@ class DualHybrid:
         cost["rop"] += cost_red
         cost["m"] = m_
         cost["beta"] = beta
+        if t:
+            cost["t"] = t
 
         if d < params.n - zeta:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
@@ -173,6 +186,56 @@ class DualHybrid:
         return cost.repeat(times=rep, select={"m": False})
 
     @staticmethod
+    def fft_solver(params, success_probability, t=0):
+        """
+        Estimate cost of solving LWE via the FFT distinguisher from [AC:GuoJoh21]_.
+
+        :param params: LWE parameters
+        :param success_probability: the targeted success probability
+        :param t: the number of secret coordinates to guess mod 2.
+            For t=0 this is similar to lwe_guess.ExhaustiveSearch.
+        :return: A cost dictionary
+
+        The returned cost dictionary has the following entries:
+
+        - ``rop``: Total number of word operations (≈ CPU cycles).
+        - ``mem``: memory requirement in integers mod q.
+        - ``m``: Required number of samples to distinguish the correct solution with high probability.
+
+        .. note :: The parameter t only makes sense in the context of the dual attack,
+            which is why this function is here and not in the lwe_guess module.
+        """
+
+        # there are two stages: enumeration and distinguishing, so we split up the success_probability
+        probability = sqrt(success_probability)
+
+        try:
+            size = params.Xs.support_size(n=params.n, fraction=probability)
+            size_fft = 2 ** t
+        except NotImplementedError:
+            # not achieving required probability with search space
+            # given our settings that means the search space is huge
+            # so we approximate the cost with oo
+            return Cost(rop=oo, mem=oo, m=1)
+
+        sigma = params.Xe.stddev / params.q
+        m_required = RR(
+            4 * exp(4 * pi * pi * sigma * sigma) * (log(size_fft * size) - log(log(1 / probability)))
+        )
+
+        if params.m < m_required:
+            raise InsufficientSamplesError(
+                f"Exhaustive search: Need {m_required} samples but only {params.m} available."
+            )
+        else:
+            m = m_required
+
+        cost = size * (m + t * size_fft)
+
+        ret = Cost(rop=cost, mem=cost, m=m)
+        return ret
+
+    @staticmethod
     def optimize_blocksize(
         solver,
         params: LWEParameters,
@@ -183,6 +246,7 @@ class DualHybrid:
         use_lll=True,
         log_level=5,
         opt_step=2,
+        fft=False,
     ):
         """
         Optimizes the cost of the dual hybrid attack over the block size β.
@@ -195,12 +259,13 @@ class DualHybrid:
         :param red_cost_model: How to cost lattice reduction
         :param use_lll: Use LLL calls to produce more small vectors
         :param opt_step: control robustness of optimizer
+        :param fft: use the FFT distinguisher from [AC:GuoJoh21]_
 
         .. note :: This function assumes that the instance is normalized. ζ and h1 are fixed.
 
         """
 
-        f = partial(
+        f_t = partial(
             DualHybrid.cost,
             solver=solver,
             params=params,
@@ -211,6 +276,16 @@ class DualHybrid:
             use_lll=use_lll,
             log_level=log_level,
         )
+
+        if fft:
+            def f(beta):
+                with local_minimum(0, params.n - zeta) as it:
+                    for t in it:
+                        it.update(f_t(beta=beta, t=t))
+                    return it.y
+        else:
+            f = f_t
+
         # don't have a reliable upper bound for beta
         # we choose n - k arbitrarily and adjust later if
         # necessary
@@ -240,6 +315,7 @@ class DualHybrid:
         use_lll=True,
         opt_step=2,
         log_level=1,
+        fft=False,
     ):
         """
         Optimizes the cost of the dual hybrid attack (using the given solver) over
@@ -257,6 +333,7 @@ class DualHybrid:
         :param red_cost_model: How to cost lattice reduction
         :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_
         :param opt_step: control robustness of optimizer
+        :param fft: use the FFT distinguisher from [AC:GuoJoh21]_. (ignored for sparse secrets)
 
         The returned cost dictionary has the following entries:
 
@@ -270,6 +347,7 @@ class DualHybrid:
         - ``prob``: Probability of success in guessing.
         - ``repetitions``: How often we are required to repeat the attack.
         - ``d``: Lattice dimension.
+        - ``t``: Number of secrets to guess mod 2 (only if ``fft`` is ``True``)
 
         - When ζ = 1 this function essentially estimates the dual attack.
         - When ζ > 1 and ``solver`` is ``exhaustive_search`` this function estimates
@@ -319,6 +397,9 @@ class DualHybrid:
 
             >>> LWE.dual(schemes.CHHS_4096_67)
             rop: ≈2^213.3, mem: ≈2^115.0, m: ≈2^11.8, β: 617, d: 7783, ↻: 1, tag: dual
+
+            >>> LWE.dual_hybrid(Kyber512, red_cost_model=RC.GJ21, fft=True)
+            rop: ≈2^149.6, mem: ≈2^145.6, m: 510, β: 399, t: 76, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
         """
 
         Cost.register_impermanent(
@@ -330,7 +411,9 @@ class DualHybrid:
             m=True,
             d=False,
             zeta=False,
+            t=False,
         )
+
         Logging.log("dual", log_level, f"costing LWE instance: {repr(params)}")
 
         params = params.normalize()
@@ -346,6 +429,7 @@ class DualHybrid:
                 red_cost_model=red_cost_model_default,
                 use_lll=True,
                 log_level=None,
+                fft=False
             ):
                 h = params.Xs.get_hamming_weight(params.n)
                 h1_min = max(0, h - (params.n - zeta))
@@ -353,6 +437,7 @@ class DualHybrid:
                 Logging.log("dual", log_level, f"h1 ∈ [{h1_min},{h1_max}] (zeta={zeta})")
                 with local_minimum(h1_min, h1_max, log_level=log_level + 1) as it:
                     for h1 in it:
+                        # ignoring fft on purpose for sparse secrets
                         cost = self.optimize_blocksize(
                             h1=h1,
                             solver=solver,
@@ -377,6 +462,7 @@ class DualHybrid:
             red_cost_model=red_cost_model,
             use_lll=use_lll,
             log_level=log_level + 1,
+            fft=fft,
         )
 
         with local_minimum(1, params.n - 1, opt_step) as it:
@@ -453,6 +539,7 @@ def dual_hybrid(
     use_lll=True,
     mitm_optimization=False,
     opt_step=2,
+    fft=False,
 ):
     """
     Dual hybrid attack from [INDOCRYPT:EspJouKha20]_.
@@ -464,6 +551,7 @@ def dual_hybrid(
     :param mitm_optimization: One of "analytical" or "numerical". If ``True`` a default from the
            ``conf`` module is picked, ``False`` disables MITM.
     :param opt_step: Control robustness of optimizer.
+    :param fft: use the FFT distinguisher from [AC:GuoJoh21]_. (ignored for sparse secrets)
 
     The returned cost dictionary has the following entries:
 
@@ -477,6 +565,7 @@ def dual_hybrid(
     - ``prob``: Probability of success in guessing.
     - ``repetitions``: How often we are required to repeat the attack.
     - ``d``: Lattice dimension.
+    - ``t``: Number of secrets to guess mod 2 (only if ``fft`` is ``True``)
     """
 
     if mitm_optimization is True:
@@ -494,6 +583,7 @@ def dual_hybrid(
         red_cost_model=red_cost_model,
         use_lll=use_lll,
         opt_step=opt_step,
+        fft=fft
     )
     if mitm_optimization:
         ret["tag"] = "dual_mitm_hybrid"
