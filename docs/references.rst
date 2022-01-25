@@ -4,6 +4,7 @@ References
 .. [AC:AGPS20] Albrecht, M. R., Gheorghiu, V., Postlethwaite, E. W., & Schanck, J. M. (2020). Estimating quantum speedups for lattice sieves. In S. Moriai, & H. Wang, ASIACRYPT 2020, Part II (pp. 583–613). : Springer, Heidelberg.
 .. [AC:AGVW17] Martin R. Albrecht, Florian Göpfert, Fernando Virdia & Thomas Wunderer. Revisiting the expected cost of solving uSVP and applications to LWE. In T. Takagi, & T. Peyrin, ASIACRYPT 2017, Part I (pp. 297–322). : Springer, Heidelberg.
 .. [AC:CheNgu11] Yuanmi Chen & Phong Q. Nguyen. BKZ 2.0: better lattice security estimates. In D. H. Lee, & X. Wang, ASIACRYPT 2011 (pp. 1–20): Springer, Heidelberg.
+.. [AC:GuoJoh21] Qian Guo, Thomas Johansson. Faster Dual Lattice Attacks for Solving LWE with Applications to CRYSTALS. In International Conference on the Theory and Application of Cryptology and Information Security (pp. 33-62). Springer, Cham.
 .. [ACISP:BaiGal14] Shi Bai & Steven D. Galbraith. Lattice decoding attacks on binary LWE. In W. Susilo, & Y. Mu, ACISP 14 (pp. 322–337). : Springer, Heidelberg.
 .. [C:ABFKSW20] Martin R. Albrecht, Shi Bai, Pierre-Alain Fouque, Paul Kirchner, Damien Stehlé and Weiqiang Wen. Faster Enumeration-based Lattice Reduction: Root Hermite Factor $beta^{1/(2k)}$ in Time $beta^{beta/8 + o(beta)}$. CRYPTO 2020.
 .. [C:ABLR21] Albrecht, M. R., Bai, S., Li, J., & Rowell, J. (2021). Lattice reduction with approximate enumeration oracles - practical algorithms and concrete performance. In T. Malkin, & C. Peikert, CRYPTO 2021, Part II (pp. 732–759). Virtual Event: Springer", Heidelberg.
