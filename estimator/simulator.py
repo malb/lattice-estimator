@@ -20,7 +20,7 @@ The last row is optional.
 from sage.all import RR, log
 
 
-def CN11(d, n, q, beta, xi=1, tau=1):
+def CN11(d, n, q, beta, xi=1, tau=1, dual=False):
     from fpylll import BKZ
     from fpylll.tools.bkz_simulator import simulate
 
@@ -29,7 +29,20 @@ def CN11(d, n, q, beta, xi=1, tau=1):
     else:
         r = [q ** 2] * (d - n) + [xi ** 2] * n
 
-    return simulate(r, BKZ.EasyParam(beta))[0]
+    if dual is False:
+        return simulate(r, BKZ.EasyParam(beta))[0]
+
+    else:
+        # 1. reverse and reflect the basis (go to dual)
+        r = [1/r_ for r_ in r[::-1]]
+
+        # 2. simulate reduction on the dual basis
+        r = simulate(r, BKZ.EasyParam(beta))[0]
+
+        # 3. reflect and reverse the basis (go back to primal)
+        r = [1/r_ for r_ in r[::-1]]
+
+        return r
 
 
 def GSA(d, n, q, beta, xi=1, tau=1):

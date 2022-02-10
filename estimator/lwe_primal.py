@@ -299,7 +299,12 @@ class PrimalHybrid:
 
         # 1. Simulate BKZ-β
         # TODO: pick τ
-        r = simulator(d, params.n - zeta, params.q, beta, xi=xi)
+
+        try:
+            r = simulator(d, params.n - zeta, params.q, beta, xi=xi, dual=True)
+        except TypeError:
+            r = simulator(d, params.n - zeta, params.q, beta, xi=xi)
+
         bkz_cost = costf(red_cost_model, beta, d)
 
         # 2. Required SVP dimension η
