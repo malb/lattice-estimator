@@ -83,8 +83,8 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     :param beta: Block size β.
     :param xi: Scaling factor ξ for identity part.
     :param tau: Kannan factor τ.
-    :param dual: ignored
-
+    :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
+           applying it to the primal.
     """
     from .reduction import delta as deltaf
 
