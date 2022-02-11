@@ -20,34 +20,9 @@ The last row is optional.
 from sage.all import RR, log
 
 
-def CN11(d, n, q, beta, xi=1, tau=1, dual=False):
-    from fpylll import BKZ
-    from fpylll.tools.bkz_simulator import simulate
-
-    if tau is not None:
-        r = [q ** 2] * (d - n - 1) + [xi ** 2] * n + [tau ** 2]
-    else:
-        r = [q ** 2] * (d - n) + [xi ** 2] * n
-
-    if dual is False:
-        return simulate(r, BKZ.EasyParam(beta))[0]
-
-    else:
-        # 1. reverse and reflect the basis (go to dual)
-        r = [1/r_ for r_ in r[::-1]]
-
-        # 2. simulate reduction on the dual basis
-        r = simulate(r, BKZ.EasyParam(beta))[0]
-
-        # 3. reflect and reverse the basis (go back to primal)
-        r = [1/r_ for r_ in r[::-1]]
-
-        return r
-
-
-def GSA(d, n, q, beta, xi=1, tau=1):
-
-    """Reduced lattice shape fallowing the Geometric Series Assumption [Schnorr03]_
+def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
+    """
+    Reduced lattice shape calling ``f``.
 
     :param d: Lattice dimension.
     :param n: Number of `q` vectors
@@ -55,7 +30,61 @@ def GSA(d, n, q, beta, xi=1, tau=1):
     :param beta: Block size β.
     :param xi: Scaling factor ξ for identity part.
     :param tau: Kannan factor τ.
+    :param dual: perform reduction on the dual.
 
+    """
+    if tau is not None:
+        r = [q ** 2] * (d - n - 1) + [xi ** 2] * n + [tau ** 2]
+    else:
+        r = [q ** 2] * (d - n) + [xi ** 2] * n
+
+    if dual:
+        # 1. reverse and reflect the basis (go to dual)
+        r = [1 / r_ for r_ in r[::-1]]
+        # 2. simulate reduction on the dual basis
+        r = f(r, beta)
+        # 3. reflect and reverse the basis (go back to primal)
+        r = [1 / r_ for r_ in r[::-1]]
+        return r
+    else:
+        return f(r, beta)
+
+
+def CN11(d, n, q, beta, xi=1, tau=1, dual=False):
+    """
+    Reduced lattice shape using simulator from [AC:CheNgu11]_
+
+    :param d: Lattice dimension.
+    :param n: Number of `q` vectors
+    :param q: Modulus `q`
+    :param beta: Block size β.
+    :param xi: Scaling factor ξ for identity part.
+    :param tau: Kannan factor τ.
+    :param dual: perform reduction on the dual.
+
+    """
+
+    from fpylll import BKZ
+    from fpylll.tools.bkz_simulator import simulate
+
+    def f(r, beta):
+        return simulate(r, BKZ.EasyParam(beta))[0]
+
+    return qary_simulator(f=f, d=d, n=n, q=q, beta=beta, xi=xi, tau=tau, dual=dual)
+
+
+def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
+    """
+    Reduced lattice shape following the Geometric Series Assumption [Schnorr03]_
+
+    :param d: Lattice dimension.
+    :param n: Number of `q` vectors
+    :param q: Modulus `q`
+    :param beta: Block size β.
+    :param xi: Scaling factor ξ for identity part.
+    :param tau: Kannan factor τ.
+    :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
+           applying it to the primal.
     """
     from .reduction import delta as deltaf
 
