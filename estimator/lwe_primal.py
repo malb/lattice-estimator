@@ -89,6 +89,10 @@ class PrimalUSVP:
         m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         tau = params.Xe.stddev if tau is None else tau
         d = PrimalUSVP._solve_for_d(params, m, beta, tau, xi) if d is None else d
+        # if d == β we assume one SVP call, otherwise poly calls. This makes the cost curve jump, so
+        # we avoid it here.
+        if d == beta and d < m:
+            d += 1
         assert d <= m + 1
 
         lhs = log(sqrt(params.Xe.stddev ** 2 * (beta - 1) + tau ** 2))
