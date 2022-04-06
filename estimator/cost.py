@@ -256,3 +256,13 @@ class Cost:
             return self["rop"] <= other["rop"]
         except AttributeError:
             return self["rop"] <= other
+
+    def sanity_check(self):
+        """
+        Perform basic checks.
+        """
+        if self.get("beta", 0) > self.get("d", 0):
+            raise RuntimeError(f"β = {self['beta']} > d = {self['d']}")
+        if self.get("eta", 0) > self.get("d", 0):
+            raise RuntimeError(f"η = {self['eta']} > d = {self['d']}")
+        return self
