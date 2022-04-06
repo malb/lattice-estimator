@@ -199,7 +199,10 @@ class CodedBKW:
         C = (C0 + C1 + C2 + C3 + C4) / (
             erf(zeta / sqrt(2 * params.Xe.stddev)) ** ntop
         )  # TODO don't ignore success probability
-        cost["rop"] = float(C)
+        try:
+            cost["rop"] = float(C)
+        except TypeError:
+            cost["rop"] = oo
         cost["mem"] = (t1 + t2) * params.q ** b
 
         cost = cost.reorder("rop", "m", "mem", "b", "t1", "t2")
