@@ -191,7 +191,7 @@ class PrimalUSVP:
                 cost = it.y
             cost["tag"] = "usvp"
             cost["problem"] = params
-            return cost
+            return cost.sanity_check()
 
         try:
             red_shape_model = simulator_normalize(red_shape_model)
@@ -237,7 +237,7 @@ class PrimalUSVP:
 
         cost["tag"] = "usvp"
         cost["problem"] = params
-        return cost
+        return cost.sanity_check()
 
     __name__ = "primal_usvp"
 
@@ -574,7 +574,7 @@ class PrimalHybrid:
             except KeyError:
                 pass
 
-        return cost
+        return cost.sanity_check()
 
     __name__ = "primal_hybrid"
 

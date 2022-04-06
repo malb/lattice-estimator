@@ -220,7 +220,9 @@ class DualHybrid:
 
         sigma = params.Xe.stddev / params.q
         m_required = RR(
-            4 * exp(4 * pi * pi * sigma * sigma) * (log(size_fft * size) - log(log(1 / probability)))
+            4
+            * exp(4 * pi * pi * sigma * sigma)
+            * (log(size_fft * size) - log(log(1 / probability)))
         )
 
         if params.m < m_required:
@@ -278,11 +280,13 @@ class DualHybrid:
         )
 
         if fft:
+
             def f(beta):
                 with local_minimum(0, params.n - zeta) as it:
                     for t in it:
                         it.update(f_t(beta=beta, t=t))
                     return it.y
+
         else:
             f = f_t
 
@@ -429,7 +433,7 @@ class DualHybrid:
                 red_cost_model=red_cost_model_default,
                 use_lll=True,
                 log_level=None,
-                fft=False
+                fft=False,
             ):
                 h = params.Xs.get_hamming_weight(params.n)
                 h1_min = max(0, h - (params.n - zeta))
@@ -473,7 +477,7 @@ class DualHybrid:
             cost = it.y
 
         cost["problem"] = params
-        return cost
+        return cost.sanity_check()
 
 
 DH = DualHybrid()
@@ -583,7 +587,7 @@ def dual_hybrid(
         red_cost_model=red_cost_model,
         use_lll=use_lll,
         opt_step=opt_step,
-        fft=fft
+        fft=fft,
     )
     if mitm_optimization:
         ret["tag"] = "dual_mitm_hybrid"
