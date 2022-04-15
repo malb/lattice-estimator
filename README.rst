@@ -14,8 +14,10 @@ The main purpose of this estimator is to give designers an easy way to choose pa
 Quick Start
 -----------
 
-- Usage ::
+- Usage
 
+  .. code-block:: python
+    
     >>> from estimator import *
     >>> Kyber512
     LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
