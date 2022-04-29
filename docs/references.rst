@@ -23,6 +23,7 @@ References
 .. [JMC:AlbPlaSco15] Albrecht, M. R., Player, R., & Scott, S. (2015). On the concrete hardness of Learning with Errors. Journal of Mathematical Cryptology, 9(3), 169–203.
 .. [Kyber17] Roberto Avanzi, Joppe Bos, Léo Ducas, Eike Kiltz, Tancrède Lepoint, Vadim Lyubashevsky, John M. Schanck, Peter Schwabe, Gregor Seiler, Damien Stehlé. CRYSTALS-KYBER. 2017                     
 .. [Kyber20] Roberto Avanzi, Joppe Bos, Léo Ducas, Eike Kiltz, Tancrède Lepoint, Vadim Lyubashevsky, John M. Schanck, Peter Schwabe, Gregor Seiler, Damien Stehlé. CRYSTALS-KYBER. 2020 https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf
+.. [MATZOV22] MATZOV. Report on the Security of LWE: Improved Dual Lattice Attack. https://zenodo.org/record/6412487 2003
 .. [PKC:PosVir21] Eamonn W. Postlethwaite & Fernando Virdia. On the success probability of solving unique SVP via BKZ. In J. Garay, PKC 2021, Part I (pp. 68–98). : Springer, Heidelberg.
 .. [PQCBook:MicReg09] Micciancio, D., & Regev, O. (2009). Lattice-based cryptography. In D. J. Bernstein, J. Buchmann, & E. Dahmen (Eds.), Post-Quantum Cryptography (pp. 147–191). Berlin, Heidelberg, New York: Springer, Heidelberg.
 .. [PhD:Chen13] Yuanmi Chen. Réduction de réseau et sécurité concrète du chiffrement complètement homomorphe. PhD thesis, Paris 7, 2013.

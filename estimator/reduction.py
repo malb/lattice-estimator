@@ -628,6 +628,20 @@ class Kyber(ReductionCost):
 
     # These are not asymptotic expressions but compress the data in [AC:AGPS20]_ which covers up to
     # β = 1024
+
+    # import glob
+    # import pandas
+    # var("a,b,d")
+    # f = (a*d + b).function(d)
+
+    # for filename in sorted(glob.glob("data/cost-estimate-*.csv")):
+    #     if "sieve_size" in filename:
+    #         continue
+    #     costs = list(pandas.read_csv(filename)[["d", "log_cost"]].itertuples(index=False, name=None))
+    #     key = filename.replace("data/cost-estimate-","").replace(".csv", "")
+    #     values = find_fit(costs, f, solution_dict=True)
+    #     print(f"\"{key}\": {{\"a\": {values[a]}, \"b\": {values[b]}}},")
+
     NN_AGPS = {
         "all_pairs-classical": {"a": 0.4215069316613415, "b": 20.1669683097337},
         "all_pairs-dw": {"a": 0.3171724396445732, "b": 25.29828951733785},
@@ -761,6 +775,40 @@ class Kyber(ReductionCost):
         return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_))
 
 
+class MATZOV(Kyber):
+    """
+    Improved enumeration routine in list decoding from [MATZOV22]_.
+    """
+
+    __name__ = "Kyber"
+
+    # These are not asymptotic expressions but compress the data in [AC:AGPS20]_ with the fix and
+    # improvement from [MATZOV22]_ applied which covers up to β = 1024
+    NN_AGPS = {
+        "all_pairs-classical": {"a": 0.4215069316732438, "b": 20.166968300536567},
+        "all_pairs-dw": {"a": 0.3171724396445733, "b": 25.2982895173379},
+        "all_pairs-g": {"a": 0.31552858350028, "b": 22.478746811528104},
+        "all_pairs-ge19": {"a": 0.3222895263943547, "b": 36.11746438609664},
+        "all_pairs-naive_classical": {"a": 0.41862512941897706, "b": 9.899382685790897},
+        "all_pairs-naive_quantum": {"a": 0.31401512571180035, "b": 7.694659414353819},
+        "all_pairs-t_count": {"a": 0.31553282513562797, "b": 20.87859415484879},
+        "list_decoding-classical": {"a": 0.29613500308205365, "b": 20.387885985467914},
+        "list_decoding-dw": {"a": 0.2663676536352464, "b": 25.299541499216627},
+        "list_decoding-g": {"a": 0.26600114174341505, "b": 23.440974518186337},
+        "list_decoding-ge19": {"a": 0.26799889622667994, "b": 30.839871638418543},
+        "list_decoding-naive_classical": {"a": 0.29371310617068064, "b": 15.930690682515422},
+        "list_decoding-naive_quantum": {"a": 0.2632557273632713, "b": 15.685687713591548},
+        "list_decoding-t_count": {"a": 0.2660264010780807, "b": 22.432158856991474},
+        "random_buckets-classical": {"a": 0.3558614423344473, "b": 23.08252781663665},
+        "random_buckets-dw": {"a": 0.30704199602260734, "b": 25.58196897625173},
+        "random_buckets-g": {"a": 0.30610964725102396, "b": 22.928235564044588},
+        "random_buckets-ge19": {"a": 0.31089687605567917, "b": 36.02129974535213},
+        "random_buckets-naive_classical": {"a": 0.35448283789554536, "b": 15.28878540793911},
+        "random_buckets-naive_quantum": {"a": 0.3021142178390157, "b": 11.151745066682524},
+        "random_buckets-t_count": {"a": 0.3061477007403873, "b": 21.418301489775203},
+    }
+
+
 class GJ21(Kyber):
 
     __name__ = "GJ21"
@@ -818,7 +866,7 @@ class GJ21(Kyber):
             # we assume the basis will be BKZ-β reduced
             log_delta = log(self.delta(beta), 2)
             # block of dimension beta_sieve has unit volume
-            dummy_r = [1. for _ in range(sieve_dim)]
+            dummy_r = [1.0 for _ in range(sieve_dim)]
             beta_r = [exp(log_delta * (sieve_dim - 1 - 2 * i)) for i in range(beta)]
             rho *= RR(gh(dummy_r) / gh(beta_r))
 
@@ -832,7 +880,11 @@ class GJ21(Kyber):
 
         c = N / floor(2 ** (0.2075 * sieve_dim))
         sieve_cost = C * 2 ** (self.NN_AGPS[nn]["a"] * sieve_dim + self.NN_AGPS[nn]["b"])
-        return rho, ceil(c) * (self(beta, d) + sieve_cost), ceil(c) * floor(2 ** (0.2075 * sieve_dim))
+        return (
+            rho,
+            ceil(c) * (self(beta, d) + sieve_cost),
+            ceil(c) * floor(2 ** (0.2075 * sieve_dim)),
+        )
 
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
@@ -886,5 +938,6 @@ class RC:
     BDGL16 = BDGL16()
     CheNgu12 = CheNgu12()
     Kyber = Kyber()
+    MATZOV = MATZOV()
     GJ21 = GJ21()
     LaaMosPol14 = LaaMosPol14()
