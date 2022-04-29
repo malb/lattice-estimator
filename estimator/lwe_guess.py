@@ -81,6 +81,8 @@ class guess_composition:
         :returns: (number of repetitions, γ, size of the search space, probability of success)
 
         """
+        if h == 0:
+            return 1, 0, 0, 1.0
         if not zeta:
             return 1, 0, 0, 1.0
 
@@ -140,6 +142,8 @@ class guess_composition:
             rop: ≈2^87.3, red: ≈2^86.3, svp: ≈2^86.3, β: 105, η: 2, ζ: 372, |S|: ≈2^96.9, d: 309, prob: ≈2^-19.1, ...
 
         """
+        params = LWEParameters.normalize(params)
+
         if params.Xs.is_sparse:
             return self.sparse_solve(self.f, params, log_level, **kwds)
         else:

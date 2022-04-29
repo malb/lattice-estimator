@@ -244,13 +244,23 @@ def binary_search(
         return it.y
 
 
-def _batch_estimatef(f, x, log_level=0, f_repr=None):
-    y = f(x)
+def _batch_estimatef(f, x, log_level=0, f_repr=None, catch_exceptions=True):
+    try:
+        y = f(x)
+    except Exception as e:
+        if catch_exceptions:
+            print(f"Algorithm {f_repr} on {x} failed with {e}")
+            return None
+        else:
+            raise e
+
     if f_repr is None:
         f_repr = repr(f)
+
     Logging.log("batch", log_level, f"f: {f_repr}")
     Logging.log("batch", log_level, f"x: {x}")
     Logging.log("batch", log_level, f"f(x): {repr(y)}")
+
     return y
 
 
@@ -261,7 +271,16 @@ def f_name(f):
         return repr(f)
 
 
-def batch_estimate(params, algorithm, jobs=1, log_level=0, **kwds):
+def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True, **kwds):
+    """
+
+    :param params: (List of) LWE parameters.
+    :param algorithm: (List of) algorithms.
+    :param jobs: Use multiple threads in parallel.
+    :param log_level:
+    :param catch_exceptions: When an estimate fails, just print a warning.
+
+    """
     from .lwe_parameters import LWEParameters
 
     if isinstance(params, LWEParameters):
@@ -275,12 +294,12 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, **kwds):
 
     for x in params:
         for f in algorithm:
-            tasks.append((partial(f, **kwds), x, log_level, f_name(f)))
+            tasks.append((partial(f, **kwds), x, log_level, f_name(f), catch_exceptions))
 
     if jobs == 1:
         res = {}
-        for f, x, lvl, f_repr in tasks:
-            y = _batch_estimatef(f, x, lvl, f_repr)
+        for f, x, lvl, f_repr, catch_exceptions in tasks:
+            y = _batch_estimatef(f, x, lvl, f_repr, catch_exceptions)
             res[f_repr, x] = y
     else:
         pool = Pool(jobs)
@@ -290,6 +309,7 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, **kwds):
     ret = dict()
     for f, x in res:
         ret[x] = ret.get(x, dict())
-        ret[x][f] = res[f, x]
+        if res[f, x] is not None:
+            ret[x][f] = res[f, x]
 
     return ret
