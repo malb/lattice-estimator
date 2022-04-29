@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from sage.all import parent, RR, RealField, sqrt, pi, oo, ceil, binomial, exp
+from sage.all import parent, RR, RealField, sqrt, pi, oo, ceil, binomial, exp, log
 
 
 def stddevf(sigma):
@@ -255,7 +255,14 @@ class NoiseDistribution:
 
         """
         return NoiseDistribution(
-            stddev=RR(stddev), mean=RR(mean), n=n, bounds=(-oo, oo), tag="DiscreteGaussian"
+            stddev=RR(stddev),
+            mean=RR(mean),
+            n=n,
+            bounds=(-oo, oo)
+            if n is None
+            else (-ceil(log(n, 2) * stddev), ceil(log(n, 2) * stddev)),
+            density=1 - min(RR(1 / (sqrt(2 * pi) * stddev)), 1.0),
+            tag="DiscreteGaussian",
         )
 
     @staticmethod
@@ -286,9 +293,14 @@ class NoiseDistribution:
 
         """
         stddev = sqrt(eta / 2.0)
-        # TODO: density
+
         return NoiseDistribution(
-            stddev=RR(stddev), mean=RR(0), n=n, bounds=(-eta, eta), tag="CenteredBinomial"
+            stddev=RR(stddev),
+            density=1 - binomial(2 * eta, eta) * 2 ** (-2 * eta),
+            mean=RR(0),
+            n=n,
+            bounds=(-eta, eta),
+            tag="CenteredBinomial",
         )
 
     @staticmethod
@@ -361,7 +373,9 @@ class NoiseDistribution:
 
         if n == 0:
             # this might happen in the dual attack
-            return NoiseDistribution(stddev=0, mean=0, density=0, bounds=(-1, 1), tag="SparseTernary", n=0)
+            return NoiseDistribution(
+                stddev=0, mean=0, density=0, bounds=(-1, 1), tag="SparseTernary", n=0
+            )
         mean = RR(p / n - m / n)
         stddev = RR(sqrt((p + m) / n))
         density = RR((p + m) / n)

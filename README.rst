@@ -35,7 +35,7 @@ Quick Start
     usvp                 :: rop: ≈2^150.4, red: ≈2^150.4, δ: 1.003941, β: 406, d: 998, tag: usvp
     bdd                  :: rop: ≈2^146.9, red: ≈2^146.3, svp: ≈2^145.4, β: 391, η: 421, d: 1013, tag: bdd
     bdd_hybrid           :: rop: ≈2^146.9, red: ≈2^146.3, svp: ≈2^145.4, β: 391, η: 421, ζ: 0, |S|: 1, d: 1016, prob: 1, ↻: 1, tag: hybrid
-    bdd_mitm_hybrid      :: rop: ≈2^297.5, red: ≈2^297.5, svp: ≈2^167.3, β: 405, η: 2, ζ: 0, |S|: 1, d: 1025, prob: ≈2^-145.1, ↻: ≈2^147.3, tag: hybrid
+    bdd_mitm_hybrid      :: rop: ≈2^260.6, red: ≈2^259.7, svp: ≈2^259.4, β: 405, η: 2, ζ: 111, |S|: ≈2^259.8, d: 914, prob: ≈2^-107.6, ...
     dual                 :: rop: ≈2^157.4, mem: ≈2^81.0, m: 512, β: 431, d: 1024, ↻: 1, tag: dual
     dual_hybrid          :: rop: ≈2^151.7, mem: ≈2^147.5, m: 512, β: 410, d: 999, ↻: 1, ζ: 25, tag: dual_hybrid
 
