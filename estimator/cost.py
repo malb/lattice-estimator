@@ -40,13 +40,17 @@ class Cost:
     key_map = {
         "delta": "δ",
         "beta": "β",
+        "beta_": "β'",
         "eta": "η",
+        "eta_": "η'",
         "epsilon": "ε",
         "zeta": "ζ",
+        "zeta_": "ζ'",
         "ell": "ℓ",
+        "ell_": "ℓ'",
         "repetitions": "↻",
     }
-    val_map = {"beta": "%8d", "d": "%8d", "delta": "%8.6f"}
+    val_map = {"beta": "%8d", "beta_": "%8d", "d": "%8d", "delta": "%8.6f"}
 
     def __init__(self, **kwds):
         for k, v in kwds.items():
