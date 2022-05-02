@@ -159,17 +159,17 @@ class PrimalUSVP:
 
             >>> from estimator import *
             >>> LWE.primal_usvp(Kyber512)
-            rop: ≈2^150.4, red: ≈2^150.4, δ: 1.003941, β: 406, d: 998, tag: usvp
+            rop: ≈2^143.8, red: ≈2^143.8, δ: 1.003941, β: 406, d: 998, tag: usvp
 
             >>> params = LWE.Parameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> LWE.primal_usvp(params, red_shape_model="cn11")
-            rop: ≈2^93.7, red: ≈2^93.7, δ: 1.006114, β: 209, d: 388, tag: usvp
+            rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> LWE.primal_usvp(params, red_shape_model=Simulator.CN11)
-            rop: ≈2^93.7, red: ≈2^93.7, δ: 1.006114, β: 209, d: 388, tag: usvp
+            rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> LWE.primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
-            rop: ≈2^93.8, red: ≈2^93.8, δ: 1.006114, β: 209, d: 400, tag: usvp
+            rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 400, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
         [AC:AGVW17]_, [C:DDGR20]_, [PKC:PosVir21]_. The treatment of small secrets is from
@@ -501,16 +501,16 @@ class PrimalHybrid:
 
             >>> from estimator import *
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
-            rop: ≈2^97.3, red: ≈2^96.8, svp: ≈2^95.8, β: 178, η: 21, ζ: 256, |S|: ≈2^56.6, d: 531, prob: 0.003...
+            rop: ≈2^91.5, red: ≈2^90.7, svp: ≈2^90.2, β: 178, η: 21, ζ: 256, |S|: ≈2^56.6, d: 531, ...
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
-            rop: ≈2^91.7, red: ≈2^90.9, svp: ≈2^90.4, β: 100, η: 2, ζ: 322, |S|: ≈2^46.4, d: 351, prob: ≈2^-24.8...
+            rop: ≈2^88.7, red: ≈2^88.0, svp: ≈2^87.2, β: 98, η: 2, ζ: 323, |S|: ≈2^39.7, d: 346, ...
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
-            rop: ≈2^76.6, red: ≈2^76.3, svp: ≈2^74.3, β: 104, η: 16, ζ: 320, |S|: ≈2^88.3, d: 359, prob: 0.002...
+            rop: ≈2^74.1, red: ≈2^73.7, svp: ≈2^71.9, β: 104, η: 16, ζ: 320, |S|: ≈2^77.1, d: 359, ...
 
             >>> LWE.primal_hybrid(Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
-            rop: ≈2^87.3, red: ≈2^86.3, svp: ≈2^86.3, β: 105, η: 2, ζ: 372, |S|: ≈2^96.9, d: 309, prob: ≈2^-19.1...
+            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, ...
 
         TESTS:
 
@@ -518,7 +518,7 @@ class PrimalHybrid:
 
             >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
             >>> LWE.primal_bdd(params)
-            rop: ≈2^49.3, red: ≈2^49.3, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
+            rop: ≈2^43.7, red: ≈2^43.7, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
 
         """
 
