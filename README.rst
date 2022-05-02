@@ -36,8 +36,8 @@ Quick Start
     bdd                  :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, d: 1013, tag: bdd
     bdd_hybrid           :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, ζ: 0, |S|: 1, d: 1016, prob: 1, ↻: 1, tag: hybrid
     bdd_mitm_hybrid      :: rop: ≈2^260.3, red: ≈2^259.4, svp: ≈2^259.3, β: 405, η: 2, ζ: 102, |S|: ≈2^247.2, d: 923, prob: ≈2^-113.8, ↻: ≈2^116.0, tag: hybrid
-    dual                 :: rop: ≈2^150.8, mem: ≈2^81.0, m: 512, β: 431, d: 1024, ↻: 1, tag: dual
-    dual_hybrid          :: rop: ≈2^145.7, mem: ≈2^142.2, m: 512, β: 412, d: 1001, ↻: 1, ζ: 23, tag: dual_hybrid
+    dual                 :: rop: ≈2^149.9, mem: ≈2^88.0, m: 512, β: 424, d: 1024, ↻: 1, tag: dual
+    dual_hybrid          :: rop: ≈2^145.6, mem: ≈2^140.7, m: 512, β: 408, d: 1004, ↻: 1, ζ: 20, tag: dual_hybrid
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.

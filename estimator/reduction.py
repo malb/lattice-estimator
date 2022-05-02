@@ -3,9 +3,8 @@
 Cost estimates for lattice redution.
 """
 
-from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round, exp
+from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round, sqrt
 from scipy.optimize import newton
-from fpylll.util import gaussian_heuristic as gh
 
 
 class ReductionCost:
@@ -334,7 +333,7 @@ class ReductionCost:
             N = 1000  # pick something
         return 1.0, N * self(beta, d, B=B), N
 
-    def _short_vectors_sieve(self, beta, d, N=None, B=None, preprocess=True):
+    def _short_vectors_sieve(self, beta, d, N=None, B=None, preprocess=True, sieve_dim=None):
         """
         Cost of outputting many somewhat short vectors.
 
@@ -353,6 +352,7 @@ class ReductionCost:
         :param B: Bit-size of entries.
         :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
                If ``False`` we assume the basis is already BKZ-β reduced.
+        :param sieve_dim: Explicit sieving dimension.
         :returns: ``(ρ, c, N)``
 
         EXAMPLES::
@@ -361,12 +361,16 @@ class ReductionCost:
             >>> RC.ADPS16.short_vectors(100, 500, 1)
             (1.0, 6.16702733460158e8, 1)
             >>> RC.ADPS16.short_vectors(100, 500)
-            (1.1547, 6.16702733460158e8, 1763487)
+            (1.1547..., 6.16702733460158e8, 1763487)
             >>> RC.ADPS16.short_vectors(100, 500, 1000)
-            (1.1547, 6.16702733460158e8, 1763487)
+            (1.1547..., 6.16702733460158e8, 1763487)
 
 
         """
+
+        if sieve_dim is None:
+            sieve_dim = beta
+
         if N == 1:
             if preprocess:
                 return 1.0, self(beta, d, B=B), 1
@@ -377,7 +381,12 @@ class ReductionCost:
 
         c = N / floor(2 ** (0.2075 * beta))
 
-        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
+        rho = sqrt(4 / 3.0) * RR(
+            self.delta(sieve_dim) ** ((sieve_dim - 1) / 2)
+            * self.delta(beta) ** ((-sieve_dim + 1) / 2)
+        )
+
+        return rho, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
 
 
 class BDGL16(ReductionCost):
@@ -775,7 +784,86 @@ class Kyber(ReductionCost):
         return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_))
 
 
-class MATZOV(Kyber):
+class GJ21(Kyber):
+
+    __name__ = "GJ21"
+
+    def short_vectors(
+        self, beta, d, N=None, preprocess=True, B=None, nn="classical", C=5.46, sieve_dim=None
+    ):
+        """
+        Cost of outputting many somewhat short vectors according to [AC:GuoJoh21]_.
+
+        The output of this function is a tuple of three values:
+
+        - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
+          vector expected from an SVP oracle by this factor.
+        - `c` is the cost of outputting `N` vectors
+        - `N` the number of vectors output, which may be larger than the value put in for `N`.
+
+        This runs a sieve on the first β_0 vectors of the basis after BKZ-β reduction
+        to produce many short vectors, where β_0 is chosen such that BKZ-β reduction and the sieve
+        run in approximately the same time. [AC:GuoJoh21]_
+
+        :param beta: Cost parameter (≈ SVP dimension).
+        :param d: Lattice dimension.
+        :param N: Number of vectors requested.
+        :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
+               If ``False`` we assume the basis is already BKZ-β reduced.
+        :param B: Bit-size of entries.
+        :param nn: Nearest neighbor cost model. We default to "ListDecoding" (i.e. BDGL16) and to
+                   the "depth × width" metric. Kyber uses "AllPairs".
+        :param C: Progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{0.292 i + o(i)}/2^{0.292 β + o(β)}.
+        :param sieve_dim: Explicit sieving dimension.
+
+        EXAMPLES::
+
+            >>> from estimator.reduction import RC
+            >>> RC.GJ21.short_vectors(100, 500, 1)
+            (1.0, 2.7367476128136...19, 1)
+            >>> RC.GJ21.short_vectors(100, 500)
+            (1.09705125094519, 5.5622443848...19, 36150192)
+            >>> RC.GJ21.short_vectors(100, 500, 1000)
+            (1.09705125094519, 5.5622443848...19, 36150192)
+
+        """
+        if nn == "classical":
+            nn = "list_decoding-classical"
+        elif nn == "quantum":
+            nn = "list_decoding-dw"
+
+        beta_ = beta - floor(self.d4f(beta))
+        if sieve_dim is None:
+            sieve_dim = beta_
+            if beta < d:
+                # set beta_sieve such that complexity of 1 sieve in in dim beta_sieve is approx
+                # the same as the BKZ call
+                sieve_dim = min(d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[nn]["a"]))
+
+        # MATZOV, p.18
+        rho = sqrt(4 / 3.0) * RR(
+            self.delta(sieve_dim) ** ((sieve_dim - 1) / 2)
+            * self.delta(beta) ** ((-sieve_dim + 1) / 2)
+        )
+
+        if N == 1:
+            if preprocess:
+                return 1.0, self(beta, d, B=B), 1
+            else:
+                return 1.0, 1, 1
+        elif N is None:
+            N = floor(2 ** (0.2075 * sieve_dim))  # pick something
+
+        c = N / floor(2 ** (0.2075 * sieve_dim))
+        sieve_cost = C * 2 ** (self.NN_AGPS[nn]["a"] * sieve_dim + self.NN_AGPS[nn]["b"])
+        return (
+            rho,
+            ceil(c) * (self(beta, d) + sieve_cost),
+            ceil(c) * floor(2 ** (0.2075 * sieve_dim)),
+        )
+
+
+class MATZOV(GJ21):
     """
     Improved enumeration routine in list decoding from [MATZOV22]_.
     """
@@ -807,84 +895,6 @@ class MATZOV(Kyber):
         "random_buckets-naive_quantum": {"a": 0.3021142178390157, "b": 11.151745066682524},
         "random_buckets-t_count": {"a": 0.3061477007403873, "b": 21.418301489775203},
     }
-
-
-class GJ21(Kyber):
-
-    __name__ = "GJ21"
-
-    def short_vectors(self, beta, d, N=None, preprocess=True, B=None, nn="classical", C=5.46):
-        """
-        Cost of outputting many somewhat short vectors according to [AC:GuoJoh21]_.
-
-        The output of this function is a tuple of three values:
-
-        - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
-          vector expected from an SVP oracle by this factor.
-        - `c` is the cost of outputting `N` vectors
-        - `N` the number of vectors output, which may be larger than the value put in for `N`.
-
-        This runs a sieve on the first β_0 vectors of the basis after BKZ-β reduction
-        to produce many short vectors, where β_0 is chosen such that BKZ-β reduction and the sieve
-        run in approximately the same time. [AC:GuoJoh21]_
-
-        :param beta: Cost parameter (≈ SVP dimension).
-        :param d: Lattice dimension.
-        :param N: Number of vectors requested.
-        :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
-               If ``False`` we assume the basis is already BKZ-β reduced.
-        :param B: Bit-size of entries.
-        :param nn: Nearest neighbor cost model. We default to "ListDecoding" (i.e. BDGL16) and to
-                   the "depth × width" metric. Kyber uses "AllPairs".
-        :param C: Progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{0.292 i + o(i)}/2^{0.292 β + o(β)}.
-
-        EXAMPLES::
-
-            >>> from estimator.reduction import RC
-            >>> RC.GJ21.short_vectors(100, 500, 1)
-            (1.0, 2.7367476128136...19, 1)
-            >>> RC.GJ21.short_vectors(100, 500)
-            (1.04794327225585, 5.56224438487945...19, 36150192)
-            >>> RC.GJ21.short_vectors(100, 500, 1000)
-            (1.04794327225585, 5.56224438487945...19, 36150192)
-
-        """
-        if nn == "classical":
-            nn = "list_decoding-classical"
-        elif nn == "quantum":
-            nn = "list_decoding-dw"
-
-        beta_ = beta - floor(self.d4f(beta))
-        sieve_dim = beta_
-        if beta < d:
-            # set beta_sieve such that complexity of 1 sieve in in dim beta_sieve is approx
-            # the same as the BKZ call
-            sieve_dim = min(d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[nn]["a"]))
-
-        rho = 1.1547
-        if sieve_dim > beta:
-            # we assume the basis will be BKZ-β reduced
-            log_delta = log(self.delta(beta), 2)
-            # block of dimension beta_sieve has unit volume
-            dummy_r = [1.0 for _ in range(sieve_dim)]
-            beta_r = [exp(log_delta * (sieve_dim - 1 - 2 * i)) for i in range(beta)]
-            rho *= RR(gh(dummy_r) / gh(beta_r))
-
-        if N == 1:
-            if preprocess:
-                return 1.0, self(beta, d, B=B), 1
-            else:
-                return 1.0, 1, 1
-        elif N is None:
-            N = floor(2 ** (0.2075 * sieve_dim))  # pick something
-
-        c = N / floor(2 ** (0.2075 * sieve_dim))
-        sieve_cost = C * 2 ** (self.NN_AGPS[nn]["a"] * sieve_dim + self.NN_AGPS[nn]["b"])
-        return (
-            rho,
-            ceil(c) * (self(beta, d) + sieve_cost),
-            ceil(c) * floor(2 ** (0.2075 * sieve_dim)),
-        )
 
 
 def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
