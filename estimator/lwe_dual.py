@@ -378,7 +378,7 @@ class DualHybrid:
             >>> LWE.dual_hybrid(params)
             rop: ≈2^92.2, mem: ≈2^78.0, m: 716, β: 170, d: 1461, ↻: ≈2^11.2, ζ: 279, h1: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^98.3, mem: ≈2^79.6, m: 735, k: 292, ↻: ≈2^18.0, β: 183, d: 1283, ζ: 476, h1: 17, tag: dual_mitm_hybrid
+            rop: ≈2^98.3, mem: ≈2^79.6, m: 735, k: 292, ↻: ≈2^18.0, β: 183, d: 1283, ζ: 476, h1: 17, ...
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
