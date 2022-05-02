@@ -364,46 +364,46 @@ class DualHybrid:
             >>> from estimator import *
             >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^107.3, mem: ≈2^57.0, m: 972, β: 265, d: 1996, ↻: 1, tag: dual
+            rop: ≈2^107.0, mem: ≈2^58.0, m: 970, β: 264, d: 1994, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^103.3, mem: ≈2^99.0, m: 937, β: 250, d: 1917, ↻: 1, ζ: 44, tag: dual_hybrid
+            rop: ≈2^103.2, mem: ≈2^97.4, m: 937, β: 250, d: 1919, ↻: 1, ζ: 42, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^130.2, mem: ≈2^128.0, m: 1143, k: 121, ↻: 1, β: 347, d: 2016, ζ: 151, tag: dual_mitm_hybrid
+            rop: ≈2^130.1, mem: ≈2^127.0, m: 1144, k: 120, ↻: 1, β: 347, d: 2024, ζ: 144, tag: dual_mitm_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization="numerical")
             rop: ≈2^129.0, m: 1145, k: 1, mem: ≈2^131.0, ↻: 1, β: 346, d: 2044, ζ: 125, tag: dual_mitm_hybrid
 
             >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
-            rop: ≈2^103.7, mem: ≈2^54.0, m: 907, β: 252, d: 1931, ↻: 1, tag: dual
+            rop: ≈2^103.4, mem: ≈2^55.4, m: 904, β: 251, d: 1928, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^92.2, mem: ≈2^78.0, m: 716, β: 170, d: 1461, ↻: ≈2^11.2, ζ: 279, h1: 8, tag: dual_hybrid
+            rop: ≈2^92.1, mem: ≈2^78.2, m: 716, β: 170, d: 1464, ↻: 1989, ζ: 276, h1: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^98.3, mem: ≈2^79.6, m: 735, k: 292, ↻: ≈2^18.0, β: 183, d: 1283, ζ: 476, h1: 17, ...
+            rop: ≈2^98.2, mem: ≈2^78.6, m: 728, k: 292, ↻: ≈2^18.7, β: 180, d: 1267, ζ: 485, h1: 17, tag: ...
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
-            rop: ≈2^114.5, mem: ≈2^62.0, m: 1103, β: 291, d: 2127, ↻: 1, tag: dual
+            rop: ≈2^114.5, mem: ≈2^61.0, m: 1103, β: 291, d: 2127, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^113.7, mem: ≈2^107.6, m: 1096, β: 288, d: 2109, ↻: 1, ζ: 11, tag: dual_hybrid
+            rop: ≈2^113.6, mem: ≈2^103.5, m: 1096, β: 288, d: 2110, ↻: 1, ζ: 10, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^155.5, mem: ≈2^146.2, m: 1414, k: 34, ↻: 1, β: 438, d: 2404, ζ: 34, tag: dual_mitm_hybrid
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^116.7, mem: ≈2^63.0, m: 1142, β: 299, d: 2166, ↻: 1, tag: dual
+            rop: ≈2^116.5, mem: ≈2^64.0, m: 1140, β: 298, d: 2164, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^116.3, mem: ≈2^111.7, m: 1137, β: 297, d: 2153, ↻: 1, ζ: 8, tag: dual_hybrid
+            rop: ≈2^116.2, mem: ≈2^100.4, m: 1137, β: 297, d: 2155, ↻: 1, ζ: 6, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^160.7, mem: ≈2^156.8, m: 1473, k: 25, ↻: 1, β: 456, d: 2472, ζ: 25, tag: dual_mitm_hybrid
 
             >>> LWE.dual_hybrid(NTRUHPS2048509Enc)
-            rop: ≈2^131.9, mem: ≈2^129.1, m: 436, β: 358, d: 906, ↻: 1, ζ: 38, tag: dual_hybrid
+            rop: ≈2^131.7, mem: ≈2^128.5, m: 436, β: 358, d: 906, ↻: 1, ζ: 38, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
-            rop: ≈2^206.9, mem: ≈2^123.4, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
+            rop: ≈2^206.9, mem: ≈2^126.0, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
 
             >>> LWE.dual_hybrid(Kyber512, red_cost_model=RC.GJ21, fft=True)
-            rop: ≈2^149.8, mem: ≈2^147.4, m: 510, β: 399, t: 73, d: 999, ↻: 1, ζ: 23, tag: dual_hybrid
+            rop: ≈2^149.6, mem: ≈2^145.7, m: 510, β: 399, t: 76, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
         """
 
         Cost.register_impermanent(
