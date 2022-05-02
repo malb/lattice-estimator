@@ -246,12 +246,13 @@ class ReductionCost:
         """
         Cost of outputting many somewhat short vectors.
 
-        The output of this function is a tuple of three values:
+        The output of this function is a tuple of four values:
 
         - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
           vector expected from an SVP oracle by this factor.
         - `c` is the cost of outputting `N` vectors
         - `N` the number of vectors output, which may be larger than the value put in for `N`.
+        - `β'` the cost parameter associated with sampling, here: 2
 
         This baseline implementation uses rerandomize+LLL as in [EC:Albrecht17]_.
 
@@ -267,17 +268,17 @@ class ReductionCost:
 
             >>> from estimator.reduction import RC
             >>> RC.CheNgu12.short_vectors(100, 500, N=1)
-            (1.0, 1.67646...e17, 1)
+            (1.0, 1.67646...e17, 1, 2)
             >>> RC.CheNgu12.short_vectors(100, 500, N=1, preprocess=False)
-            (1.0, 1, 1)
+            (1.0, 1, 1, 2)
             >>> RC.CheNgu12.short_vectors(100, 500)
-            (2.0, 1.67646...e17, 1000)
+            (2.0, 1.67646...e17, 1000, 2)
             >>> RC.CheNgu12.short_vectors(100, 500, preprocess=False)
-            (2.0, 125000000000, 1000)
+            (2.0, 125000000000, 1000, 2)
             >>> RC.CheNgu12.short_vectors(100, 500, N=1000)
-            (2.0, 1.67646...e17, 1000)
+            (2.0, 1.67646...e17, 1000, 2)
             >>> RC.CheNgu12.short_vectors(100, 500, N=1000, preprocess=False)
-            (2.0, 125000000000, 1000)
+            (2.0, 125000000000, 1000, 2)
 
         """
 
@@ -287,22 +288,23 @@ class ReductionCost:
             cost = 0
 
         if N == 1:  # just call SVP
-            return 1.0, cost + 1, 1
+            return 1.0, cost + 1, 1, 2
         elif N is None:
             N = 1000  # pick something
 
-        return 2.0, cost + N * RC.LLL(d), N
+        return 2.0, cost + N * RC.LLL(d), N, 2
 
     def short_vectors_simple(self, beta, d, N=None, B=None, preprocess=True):
         """
         Cost of outputting many somewhat short vectors.
 
-        The output of this function is a tuple of three values:
+        The output of this function is a tuple of four values:
 
         - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
           vector expected from an SVP oracle by this factor.
         - `c` is the cost of outputting `N` vectors
         - `N` the number of vectors output, which may be larger than the value put in for `N`.
+        - `β'` the cost parameter associated with sampling, here: `β`
 
         This naive baseline implementation uses rerandomize+BKZ.
 
@@ -317,32 +319,33 @@ class ReductionCost:
 
             >>> from estimator.reduction import RC
             >>> RC.CheNgu12.short_vectors_simple(100, 500, 1)
-            (1.0, 1.67646160799173e17, 1)
+            (1.0, 1.67646160799173e17, 1, 100)
             >>> RC.CheNgu12.short_vectors_simple(100, 500)
-            (1.0, 1.67646160799173e20, 1000)
+            (1.0, 1.67646160799173e20, 1000, 100)
             >>> RC.CheNgu12.short_vectors_simple(100, 500, 1000)
-            (1.0, 1.67646160799173e20, 1000)
+            (1.0, 1.67646160799173e20, 1000, 100)
 
         """
         if N == 1:
             if preprocess:
-                return 1.0, self(beta, d, B=B), 1
+                return 1.0, self(beta, d, B=B), 1, beta
             else:
-                return 1.0, 1, 1
+                return 1.0, 1, 1, beta
         elif N is None:
             N = 1000  # pick something
-        return 1.0, N * self(beta, d, B=B), N
+        return 1.0, N * self(beta, d, B=B), N, beta
 
     def _short_vectors_sieve(self, beta, d, N=None, B=None, preprocess=True, sieve_dim=None):
         """
         Cost of outputting many somewhat short vectors.
 
-        The output of this function is a tuple of three values:
+        The output of this function is a tuple of four values:
 
         - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
           vector expected from an SVP oracle by this factor.
         - `c` is the cost of outputting `N` vectors
         - `N` the number of vectors output, which may be larger than the value put in for `N`.
+        - `β'` the cost parameter associated with sampling, here: `β` or ``sieve_dim``
 
         This implementation uses that a sieve outputs many somehwat short vectors [Kyber17]_.
 
@@ -359,11 +362,11 @@ class ReductionCost:
 
             >>> from estimator.reduction import RC
             >>> RC.ADPS16.short_vectors(100, 500, 1)
-            (1.0, 6.16702733460158e8, 1)
+            (1.0, 6.16702733460158e8, 1, 100)
             >>> RC.ADPS16.short_vectors(100, 500)
-            (1.1547..., 6.16702733460158e8, 1763487)
+            (1.1547..., 6.16702733460158e8, 1763487, 100)
             >>> RC.ADPS16.short_vectors(100, 500, 1000)
-            (1.1547..., 6.16702733460158e8, 1763487)
+            (1.1547..., 6.16702733460158e8, 1763487, 100)
 
 
         """
@@ -373,9 +376,9 @@ class ReductionCost:
 
         if N == 1:
             if preprocess:
-                return 1.0, self(beta, d, B=B), 1
+                return 1.0, self(beta, d, B=B), 1, sieve_dim
             else:
-                return 1.0, 1, 1
+                return 1.0, 1, 1, sieve_dim
         elif N is None:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
@@ -386,7 +389,12 @@ class ReductionCost:
             * self.delta(beta) ** ((-sieve_dim + 1) / 2)
         )
 
-        return rho, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta))
+        return (
+            rho,
+            ceil(c) * self(beta, d),
+            ceil(c) * floor(2 ** (0.2075 * beta)),
+            sieve_dim,
+        )
 
 
 class BDGL16(ReductionCost):
@@ -743,7 +751,7 @@ class Kyber(ReductionCost):
         """
         Cost of outputting many somewhat short vectors using BKZ-β.
 
-        The output of this function is a tuple of three values:
+        The output of this function is a tuple of four values:
 
         - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
           vector expected from an SVP oracle by this factor.
@@ -763,20 +771,20 @@ class Kyber(ReductionCost):
 
             >>> from estimator.reduction import RC
             >>> RC.Kyber.short_vectors(100, 500, 1)
-            (1.0, 2.73674761281368e19, 1)
+            (1.0, 2.7367476128136...19, 100)
             >>> RC.Kyber.short_vectors(100, 500)
-            (1.1547, 2.73674761281368e19, 176584)
+            (1.1547, 2.7367476128136...19, 176584)
             >>> RC.Kyber.short_vectors(100, 500, 1000)
-            (1.1547, 2.73674761281368e19, 176584)
+            (1.1547, 2.7367476128136...19, 176584)
 
         """
         beta_ = beta - floor(self.d4f(beta))
 
         if N == 1:
             if preprocess:
-                return 1.0, self(beta, d, B=B), 1
+                return 1.0, self(beta, d, B=B), beta
             else:
-                return 1.0, 1, 1
+                return 1.0, 1, beta
         elif N is None:
             N = floor(2 ** (0.2075 * beta_))  # pick something
 
@@ -794,12 +802,13 @@ class GJ21(Kyber):
         """
         Cost of outputting many somewhat short vectors according to [AC:GuoJoh21]_.
 
-        The output of this function is a tuple of three values:
+        The output of this function is a tuple of four values:
 
         - `ρ` is a scaling factor. The output vectors are expected to be longer than the shortest
           vector expected from an SVP oracle by this factor.
         - `c` is the cost of outputting `N` vectors
         - `N` the number of vectors output, which may be larger than the value put in for `N`.
+        - `β'` the cost parameter associated with sampling
 
         This runs a sieve on the first β_0 vectors of the basis after BKZ-β reduction
         to produce many short vectors, where β_0 is chosen such that BKZ-β reduction and the sieve
@@ -820,11 +829,11 @@ class GJ21(Kyber):
 
             >>> from estimator.reduction import RC
             >>> RC.GJ21.short_vectors(100, 500, 1)
-            (1.0, 2.7367476128136...19, 1)
+            (1.0, 2.7367476128136...19, 1, 100)
             >>> RC.GJ21.short_vectors(100, 500)
-            (1.09705125094519, 5.5622443848...19, 36150192)
+            (1.09705125094519, 5.5622443848...19, 36150192, 121)
             >>> RC.GJ21.short_vectors(100, 500, 1000)
-            (1.09705125094519, 5.5622443848...19, 36150192)
+            (1.09705125094519, 5.5622443848...19, 36150192, 121)
 
         """
         if nn == "classical":
@@ -836,7 +845,7 @@ class GJ21(Kyber):
         if sieve_dim is None:
             sieve_dim = beta_
             if beta < d:
-                # set beta_sieve such that complexity of 1 sieve in in dim beta_sieve is approx
+                # set beta_sieve such that complexity of 1 sieve in in dim sieve_dim is approx
                 # the same as the BKZ call
                 sieve_dim = min(d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[nn]["a"]))
 
@@ -848,9 +857,9 @@ class GJ21(Kyber):
 
         if N == 1:
             if preprocess:
-                return 1.0, self(beta, d, B=B), 1
+                return 1.0, self(beta, d, B=B), 1, beta
             else:
-                return 1.0, 1, 1
+                return 1.0, 1, 1, beta
         elif N is None:
             N = floor(2 ** (0.2075 * sieve_dim))  # pick something
 
@@ -860,6 +869,7 @@ class GJ21(Kyber):
             rho,
             ceil(c) * (self(beta, d) + sieve_cost),
             ceil(c) * floor(2 ** (0.2075 * sieve_dim)),
+            sieve_dim,
         )
 
 
@@ -868,7 +878,7 @@ class MATZOV(GJ21):
     Improved enumeration routine in list decoding from [MATZOV22]_.
     """
 
-    __name__ = "Kyber"
+    __name__ = "MATZOV"
 
     # These are not asymptotic expressions but compress the data in [AC:AGPS20]_ with the fix and
     # improvement from [MATZOV22]_ applied which covers up to β = 1024
