@@ -682,6 +682,18 @@ class Kyber(ReductionCost):
         "random_buckets-t_count": {"a": 0.30614770082829745, "b": 21.41830142853265},
     }
 
+    def __init__(self, nn="classical"):
+        """
+        :param nn: Nearest neighbor cost model. We default to "ListDecoding" (i.e. BDGL16) and to
+                   the "depth × width" metric. Kyber uses "AllPairs".
+
+        """
+        if nn == "classical":
+            nn = "list_decoding-classical"
+        elif nn == "quantum":
+            nn = "list_decoding-dw"
+        self.nn = nn
+
     @staticmethod
     def d4f(beta):
         """
@@ -700,35 +712,28 @@ class Kyber(ReductionCost):
         """
         return max(float(beta * log(4 / 3.0) / log(beta / (2 * pi * e))), 0.0)
 
-    def __call__(self, beta, d, B=None, nn="classical", C=5.46):
+    def __call__(self, beta, d, B=None, C=5.46):
         """
         Runtime estimation from [Kyber20]_ and [AC:AGPS20]_.
 
         :param beta: Block size ≥ 2.
         :param d: Lattice dimension.
         :param B: Bit-size of entries.
-        :param nn: Nearest neighbor cost model. We default to "ListDecoding" (i.e. BDGL16) and to
-                   the "depth × width" metric. Kyber uses "AllPairs".
         :param C: Progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{0.292 i + o(i)}/2^{0.292 β + o(β)}.
 
         EXAMPLE::
 
             >>> from math import log
-            >>> from estimator.reduction import RC
+            >>> from estimator.reduction import RC, Kyber
             >>> log(RC.Kyber(500, 1024), 2.0)
             176.61534319964488
-            >>> log(RC.Kyber(500, 1024, nn="list_decoding-ge19"), 2.0)
+            >>> log(Kyber(nn="list_decoding-ge19")(500, 1024), 2.0)
             172.68208507350872
 
         """
 
         if beta < 20:  # goes haywire
             return CheNgu12()(beta, d, B)
-
-        if nn == "classical":
-            nn = "list_decoding-classical"
-        elif nn == "quantum":
-            nn = "list_decoding-dw"
 
         # "The cost of progressive BKZ with sieving up to blocksize b is essentially C · (n − b) ≈
         # 3340 times the cost of sieving for SVP in dimension b." [Kyber20]_
@@ -743,7 +748,9 @@ class Kyber(ReductionCost):
         # be called only once per dimension during progressive sieving, for a cost of C · 2^137.4
         # gates^8." [Kyber20]_
 
-        gate_count = C * 2 ** (RR(self.NN_AGPS[nn]["a"]) * beta_ + RR(self.NN_AGPS[nn]["b"]))
+        gate_count = C * 2 ** (
+            RR(self.NN_AGPS[self.nn]["a"]) * beta_ + RR(self.NN_AGPS[self.nn]["b"])
+        )
         return self.LLL(d, B=B) + svp_calls * gate_count
 
     def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
@@ -795,9 +802,7 @@ class GJ21(Kyber):
 
     __name__ = "GJ21"
 
-    def short_vectors(
-        self, beta, d, N=None, preprocess=True, B=None, nn="classical", C=5.46, sieve_dim=None
-    ):
+    def short_vectors(self, beta, d, N=None, preprocess=True, B=None, C=5.46, sieve_dim=None):
         """
         Cost of outputting many somewhat short vectors according to [AC:GuoJoh21]_.
 
@@ -819,8 +824,6 @@ class GJ21(Kyber):
         :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
                If ``False`` we assume the basis is already BKZ-β reduced.
         :param B: Bit-size of entries.
-        :param nn: Nearest neighbor cost model. We default to "ListDecoding" (i.e. BDGL16) and to
-                   the "depth × width" metric. Kyber uses "AllPairs".
         :param C: Progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{0.292 i + o(i)}/2^{0.292 β + o(β)}.
         :param sieve_dim: Explicit sieving dimension.
 
@@ -835,18 +838,15 @@ class GJ21(Kyber):
             (1.04228014727497, 5.56224438...19, 36150192, 121)
 
         """
-        if nn == "classical":
-            nn = "list_decoding-classical"
-        elif nn == "quantum":
-            nn = "list_decoding-dw"
-
         beta_ = beta - floor(self.d4f(beta))
         if sieve_dim is None:
             sieve_dim = beta_
             if beta < d:
                 # set beta_sieve such that complexity of 1 sieve in in dim sieve_dim is approx
                 # the same as the BKZ call
-                sieve_dim = min(d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[nn]["a"]))
+                sieve_dim = min(
+                    d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[self.nn]["a"])
+                )
 
         # MATZOV, p.18
         rho = sqrt(4 / 3.0) * RR(
@@ -862,7 +862,7 @@ class GJ21(Kyber):
             N = floor(2 ** (0.2075 * sieve_dim))  # pick something
 
         c = N / floor(2 ** (0.2075 * sieve_dim))
-        sieve_cost = C * 2 ** (self.NN_AGPS[nn]["a"] * sieve_dim + self.NN_AGPS[nn]["b"])
+        sieve_cost = C * 2 ** (self.NN_AGPS[self.nn]["a"] * sieve_dim + self.NN_AGPS[self.nn]["b"])
         return (
             rho,
             ceil(c) * (self(beta, d) + sieve_cost),

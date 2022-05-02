@@ -1,7 +1,7 @@
 from multiprocessing import Pool
 from functools import partial
 
-from sage.all import ceil, floor
+from sage.all import ceil, floor, oo
 
 from .io import Logging
 
@@ -215,6 +215,87 @@ class local_minimum(local_minimum_base):
 
         for x in range(max(start, self.x - self._precision), min(stop, self.x + self._precision)):
             yield x
+
+
+class early_abort_range:
+    """
+    An iterator context for finding a local minimum using linear search.
+
+    .. note :: We combine an iterator and a context to give the caller access to the result.
+    """
+
+    # TODO: unify whether we like contexts or not
+
+    def __init__(
+        self,
+        start,
+        stop=oo,
+        step=1,
+        smallerf=lambda x, best: x <= best,
+        suppress_bounds_warning=False,
+        log_level=5,
+    ):
+        """
+        Create a fresh local minimum search context.
+
+        :param start: starting point
+        :param stop:  end point (exclusive, optional)
+        :param step:  step size
+        :param smallerf: a function to decide if ``lhs`` is smaller than ``rhs``.
+        :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
+
+        """
+
+        if stop < start:
+            raise ValueError(f"Incorrect bounds {start} > {stop}.")
+
+        self._suppress_bounds_warning = suppress_bounds_warning
+        self._log_level = log_level
+        self._start = start
+        self._step = step
+        self._stop = stop
+        self._smallerf = smallerf
+        self._last_x = None
+        self._next_x = self._start
+        self._best = (None, None)
+
+    def __iter__(self):
+        """ """
+        return self
+
+    def __next__(self):
+        if self._next_x is None:
+            raise StopIteration
+        elif self._next_x >= self._stop:
+            raise StopIteration
+
+        self._last_x = self._next_x
+        self._next_x += self._step
+        return self._last_x, self
+
+    @property
+    def x(self):
+        return self._best[0]
+
+    @property
+    def y(self):
+        return self._best[1]
+
+    def update(self, res):
+        """ """
+        Logging.log("lins", self._log_level, f"({self._last_x}, {repr(res)})")
+
+        if self._best[0] is None:
+            self._best = self._last_x, res
+            return
+
+        if res is False:
+            self._next_x = None
+        else:
+            if self._smallerf(res, self._best[1]):
+                self._best = self._last_x, res
+            else:
+                self._next_x = None
 
 
 def binary_search(
