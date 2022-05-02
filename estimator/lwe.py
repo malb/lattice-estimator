@@ -14,7 +14,7 @@ from .lwe_parameters import LWEParameters as Parameters  # noqa
 
 class Estimate:
     @classmethod
-    def rough(cls, params, jobs=1):
+    def rough(cls, params, jobs=1, catch_exceptions=True):
         """
         This function makes the following somewhat routine assumptions:
 
@@ -30,6 +30,7 @@ class Estimate:
 
         :param params: LWE parameters.
         :param jobs: Use multiple threads in parallel.
+        :param catch_exceptions: When an estimate fails, just print a warning.
 
         EXAMPLE ::
 
@@ -46,6 +47,8 @@ class Estimate:
         from .util import batch_estimate, f_name
 
         from sage.all import oo
+
+        params = params.normalize()
 
         algorithms = {}
 
@@ -71,7 +74,9 @@ class Estimate:
             else:
                 algorithms["arora-gb"] = arora_gb.cost_bounded
 
-        res_raw = batch_estimate(params, algorithms.values(), log_level=1, jobs=jobs)
+        res_raw = batch_estimate(
+            params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
+        )
         res_raw = res_raw[params]
         res = {}
         for algorithm in algorithms:
@@ -95,6 +100,7 @@ class Estimate:
         deny_list=tuple(),
         add_list=tuple(),
         jobs=1,
+        catch_exceptions=True,
     ):
         """
         Run all estimates.
@@ -105,6 +111,7 @@ class Estimate:
         :param deny_list: skip these algorithms
         :param add_list: add these ``(name, function)`` pairs to the list of algorithms to estimate.a
         :param jobs: Use multiple threads in parallel.
+        :param catch_exceptions: When an estimate fails, just print a warning.
 
         EXAMPLE ::
 
@@ -125,6 +132,8 @@ class Estimate:
         from .conf import red_cost_model as red_cost_model_default
         from .conf import red_shape_model as red_shape_model_default
         from .util import batch_estimate, f_name
+
+        params = params.normalize()
 
         if red_cost_model is None:
             red_cost_model = red_cost_model_default
@@ -170,7 +179,9 @@ class Estimate:
         for k, v in add_list:
             algorithms[k] = v
 
-        res_raw = batch_estimate(params, algorithms.values(), log_level=1, jobs=jobs)
+        res_raw = batch_estimate(
+            params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
+        )
         res_raw = res_raw[params]
         res = {}
         for algorithm in algorithms:

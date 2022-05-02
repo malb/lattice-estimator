@@ -438,6 +438,8 @@ class DualHybrid:
                 h = params.Xs.get_hamming_weight(params.n)
                 h1_min = max(0, h - (params.n - zeta))
                 h1_max = min(zeta, h)
+                if h1_min == h1_max:
+                    h1_max = h1_min + 1
                 Logging.log("dual", log_level, f"h1 ∈ [{h1_min},{h1_max}] (zeta={zeta})")
                 with local_minimum(h1_min, h1_max, log_level=log_level + 1) as it:
                     for h1 in it:
