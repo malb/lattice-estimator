@@ -385,8 +385,7 @@ class ReductionCost:
         c = N / floor(2 ** (0.2075 * beta))
 
         rho = sqrt(4 / 3.0) * RR(
-            self.delta(sieve_dim) ** ((sieve_dim - 1) / 2)
-            * self.delta(beta) ** ((-sieve_dim + 1) / 2)
+            self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim)
         )
 
         return (
@@ -831,9 +830,9 @@ class GJ21(Kyber):
             >>> RC.GJ21.short_vectors(100, 500, 1)
             (1.0, 2.7367476128136...19, 1, 100)
             >>> RC.GJ21.short_vectors(100, 500)
-            (1.09705125094519, 5.5622443848...19, 36150192, 121)
+            (1.04228014727497, 5.56224438...19, 36150192, 121)
             >>> RC.GJ21.short_vectors(100, 500, 1000)
-            (1.09705125094519, 5.5622443848...19, 36150192, 121)
+            (1.04228014727497, 5.56224438...19, 36150192, 121)
 
         """
         if nn == "classical":
@@ -851,8 +850,7 @@ class GJ21(Kyber):
 
         # MATZOV, p.18
         rho = sqrt(4 / 3.0) * RR(
-            self.delta(sieve_dim) ** ((sieve_dim - 1) / 2)
-            * self.delta(beta) ** ((-sieve_dim + 1) / 2)
+            self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim)
         )
 
         if N == 1:
