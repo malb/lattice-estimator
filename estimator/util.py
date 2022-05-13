@@ -354,12 +354,19 @@ def f_name(f):
 
 def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True, **kwds):
     """
+    Run estimates for all algorithms for all parameters.
 
     :param params: (List of) LWE parameters.
     :param algorithm: (List of) algorithms.
     :param jobs: Use multiple threads in parallel.
     :param log_level:
     :param catch_exceptions: When an estimate fails, just print a warning.
+
+    Example::
+
+        >>> from estimator import Kyber512, LWE
+        >>> _ = batch_estimate(Kyber512, [LWE.primal_usvp, LWE.primal_bdd])
+        >>> _ = batch_estimate(Kyber512, [LWE.primal_usvp, LWE.primal_bdd], jobs=2)
 
     """
     from .lwe_parameters import LWEParameters
@@ -385,7 +392,9 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
     else:
         pool = Pool(jobs)
         res = pool.starmap(_batch_estimatef, tasks)
-        res = dict([((f_repr, x), res[i]) for i, (f, x, _, f_repr) in enumerate(tasks)])
+        res = dict(
+            [((f_repr, x), res[i]) for i, (f, x, _, f_repr, catch_exceptions) in enumerate(tasks)]
+        )
 
     ret = dict()
     for f, x in res:
