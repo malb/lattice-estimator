@@ -354,6 +354,7 @@ def f_name(f):
 
 def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True, **kwds):
     """
+    Run estimates for all algorithms for all parameters.
 
     :param params: (List of) LWE parameters.
     :param algorithm: (List of) algorithms.
@@ -385,7 +386,9 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
     else:
         pool = Pool(jobs)
         res = pool.starmap(_batch_estimatef, tasks)
-        res = dict([((f_repr, x), res[i]) for i, (f, x, _, f_repr) in enumerate(tasks)])
+        res = dict(
+            [((f_repr, x), res[i]) for i, (f, x, _, f_repr, catch_exceptions) in enumerate(tasks)]
+        )
 
     ret = dict()
     for f, x in res:
