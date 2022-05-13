@@ -362,6 +362,12 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
     :param log_level:
     :param catch_exceptions: When an estimate fails, just print a warning.
 
+    Example::
+
+        >>> from estimator import Kyber512, LWE
+        >>> _ = batch_estimate(Kyber512, [LWE.primal_usvp, LWE.primal_bdd])
+        >>> _ = batch_estimate(Kyber512, [LWE.primal_usvp, LWE.primal_bdd], jobs=2)
+
     """
     from .lwe_parameters import LWEParameters
 
