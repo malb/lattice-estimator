@@ -25,7 +25,7 @@ def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
     Reduced lattice shape calling ``f``.
 
     :param d: Lattice dimension.
-    :param n: Number of `q` vectors
+    :param n: The number of `q` vectors is `d-n-1`.
     :param q: Modulus `q`
     :param beta: Block size β.
     :param xi: Scaling factor ξ for identity part.
@@ -34,9 +34,9 @@ def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
 
     """
     if tau is not None:
-        r = [q ** 2] * (d - n - 1) + [xi ** 2] * n + [tau ** 2]
+        r = [q**2] * (d - n - 1) + [xi**2] * n + [tau**2]
     else:
-        r = [q ** 2] * (d - n) + [xi ** 2] * n
+        r = [q**2] * (d - n) + [xi**2] * n
 
     if dual:
         # 1. reverse and reflect the basis (go to dual)
@@ -55,7 +55,7 @@ def CN11(d, n, q, beta, xi=1, tau=1, dual=False):
     Reduced lattice shape using simulator from [AC:CheNgu11]_
 
     :param d: Lattice dimension.
-    :param n: Number of `q` vectors
+    :param n: The number of `q` vectors is `d-n-1`.
     :param q: Modulus `q`
     :param beta: Block size β.
     :param xi: Scaling factor ξ for identity part.
@@ -79,7 +79,7 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     Reduced lattice shape following the Geometric Series Assumption [Schnorr03]_
 
     :param d: Lattice dimension.
-    :param n: Number of `q` vectors
+    :param n: The number of `q` vectors is `d-n-1`.
     :param q: Modulus `q`
     :param beta: Block size β.
     :param xi: Scaling factor ξ for identity part.
