@@ -46,7 +46,7 @@ class PrimalUSVP:
         # Find the smallest d ∈ [n,m] s.t. a*d^2 + b*d + c >= 0
         delta = deltaf(beta)
         a = -log(delta)
-        C = log(params.Xe.stddev ** 2 * (beta - 1) + tau ** 2) / 2.0
+        C = log(params.Xe.stddev**2 * (beta - 1) + tau**2) / 2.0
         b = log(delta) * (2 * beta - 1) + log(params.q) - C
         c = log(tau) + params.n * log(xi) - (params.n + 1) * log(params.q)
         n = params.n
@@ -95,7 +95,7 @@ class PrimalUSVP:
             d += 1
         assert d <= m + 1
 
-        lhs = log(sqrt(params.Xe.stddev ** 2 * (beta - 1) + tau ** 2))
+        lhs = log(sqrt(params.Xe.stddev**2 * (beta - 1) + tau**2))
         rhs = RR(
             log(delta) * (2 * beta - d - 1)
             + (log(tau) + log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
@@ -122,7 +122,7 @@ class PrimalUSVP:
         tau = params.Xe.stddev if tau is None else tau
 
         r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
-        lhs = params.Xe.stddev ** 2 * (beta - 1) + tau ** 2
+        lhs = params.Xe.stddev**2 * (beta - 1) + tau**2
         if r[d - beta] > lhs:
             cost = costf(red_cost_model, beta, d)
         else:
@@ -262,7 +262,7 @@ class PrimalHybrid:
 
         d = len(r)
         for i, _ in enumerate(r):
-            if gaussian_heuristic(r[i:]) < D.stddev ** 2 * (d - i):
+            if gaussian_heuristic(r[i:]) < D.stddev**2 * (d - i):
                 return ZZ(d - (i - 1))
         return ZZ(2)
 
@@ -340,7 +340,7 @@ class PrimalHybrid:
             probability = RR(prob_drop(params.n, h, zeta))
             hw = 1
             while hw < min(h, zeta):
-                new_search_space = binomial(zeta, hw) * base ** hw
+                new_search_space = binomial(zeta, hw) * base**hw
                 if svp_cost.repeat(ssf(search_space + new_search_space))["rop"] < bkz_cost["rop"]:
                     search_space += new_search_space
                     probability += prob_drop(params.n, h, zeta, fail=hw)
