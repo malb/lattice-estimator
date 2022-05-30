@@ -2,7 +2,7 @@
 """
 See :ref:`Coded-BKW for LWE` for what is available.
 """
-from sage.all import ZZ, ceil, log, floor, sqrt, var, find_root, erf, oo
+from sage.all import ZZ, ceil, log, floor, sqrt, var, find_root, erf, oo, cached_function
 from .lwe_parameters import LWEParameters
 from .util import local_minimum
 from .cost import Cost
@@ -23,9 +23,10 @@ class CodedBKW:
         :param i: index
         :param sigma_set: target noise level
         """
-        return floor(b / (1 - log(12 * sigma_set ** 2 / 2 ** i, q) / 2))
+        return floor(b / (1 - log(12 * sigma_set**2 / 2**i, q) / 2))
 
     @staticmethod
+    @cached_function
     def ntest(n, ell, t1, t2, b, q):  # noqa
         """
         If the parameter ``ntest`` is not provided, we use this function to estimate it.
@@ -37,13 +38,12 @@ class CodedBKW:
         :param b: Table size for BKW steps.
 
         """
-
         # there is no hypothesis testing because we have enough normal BKW
         # tables to cover all of of n
         if t1 * b >= n:
             return 0
 
-        # solve for nest by aiming for ntop == 0
+        # solve for ntest by aiming for ntop == 0
         ntest = var("ntest")
         sigma_set = sqrt(q ** (2 * (1 - ell / ntest)) / 12)
         ncod = sum([CodedBKW.N(i, sigma_set, b, q) for i in range(1, t2 + 1)])
@@ -145,15 +145,15 @@ class CodedBKW:
         cost.register_impermanent({"#cod": False, "#top": False, "#test": False})
 
         # Theorem 1: quantization noise + addition noise
-        coding_variance = params.Xs.stddev ** 2 * sigma_set ** 2 * ntot
-        sigma_final = float(sqrt(2 ** (t1 + t2) * params.Xe.stddev ** 2 + coding_variance))
+        coding_variance = params.Xs.stddev**2 * sigma_set**2 * ntot
+        sigma_final = float(sqrt(2 ** (t1 + t2) * params.Xe.stddev**2 + coding_variance))
 
         M = amplify_sigma(success_probability, sigmaf(sigma_final), params.q)
         if M is oo:
             cost["rop"] = oo
             cost["m"] = oo
             return cost
-        m = (t1 + t2) * ZZ(params.q ** b - 1) / 2 + M
+        m = (t1 + t2) * ZZ(params.q**b - 1) / 2 + M
         cost["m"] = float(m)
         cost.register_impermanent(m=True)
 
@@ -167,14 +167,14 @@ class CodedBKW:
 
         # Equation (8)
         C1 = sum(
-            [(params.n + 1 - i * b) * (m - i * ZZ(params.q ** b - 1) / 2) for i in range(1, t1 + 1)]
+            [(params.n + 1 - i * b) * (m - i * ZZ(params.q**b - 1) / 2) for i in range(1, t1 + 1)]
         )
         assert C1 >= 0
 
         # Equation (9)
         C2_ = sum(
             [
-                4 * (M + i * ZZ(params.q ** b - 1) / 2) * CodedBKW.N(i, sigma_set, b, params.q)
+                4 * (M + i * ZZ(params.q**b - 1) / 2) * CodedBKW.N(i, sigma_set, b, params.q)
                 for i in range(1, t2 + 1)
             ]
         )
@@ -182,7 +182,7 @@ class CodedBKW:
         for i in range(1, t2 + 1):
             C2 += float(
                 ntop + ntest + sum([CodedBKW.N(j, sigma_set, b, params.q) for j in range(1, i + 1)])
-            ) * (M + (i - 1) * ZZ(params.q ** b - 1) / 2)
+            ) * (M + (i - 1) * ZZ(params.q**b - 1) / 2)
         assert C2 >= 0
 
         # Equation (10)
@@ -203,7 +203,7 @@ class CodedBKW:
             cost["rop"] = float(C)
         except TypeError:
             cost["rop"] = oo
-        cost["mem"] = (t1 + t2) * params.q ** b
+        cost["mem"] = (t1 + t2) * params.q**b
 
         cost = cost.reorder("rop", "m", "mem", "b", "t1", "t2")
         cost["tag"] = "coded-bkw"
