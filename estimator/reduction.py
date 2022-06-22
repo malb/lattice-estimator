@@ -152,7 +152,7 @@ class ReductionCost:
 
         try:
             beta = find_root(
-                lambda beta: RR(ReductionCost._delta(beta) - delta), 40, 2 ** 16, maxiter=500
+                lambda beta: RR(ReductionCost._delta(beta) - delta), 40, 2**16, maxiter=500
             )
             beta = ceil(beta - 1e-8)
         except RuntimeError:
@@ -238,9 +238,9 @@ class ReductionCost:
 
         """
         if B:
-            return d ** 3 * B ** 2
+            return d**3 * B**2
         else:
-            return d ** 3  # ignoring B for backward compatibility
+            return d**3  # ignoring B for backward compatibility
 
     def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
         """
@@ -603,7 +603,13 @@ class ADPS16(ReductionCost):
     __name__ = "ADPS16"
     short_vectors = ReductionCost._short_vectors_sieve
 
-    def __call__(self, beta, d, B=None, mode="classical"):
+    def __init__(self, mode="classical"):
+        if mode not in ("classical", "quantum", "paranoid"):
+            raise ValueError(f"Mode {mode} not understood.")
+
+        self.mode = mode
+
+    def __call__(self, beta, d, B=None):
         """
         Runtime estimation from [USENIX:ADPS16]_.
 
@@ -614,18 +620,15 @@ class ADPS16(ReductionCost):
         EXAMPLE::
 
             >>> from math import log
-            >>> from estimator.reduction import RC
+            >>> from estimator.reduction import RC, ADPS16
             >>> log(RC.ADPS16(500, 1024), 2.0)
             146.0
-            >>> log(RC.ADPS16(500, 1024, mode="quantum"), 2.0)
+            >>> log(ADPS16(mode="quantum")(500, 1024), 2.0)
             132.5
-            >>> log(RC.ADPS16(500, 1024, mode="paranoid"), 2.0)
+            >>> log(ADPS16(mode="paranoid")(500, 1024), 2.0)
             103.75
 
         """
-
-        if mode not in ("classical", "quantum", "paranoid"):
-            raise ValueError(f"Mode {mode} not understood.")
 
         c = {
             "classical": 0.2920,
@@ -633,7 +636,7 @@ class ADPS16(ReductionCost):
             "paranoid": 0.2075,
         }
 
-        c = c[mode]
+        c = c[self.mode]
 
         return ZZ(2) ** RR(c * beta)
 
