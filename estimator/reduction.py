@@ -152,7 +152,7 @@ class ReductionCost:
 
         try:
             beta = find_root(
-                lambda beta: RR(ReductionCost._delta(beta) - delta), 40, 2 ** 16, maxiter=500
+                lambda beta: RR(ReductionCost._delta(beta) - delta), 40, 2**16, maxiter=500
             )
             beta = ceil(beta - 1e-8)
         except RuntimeError:
@@ -238,9 +238,9 @@ class ReductionCost:
 
         """
         if B:
-            return d ** 3 * B ** 2
+            return d**3 * B**2
         else:
-            return d ** 3  # ignoring B for backward compatibility
+            return d**3  # ignoring B for backward compatibility
 
     def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
         """
