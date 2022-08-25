@@ -377,7 +377,11 @@ class NoiseDistribution:
                 stddev=0, mean=0, density=0, bounds=(-1, 1), tag="SparseTernary", n=0
             )
         mean = RR(p / n - m / n)
-        stddev = RR(sqrt((p + m) / n))
+
+        stddev = sqrt(p / n * (1 - mean)**2 +
+                      m / n * (-1 - mean)**2 +
+                      (n - (p + m)) / n * (mean)**2)
+
         density = RR((p + m) / n)
         D = NoiseDistribution(
             stddev=stddev, mean=mean, density=density, bounds=(-1, 1), tag="SparseTernary", n=n
