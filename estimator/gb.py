@@ -224,6 +224,7 @@ class AroraGB:
         params = params.normalize()
 
         best = Cost(rop=oo, dreg=oo)
+        best.register_impermanent({"rop": True, "dreg": False, "mem": False})
 
         if params.Xe.is_bounded:
             cost = self.cost_bounded(
