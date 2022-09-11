@@ -54,8 +54,10 @@ class guess_composition:
 
         with local_minimum(0, max_zeta, log_level=log_level) as it:
             for zeta in it:
-                search_space = base ** zeta
+                search_space = base**zeta
                 cost = f(params.updated(n=params.n - zeta), log_level=log_level + 1, **kwds)
+                if cost["rop"] == oo:
+                    return Cost(rop=oo)
                 repeated_cost = cost.repeat(search_space)
                 repeated_cost["zeta"] = zeta
                 it.update(repeated_cost)
@@ -92,7 +94,7 @@ class guess_composition:
         best = None, None, None, None
         while gamma < min(h, zeta):
             probability += prob_drop(n, h, zeta, fail=gamma)
-            search_space += binomial(zeta, gamma) * base ** gamma
+            search_space += binomial(zeta, gamma) * base**gamma
             repeat = prob_amplify(0.99, probability) * g(search_space)
             if best[0] is None or repeat < best[0]:
                 best = repeat, gamma, search_space, probability
@@ -115,6 +117,8 @@ class guess_composition:
         with local_minimum(0, params.n - 40, log_level=log_level) as it:
             for zeta in it:
                 single_cost = f(params.updated(n=params.n - zeta), log_level=log_level + 1, **kwds)
+                if single_cost["rop"] == oo:
+                    return Cost(rop=oo)
                 repeat, gamma, search_space, probability = cls.gammaf(params.n, h, zeta, base)
                 cost = single_cost.repeat(repeat)
                 cost["zeta"] = zeta
@@ -271,8 +275,8 @@ class MITM:
             )
 
         # since m = logT + loglogT and rop = T*m, we have rop=2^m
-        ret = Cost(rop=RR(2 ** m_), mem=2 ** logT * m_, m=m_, k=ZZ(k))
-        repeat = prob_amplify(success_probability, sd_p ** n * nd_p ** m_ * success_probability_)
+        ret = Cost(rop=RR(2**m_), mem=2**logT * m_, m=m_, k=ZZ(k))
+        repeat = prob_amplify(success_probability, sd_p**n * nd_p**m_ * success_probability_)
         return ret.repeat(times=repeat)
 
     def cost(
@@ -299,7 +303,7 @@ class MITM:
                 binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
             )
         else:
-            size_tab = sd_rng ** k
+            size_tab = sd_rng**k
             size_sea = sd_rng ** (n - k)
             success_probability_ = 1
 
@@ -312,7 +316,7 @@ class MITM:
                 # for search we effectively build a second table and for each entry, we expect
                 # 2^( m * 4 * B / q) = 2^(delta * m) table look ups + a l_oo computation (costing m)
                 # for every hit in the table (which has probability T/2^m)
-                cost = (m, size_sea * (2 * m + 2 ** (delta * m) * (1 + size_tab * m / 2 ** m)))
+                cost = (m, size_sea * (2 * m + 2 ** (delta * m) * (1 + size_tab * m / 2**m)))
                 it.update(cost)
             m, cost_search = it.y
         m = min(m, params.m)
@@ -323,7 +327,7 @@ class MITM:
 
         ret = Cost(rop=(cost_table + cost_search), m=m, k=k)
         ret["mem"] = size_tab * (k + m) + size_sea * (n - k + m)
-        repeat = prob_amplify(success_probability, sd_p ** n * nd_p ** m * success_probability_)
+        repeat = prob_amplify(success_probability, sd_p**n * nd_p**m * success_probability_)
         return ret.repeat(times=repeat)
 
     def __call__(self, params: LWEParameters, success_probability=0.99, optimization=mitm_opt):

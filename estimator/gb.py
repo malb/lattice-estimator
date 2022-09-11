@@ -49,7 +49,7 @@ def gb_cost(n, D, omega=2, prec=None):
     s = s.add_bigoh(prec)
 
     for d, m in D:
-        s *= (1 - z ** d) ** m
+        s *= (1 - z**d) ** m
     s /= (1 - z) ** n
 
     retval = Cost(rop=oo, dreg=oo)
@@ -76,7 +76,7 @@ class AroraGB:
         """
         RR = RealField(256)
         C = RR(C)
-        return RR(1 - (RR(2) / (C * RR(sqrt(2 * pi))) * exp(-(C ** 2) / RR(2))))  # noqa
+        return RR(1 - (RR(2) / (C * RR(sqrt(2 * pi))) * exp(-(C**2) / RR(2))))  # noqa
 
     @classmethod
     def cost_bounded(cls, params, success_probability=0.99, omega=2, log_level=1, **kwds):
@@ -91,7 +91,7 @@ class AroraGB:
         d = params.Xe.bounds[1] - params.Xe.bounds[0] + 1
         dn = cls.equations_for_secret(params)
 
-        m = min(params.m, params.n ** d)
+        m = min(params.m, params.n**d)
 
         cost = gb_cost(params.n, [(d, m)] + dn)
         cost["t"] = (d - 1) // 2
@@ -213,6 +213,9 @@ class AroraGB:
             rop: ≈2^227.2, dreg: 54, mem: ≈2^227.2, t: 4, m: 1024, tag: arora-gb
             >>> LWE.arora_gb(params.updated(Xs=ND.UniformMod(3), Xe=ND.CenteredBinomial(4), m=1024))
             rop: ≈2^189.9, dreg: 39, mem: ≈2^189.9, t: 4, m: 1024, tag: arora-gb
+            >>> Xs, Xe =ND.SparseTernary(1024, 64, 0), ND.DiscreteGaussian(2**10)
+            >>> LWE.arora_gb(LWE.Parameters(n=1024, q=2**40, Xs=Xs, Xe=Xe))
+            rop: ≈2^inf, dreg: ≈2^inf, tag: arora-gb
 
         ..  [EPRINT:ACFP14] Martin R. Albrecht, Carlos Cid, Jean-Charles Faugère & Ludovic Perret. (2014).
             Algebraic algorithms for LWE. https://eprint.iacr.org/2014/1018
