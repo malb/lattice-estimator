@@ -56,6 +56,8 @@ class guess_composition:
             for zeta in it:
                 search_space = base**zeta
                 cost = f(params.updated(n=params.n - zeta), log_level=log_level + 1, **kwds)
+                if cost["rop"] == oo:
+                    return Cost(rop=oo)
                 repeated_cost = cost.repeat(search_space)
                 repeated_cost["zeta"] = zeta
                 it.update(repeated_cost)
@@ -115,6 +117,8 @@ class guess_composition:
         with local_minimum(0, params.n - 40, log_level=log_level) as it:
             for zeta in it:
                 single_cost = f(params.updated(n=params.n - zeta), log_level=log_level + 1, **kwds)
+                if single_cost["rop"] == oo:
+                    return Cost(rop=oo)
                 repeat, gamma, search_space, probability = cls.gammaf(params.n, h, zeta, base)
                 cost = single_cost.repeat(repeat)
                 cost["zeta"] = zeta

@@ -213,6 +213,9 @@ class AroraGB:
             rop: ≈2^227.2, dreg: 54, mem: ≈2^227.2, t: 4, m: 1024, tag: arora-gb
             >>> LWE.arora_gb(params.updated(Xs=ND.UniformMod(3), Xe=ND.CenteredBinomial(4), m=1024))
             rop: ≈2^189.9, dreg: 39, mem: ≈2^189.9, t: 4, m: 1024, tag: arora-gb
+            >>> Xs, Xe =ND.SparseTernary(1024, 64, 0), ND.DiscreteGaussian(2**10)
+            >>> LWE.arora_gb(LWE.Parameters(n=1024, q=2**40, Xs=Xs, Xe=Xe))
+            rop: ≈2^inf, dreg: ≈2^inf, tag: arora-gb
 
         ..  [EPRINT:ACFP14] Martin R. Albrecht, Carlos Cid, Jean-Charles Faugère & Ludovic Perret. (2014).
             Algebraic algorithms for LWE. https://eprint.iacr.org/2014/1018
