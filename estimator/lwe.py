@@ -68,7 +68,7 @@ class Estimate:
                 dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=False
             )
 
-        if params.m > params.n ** 2 and params.Xe.is_bounded:
+        if params.m > params.n**2 and params.Xe.is_bounded:
             if params.Xs.is_sparse:
                 algorithms["arora-gb"] = guess_composition(arora_gb.cost_bounded)
             else:
