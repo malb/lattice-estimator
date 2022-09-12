@@ -1,2 +1,4 @@
 /docs/_apidoc/
 /docs/_build/
+venv/
+__pycache__
