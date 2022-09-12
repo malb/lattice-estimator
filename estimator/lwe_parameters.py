@@ -8,12 +8,18 @@ from .errors import InsufficientSamplesError
 
 @dataclass
 class LWEParameters:
-    n: int
-    q: int
-    Xs: NoiseDistribution
-    Xe: NoiseDistribution
+    """The parameters for a Learning With Errors problem instance."""
+
+    n: int  #: the dimension of the LWE sample vector (Z/qZ)^n.
+    q: int  #: the modulus of the space Z/qZ of integers the LWE samples are in.
+    Xs: NoiseDistribution  #: the distribution on Z/qZ from which the LWE secret is drawn
+    Xe: NoiseDistribution  #: the distribution on Z/qZ from which the error term is drawn
+
+    #: the number of LWE samples allowed to an attacker,
+    #: optionally `sage.all.oo` for allowing infinitely many samples.
     m: int = oo
-    tag: str = None
+
+    tag: str = None  #: a name for the patameter set
 
     def __post_init__(self, **kwds):
         self.Xs = copy(self.Xs)
