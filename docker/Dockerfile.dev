@@ -1,5 +1,8 @@
-# A Dockerfile that can be used in isolation
 # syntax=docker/dockerfile:1
+
+# A Dockerfile that uses the local clone of lattice-estimator, incorporating
+# local changes that have not yet been merged into malb/lattice-estimator at
+# HEAD.
 FROM sagemath/sagemath:9.5
 
 COPY --chmod=777 . /lattice-estimator
