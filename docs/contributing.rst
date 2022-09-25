@@ -68,7 +68,7 @@ We explain what is going on above:
 Tests
 -----
 
-- The easiest way to run test is to run ``pytest`` or ``python -m pytest`` in the root directory of this repository. These tests are also run on each commit. Code that isn't tested is broken, so ideally every function should have an example doctest.
+- The easiest way to run tests is to run ``pytest``, ``python -m pytest`` (for those running inside ``conda`` or ``sage -sh``), or ``sage --python -m pytest`` in the root directory of this repository. These tests are also run on each commit. Code that isn't tested is broken, so ideally every function should have an example doctest.
   - To install the depdencies for testing, run ``pip install -r requirements.txt``.
 - We also enforce a coding style using `flake8 <https://flake8.pycqa.org/en/latest/>`__.
 - You should also test building the documentation locally before creating a pull request (see below).
