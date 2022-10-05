@@ -211,7 +211,7 @@ TFHE586 = LWEParameters(
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-13.4) * 2 ** 32),
-    tag="TFHE586",    
+    tag="TFHE586",
 )
 
 # https://eprint.iacr.org/2018/421.pdf
