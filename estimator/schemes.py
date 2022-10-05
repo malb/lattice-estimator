@@ -201,6 +201,19 @@ TFHE1024 = LWEParameters(
     tag="TFHE1024",
 )
 
+# CONCRETE default parameter set for 128-bit security, chosen for
+# faster boolean circuit evalutation than the TFHE_LIB parameters.
+# With these parameters, the probability of error for TFHE is upper-bounded by 2^-25.
+# https://github.com/zama-ai/concrete/blob/main/concrete-boolean/src/parameters/mod.rs
+
+TFHE586 = LWEParameters(
+    n=586,
+    q=2 ** 32,
+    Xs=NoiseDistribution.UniformMod(2),
+    Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-13.4) * 2 ** 32),
+    tag="TFHE586",    
+)
+
 # https://eprint.iacr.org/2018/421.pdf
 # Table 3, page 55
 
