@@ -184,7 +184,7 @@ HESv11 = (HESv111024128error, HESv111024128ternary)
 
 # TFHE
 # https://tfhe.github.io/tfhe/security_and_params.html
-
+# - Key-Switching key (LWE)
 TFHE630 = LWEParameters(
     n=630,
     q=2 ** 32,
@@ -192,13 +192,34 @@ TFHE630 = LWEParameters(
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-15) * 2 ** 32),
     tag="TFHE630",
 )
-
+# - Bootstrapping key (Ring-LWE)
 TFHE1024 = LWEParameters(
     n=1024,
     q=2 ** 32,
     Xs=NoiseDistribution.UniformMod(2),
     Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-25) * 2 ** 32),
     tag="TFHE1024",
+)
+
+# CONCRETE default parameter set for 128-bit security, chosen for
+# faster boolean circuit evalutation than the TFHE_LIB parameters.
+# With these parameters, the probability of error is upper-bounded by 2^-25.
+# https://github.com/zama-ai/concrete/blob/4209e3366e8eb889e83720de3dc03b85778d3cec/concrete-boolean/src/parameters/mod.rs#L83
+# - Key-Switching key (LWE)
+Concrete_TFHE586 = LWEParameters(
+    n=586,
+    q=2 ** 32,
+    Xs=NoiseDistribution.UniformMod(2),
+    Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-13.4) * 2 ** 32),
+    tag="Concrete_TFHE586",
+)
+# - Bootstrapping key (Ring-LWE)
+Concrete_TFHE512 = LWEParameters(
+    n=512,
+    q=2 ** 32,
+    Xs=NoiseDistribution.UniformMod(2),
+    Xe=NoiseDistribution.DiscreteGaussian(stddev=2 ** (-24.8) * 2 ** 32),
+    tag="Concrete_TFHE512",
 )
 
 # https://eprint.iacr.org/2018/421.pdf
