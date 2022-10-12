@@ -21,6 +21,7 @@ API Reference
    estimator.nd
    estimator.prob
    estimator.reduction     
+   estimator.rlwe_parameters
    estimator.simulator
    estimator.util
 
