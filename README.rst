@@ -65,7 +65,7 @@ We have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-e
             
 but we are also planning:
 
-- ``[ ]`` attacks on `NTRU <https://en.wikipedia.org/wiki/NTRU>`__ pulic keys (using overstretched parameters)
+- ``[ ]`` attacks on `NTRU <https://en.wikipedia.org/wiki/NTRU>`__ public keys (using overstretched parameters)
 - ``[ ]`` attack on `SIS <https://en.wikipedia.org/wiki/Short_integer_solution_problem>`__ instances
          
 Evolution
