@@ -217,7 +217,7 @@ class ExhaustiveSearch:
         cost = 2 * size * m
 
         ret = Cost(rop=cost, mem=cost / 2, m=m)
-        return ret
+        return ret.sanity_check()
 
     __name__ = "exhaustive_search"
 
@@ -428,7 +428,7 @@ class Distinguisher:
             raise InsufficientSamplesError(
                 "Not enough samples to distinguish with target advantage."
             )
-        return Cost(rop=m, mem=m, m=m)
+        return Cost(rop=m, mem=m, m=m).sanity_check()
 
     __name__ = "distinguish"
 

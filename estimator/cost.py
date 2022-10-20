@@ -265,6 +265,8 @@ class Cost:
         """
         Perform basic checks.
         """
+        if self.get("rop", 0) > 2**10000:
+            setattr(self, "rop", oo)
         if self.get("beta", 0) > self.get("d", 0):
             raise RuntimeError(f"β = {self['beta']} > d = {self['d']}")
         if self.get("eta", 0) > self.get("d", 0):
