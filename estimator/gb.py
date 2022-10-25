@@ -121,8 +121,11 @@ class AroraGB:
             assert C >= 1  # if C is too small, we ignore it
             # Pr[success]^m = Pr[overall success]
             single_prob = AroraGB.ps_single(C)
-            m_req = log(success_probability, 2) / log(single_prob, 2)
-            m_req = floor(m_req)
+            if success_probability > single_prob:
+                m_req = log(success_probability, 2) / log(single_prob, 2)
+                m_req = floor(m_req)
+            else:
+                m_req = 1
 
             if m_req > params.m:
                 break
