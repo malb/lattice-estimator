@@ -121,22 +121,21 @@ class AroraGB:
             assert C >= 1  # if C is too small, we ignore it
             # Pr[success]^m = Pr[overall success]
             single_prob = AroraGB.ps_single(C)
-            if success_probability > single_prob:
-                m_req = log(success_probability, 2) / log(single_prob, 2)
-                m_req = floor(m_req)
+            if single_prob == 1:
+                m_can = 2**31  # some arbitrary max
             else:
-                m_req = 1
-
-            if m_req > params.m:
+                m_can = log(success_probability, 2) / log(single_prob, 2)
+                m_can = floor(m_can)
+            if m_can > params.m:
                 break
 
-            current = gb_cost(params.n, [(d, m_req)] + dn, omega)
+            current = gb_cost(params.n, [(d, m_can)] + dn, omega)
 
             if current["dreg"] == oo:
                 continue
 
             current["t"] = t
-            current["m"] = m_req
+            current["m"] = m_can
             current.register_impermanent(t=False, m=True)
             current = current.reorder("rop", "m", "dreg", "t")
 
