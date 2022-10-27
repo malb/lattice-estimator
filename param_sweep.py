@@ -7,6 +7,9 @@ import pickle
 import time
 import math
 import multiprocessing
+import numpy as np
+
+# To run: sage --python param_sweep.py 600:1201:20 6:20:1
 
 keys = ['arora-gb', 'bkw', 'usvp', 'bdd', 'bdd_hybrid', 'bdd_mitm_hybrid', 'dual', 'dual_hybrid', 'dual_mitm_hybrid']
 
@@ -28,19 +31,19 @@ def performCalculation(input_params, results):
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Iterate over possible options.')
 	parser.add_argument('nrange', type=str, help='range for N, like 500:600:1', default="500:600:1")
-	parser.add_argument('xerange', type=str, help='range for Xe: log(sigma), like 10:20. Logarithmic powers, goes up by 1', default="10:20")
+	parser.add_argument('xerange', type=str, help='range for Xe: log(sigma), like 10:20:1. Logarithmic powers', default="10:20:1")
 
 	args = parser.parse_args()
 
 	nrange = [int(i) for i in args.nrange.split(':')]
-	xerange = [int(i) for i in args.xerange.split(':')]
+	xerange = [float(i) for i in args.xerange.split(':')]
 	assert len(nrange) == 3, 'n range needs to be 3 numbers separated by a colon'
-	assert len(xerange) == 2, 'Xe range needs to be 2 numbers separated by a colon'
+	assert len(xerange) == 3, 'Xe range needs to be 3 numbers separated by a colon'
 
 	result_dict = multiprocessing.Manager().dict()
 	work = []
 	for n in range(*nrange):
-		for xe in range(*xerange):
+		for xe in np.arange(*xerange):
 			work.append((n, xe))
 
 	pool = multiprocessing.Pool(processes=8)
