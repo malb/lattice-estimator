@@ -56,7 +56,7 @@ class Cost:
         for k, v in kwds.items():
             setattr(self, k, v)
 
-    def str(self, keyword_width=None, newline=None, round_bound=2048, compact=False):  # noqa C901
+    def str(self, keyword_width=None, newline=False, round_bound=2048, compact=False):  # noqa C901
         """
 
         :param keyword_width:  keys are printed with this width
@@ -101,18 +101,17 @@ class Cost:
                 vv = vv.strip()
             s.append(f"{kk}: {vv}")
 
-        if not newline:
-            return ", ".join(s)
-        else:
-            return "\n".join(s)
+        delimiter = "\n" if newline else ", "
+        return delimiter.join(s)
+
 
     def reorder(self, *args):
         """
-        Return a new ordered dict from the key:value pairs in dictinonary but reordered such that the
+        Return a new ordered dict from the key:value pairs in dictionary but reordered such that the
         keys given to this function come first.
 
         :param args: keys which should come first (in order)
-
+                                  
         EXAMPLE::
 
             >>> from estimator.cost import Cost
@@ -123,25 +122,19 @@ class Cost:
             b: 2, c: 3, a: 1
 
         """
-        keys = list(self.__dict__.keys())
-        for key in args:
-            keys.pop(keys.index(key))
-        keys = list(args) + keys
-        r = dict()
-        for key in keys:
-            r[key] = self.__dict__[key]
-        return Cost(**r)
+        reord = { k: self.__dict__[k] for k in args if k in self.__dict__ }
+        reord.update(self.__dict__)
+        return Cost(**reord) 
+
 
     def filter(self, **keys):
         """
-        Return new ordered dictinonary from dictionary restricted to the keys.
+        Return new ordered dictionary from dictionary restricted to the keys.
 
         :param dictionary: input dictionary
         :param keys: keys which should be copied (ordered)
         """
-        r = dict()
-        for key in keys:
-            r[key] = self.__dict__[key]
+        r = { k: self.__dict__[k] for k in keys if k in self.__dict__ }
         return Cost(**r)
 
     def repeat(self, times, select=None):
@@ -170,20 +163,15 @@ class Cost:
         impermanents = dict(self.impermanents)
 
         if select is not None:
-            for key in select:
-                impermanents[key] = select[key]
+            impermanents.update(select)
 
-        ret = dict()
-        for key in self.__dict__:
-            try:
-                if impermanents[key]:
-                    ret[key] = times * self.__dict__[key]
-                else:
-                    ret[key] = self.__dict__[key]
-            except KeyError:
-                raise NotImplementedError(
-                    f"You found a bug, this function does not know about '{key}' but should."
-                )
+        try:
+            ret = { k: times * v if impermanents[k] else v 
+                    for k, v in self.__dict__.items() }
+        except KeyError:
+            raise NotImplementedError(
+                f"You found a bug, this function does not know about '{k}' but should."
+            )
         ret["repetitions"] = times * ret.get("repetitions", 1)
         return Cost(**ret)
 
@@ -209,14 +197,8 @@ class Cost:
             c: 3, a: 1, b: 2
 
         """
-        if base is None:
-            cost = dict()
-        else:
-            cost = base.__dict__
-        for key in self.__dict__:
-            cost[key] = self.__dict__[key]
-        for key in right:
-            cost[key] = right.__dict__[key]
+        base_dict = {} if base is None else base.__dict__
+        cost = {**base_dict, **self.__dict__, **right.__dict__}
         return Cost(**cost)
 
     def __bool__(self):

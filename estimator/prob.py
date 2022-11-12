@@ -20,22 +20,19 @@ def mitm_babai_probability(r, stddev, q, fast=False):
 
     if fast:
         # overestimate the probability -> underestimate security
-        p = 1
-    else:
-        # get non-squared norms
-        R = [sqrt(s) for s in r]
-        alphaq = sigmaf(stddev)
-        probs = [
-            RR(
-                erf(s * sqrt(RR(pi)) / alphaq)
-                + (alphaq / s) * ((exp(-s * sqrt(RR(pi)) / alphaq) - 1) / RR(pi))
-            )
-            for s in R
-        ]
-        p = RR(prod(probs))
-        if p < 0 or p > 1:
-            p = 0.0
-    return p
+        return 1
+        
+    # get non-squared norms
+    alphaq = sigmaf(stddev)
+    probs = (
+        RR(
+            erf(s * sqrt(RR(pi)) / alphaq)
+            + (alphaq / s) * ((exp(-s * sqrt(RR(pi)) / alphaq) - 1) / RR(pi))
+        )
+        for s in map(sqrt, r)
+    )
+    p = RR(prod(probs))
+    return p if 0 <= p <= 1 else 0.0
 
 
 def babai(r, norm):

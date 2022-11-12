@@ -340,7 +340,7 @@ def _batch_estimatef(f, x, log_level=0, f_repr=None, catch_exceptions=True):
 
     Logging.log("batch", log_level, f"f: {f_repr}")
     Logging.log("batch", log_level, f"x: {x}")
-    Logging.log("batch", log_level, f"f(x): {repr(y)}")
+    Logging.log("batch", log_level, f"f(x): {y!r}")
 
     return y
 
@@ -378,23 +378,18 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
     except TypeError:
         algorithm = (algorithm,)
 
-    tasks = []
-
-    for x in params:
-        for f in algorithm:
-            tasks.append((partial(f, **kwds), x, log_level, f_name(f), catch_exceptions))
+    tasks = [ (partial(f, **kwds), x, log_level, f_name(f), catch_exceptions)
+              for x in params
+              for f in algorithm ]
 
     if jobs == 1:
-        res = {}
-        for f, x, lvl, f_repr, catch_exceptions in tasks:
-            y = _batch_estimatef(f, x, lvl, f_repr, catch_exceptions)
-            res[f_repr, x] = y
+        res = { (f_repr, x) : _batch_estimatef(f, x, lvl, f_repr, catch_exceptions)
+                for f, x, lvl, f_repr, catch_exceptions in tasks }
     else:
         pool = Pool(jobs)
         res = pool.starmap(_batch_estimatef, tasks)
-        res = dict(
-            [((f_repr, x), res[i]) for i, (f, x, _, f_repr, catch_exceptions) in enumerate(tasks)]
-        )
+        res = { (f_repr, x): res[i] 
+                for i, (_, x, _, f_repr, _) in enumerate(tasks) }
 
     ret = dict()
     for f, x in res:
