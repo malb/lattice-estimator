@@ -908,7 +908,7 @@ class MATZOV(GJ21):
     }
 
 
-def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
+def cost(cost_model, beta, d, B=None, predicate=True, **kwds):
     """
     Return cost dictionary for computing vector of norm` δ_0^{d-1} Vol(Λ)^{1/d}` using provided lattice
     reduction algorithm.
@@ -938,7 +938,7 @@ def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
     delta_ = ReductionCost.delta(beta)
     cost = Cost(rop=cost, red=cost, delta=delta_, beta=beta, d=d, **kwds)
     cost.register_impermanent(rop=True, red=True, delta=False, beta=False, d=False)
-    if predicate is not None and not predicate:
+    if predicate is False:
         cost["red"] = oo
         cost["rop"] = oo
     return cost

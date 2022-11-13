@@ -56,7 +56,7 @@ class Cost:
         for k, v in kwds.items():
             setattr(self, k, v)
 
-    def str(self, keyword_width=None, newline=False, round_bound=2048, compact=False):  # noqa C901
+    def str(self, keyword_width=0, newline=False, round_bound=2048, compact=False):  # noqa C901
         """
 
         :param keyword_width:  keys are printed with this width
@@ -73,19 +73,9 @@ class Cost:
 
         """
 
-        def wfmtf(k):
-            if keyword_width:
-                fmt = "%%%ss" % keyword_width
-            else:
-                fmt = "%s"
-            return fmt % k
-
-        d = self.__dict__
-        s = []
-        for k, v in d.items():
-            if k == "problem":  # we store the problem instance in a cost object for reference
-                continue
-            kk = wfmtf(self.key_map.get(k, k))
+        def value_str(k, v):
+            kstr = self.key_map.get(k, k)
+            kk = f"{kstr:>{keyword_width}}"
             try:
                 if (1 / round_bound < abs(v) < round_bound) or (not v) or (k in self.val_map):
                     if abs(v % 1) < 0.0000001:
@@ -99,8 +89,11 @@ class Cost:
             if compact:
                 kk = kk.strip()
                 vv = vv.strip()
-            s.append(f"{kk}: {vv}")
+            return f"{kk}: {vv}"
 
+
+        # we store the problem instance in a cost object for reference
+        s = [value_str(k, v) for k, v in self.__dict__.items() if k != "problem"]
         delimiter = "\n" if newline else ", "
         return delimiter.join(s)
 
