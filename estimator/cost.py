@@ -91,12 +91,10 @@ class Cost:
                 vv = vv.strip()
             return f"{kk}: {vv}"
 
-
         # we store the problem instance in a cost object for reference
         s = [value_str(k, v) for k, v in self.__dict__.items() if k != "problem"]
         delimiter = "\n" if newline else ", "
         return delimiter.join(s)
-
 
     def reorder(self, *args):
         """
@@ -104,7 +102,7 @@ class Cost:
         keys given to this function come first.
 
         :param args: keys which should come first (in order)
-                                  
+
         EXAMPLE::
 
             >>> from estimator.cost import Cost
@@ -115,10 +113,9 @@ class Cost:
             b: 2, c: 3, a: 1
 
         """
-        reord = { k: self.__dict__[k] for k in args if k in self.__dict__ }
+        reord = {k: self.__dict__[k] for k in args if k in self.__dict__}
         reord.update(self.__dict__)
-        return Cost(**reord) 
-
+        return Cost(**reord)
 
     def filter(self, **keys):
         """
@@ -127,7 +124,7 @@ class Cost:
         :param dictionary: input dictionary
         :param keys: keys which should be copied (ordered)
         """
-        r = { k: self.__dict__[k] for k in keys if k in self.__dict__ }
+        r = {k: self.__dict__[k] for k in keys if k in self.__dict__}
         return Cost(**r)
 
     def repeat(self, times, select=None):
@@ -159,11 +156,10 @@ class Cost:
             impermanents.update(select)
 
         try:
-            ret = { k: times * v if impermanents[k] else v 
-                    for k, v in self.__dict__.items() }
-        except KeyError:
+            ret = {k: times * v if impermanents[k] else v for k, v in self.__dict__.items()}
+        except KeyError as error:
             raise NotImplementedError(
-                f"You found a bug, this function does not know about '{k}' but should."
+                f"You found a bug, this function does not know about about a key but should: {error}"
             )
         ret["repetitions"] = times * ret.get("repetitions", 1)
         return Cost(**ret)

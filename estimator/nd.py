@@ -214,7 +214,7 @@ class NoiseDistribution:
             h = self.get_hamming_weight(n)
             # TODO: this is assuming that the non-zero entries are uniform over {-1,1}
             # need p and m for more accurate calculation
-            size = 2 ** h * binomial(n, h) * RR(fraction)
+            size = 2**h * binomial(n, h) * RR(fraction)
         elif self.is_bounded:
             # TODO: this might be suboptimal/inaccurate for binomial distribution
             a, b = self.bounds
@@ -225,10 +225,8 @@ class NoiseDistribution:
             t = self.gaussian_tail_bound
             p = self.gaussian_tail_prob
 
-            if p ** n < fraction:
-                raise NotImplementedError(
-                    f"TODO(nd.support-size): raise t. {RR(p ** n)}, {n}, {fraction}"
-                )
+            if p**n < fraction:
+                raise NotImplementedError(f"TODO(nd.support-size): raise t. {RR(p ** n)}, {n}, {fraction}")
 
             b = 2 * t * sigmaf(self.stddev) + 1
             return (2 * b + 1) ** n
@@ -258,9 +256,7 @@ class NoiseDistribution:
             stddev=RR(stddev),
             mean=RR(mean),
             n=n,
-            bounds=(-oo, oo)
-            if n is None
-            else (-ceil(log(n, 2) * stddev), ceil(log(n, 2) * stddev)),
+            bounds=(-oo, oo) if n is None else (-ceil(log(n, 2) * stddev), ceil(log(n, 2) * stddev)),
             density=1 - min(RR(1 / (sqrt(2 * pi) * stddev)), 1.0),
             tag="DiscreteGaussian",
         )
@@ -321,16 +317,14 @@ class NoiseDistribution:
             raise ValueError(f"upper limit must be larger than lower limit but got: {b} < {a}")
         m = b - a + 1
         mean = (a + b) / RR(2)
-        stddev = sqrt((m ** 2 - 1) / RR(12))
+        stddev = sqrt((m**2 - 1) / RR(12))
 
-        if a <= 0 and 0 <= b:
+        if a <= 0 and b >= 0:
             density = 1.0 - 1.0 / m
         else:
             density = 0.0
 
-        return NoiseDistribution(
-            n=n, stddev=stddev, mean=mean, bounds=(a, b), density=density, tag="Uniform"
-        )
+        return NoiseDistribution(n=n, stddev=stddev, mean=mean, bounds=(a, b), density=density, tag="Uniform")
 
     @staticmethod
     def UniformMod(q, n=None):
@@ -373,18 +367,12 @@ class NoiseDistribution:
 
         if n == 0:
             # this might happen in the dual attack
-            return NoiseDistribution(
-                stddev=0, mean=0, density=0, bounds=(-1, 1), tag="SparseTernary", n=0
-            )
+            return NoiseDistribution(stddev=0, mean=0, density=0, bounds=(-1, 1), tag="SparseTernary", n=0)
         mean = RR(p / n - m / n)
 
-        stddev = sqrt(p / n * (1 - mean)**2 +
-                      m / n * (-1 - mean)**2 +
-                      (n - (p + m)) / n * (mean)**2)
+        stddev = sqrt(p / n * (1 - mean) ** 2 + m / n * (-1 - mean) ** 2 + (n - (p + m)) / n * (mean) ** 2)
 
         density = RR((p + m) / n)
-        D = NoiseDistribution(
-            stddev=stddev, mean=mean, density=density, bounds=(-1, 1), tag="SparseTernary", n=n
-        )
+        D = NoiseDistribution(stddev=stddev, mean=mean, density=density, bounds=(-1, 1), tag="SparseTernary", n=n)
 
         return D

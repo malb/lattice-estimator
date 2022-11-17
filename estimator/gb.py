@@ -164,22 +164,19 @@ class AroraGB:
         :param params: LWE parameters.
 
         """
-        if params.Xs <= params.Xe:
-            a, b = params.Xs.bounds
-            if b - a < oo:
-                d = b - a + 1
-            elif params.Xs.is_Gaussian_like:
-                d = 2 * ceil(3 * params.Xs.stddev) + 1
-            else:
-                raise NotImplementedError(f"Do not know how to handle {params.Xs}.")
-            dn = [(d, params.n)]
-        else:
-            dn = []
-        return dn
+        if params.Xs > params.Xe:
+            return []
 
-    def __call__(
-        self, params: LWEParameters, success_probability=0.99, omega=2, log_level=1, **kwds
-    ):
+        a, b = params.Xs.bounds
+        if b - a < oo:
+            d = b - a + 1
+        elif params.Xs.is_Gaussian_like:
+            d = 2 * ceil(3 * params.Xs.stddev) + 1
+        else:
+            raise NotImplementedError(f"Do not know how to handle {params.Xs}.")
+        return [(d, params.n)]
+
+    def __call__(self, params: LWEParameters, success_probability=0.99, omega=2, log_level=1, **kwds):
         """
         Arora-GB as described in [ICALP:AroGe11]_, [EPRINT:ACFP14]_.
 

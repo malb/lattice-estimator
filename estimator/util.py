@@ -298,9 +298,7 @@ class early_abort_range:
                 self._next_x = None
 
 
-def binary_search(
-    f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds
-):
+def binary_search(f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds):
     """
     Searches for the best value in the interval [start,stop] depending on the given comparison function.
 
@@ -378,23 +376,21 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
     except TypeError:
         algorithm = (algorithm,)
 
-    tasks = [ (partial(f, **kwds), x, log_level, f_name(f), catch_exceptions)
-              for x in params
-              for f in algorithm ]
+    tasks = [(partial(f, **kwds), x, log_level, f_name(f), catch_exceptions) for x in params for f in algorithm]
 
     if jobs == 1:
-        res = { (f_repr, x) : _batch_estimatef(f, x, lvl, f_repr, catch_exceptions)
-                for f, x, lvl, f_repr, catch_exceptions in tasks }
+        res = {
+            (f_repr, x): _batch_estimatef(f, x, lvl, f_repr, catch_exceptions)
+            for f, x, lvl, f_repr, catch_exceptions in tasks
+        }
     else:
         pool = Pool(jobs)
         res = pool.starmap(_batch_estimatef, tasks)
-        res = { (f_repr, x): res[i] 
-                for i, (_, x, _, f_repr, _) in enumerate(tasks) }
+        res = {(f_repr, x): res[i] for i, (_, x, _, f_repr, _) in enumerate(tasks)}
 
-    ret = dict()
-    for f, x in res:
-        ret[x] = ret.get(x, dict())
-        if res[f, x] is not None:
-            ret[x][f] = res[f, x]
+    ret = {x: {} for x in res.values()}
+    for (f, x), v in res.items():
+        if v is not None:
+            ret[x][f] = v
 
     return ret

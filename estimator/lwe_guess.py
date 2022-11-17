@@ -83,9 +83,7 @@ class guess_composition:
         :returns: (number of repetitions, γ, size of the search space, probability of success)
 
         """
-        if h == 0:
-            return 1, 0, 0, 1.0
-        if not zeta:
+        if h == 0 or not zeta:
             return 1, 0, 0, 1.0
 
         search_space = 0
@@ -200,9 +198,7 @@ class ExhaustiveSearch:
 
         # set m according to [ia.cr/2020/515]
         sigma = params.Xe.stddev / params.q
-        m_required = RR(
-            8 * exp(4 * pi * pi * sigma * sigma) * (log(size) - log(log(1 / probability)))
-        )
+        m_required = RR(8 * exp(4 * pi * pi * sigma * sigma) * (log(size) - log(log(1 / probability))))
 
         if params.m < m_required:
             raise InsufficientSamplesError(
@@ -257,9 +253,7 @@ class MITM:
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(n=params.n)
             split_h = round(h * k / n)
-            success_probability_ = (
-                binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
-            )
+            success_probability_ = binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
 
             logT = RR(h * (log2(n) - log2(h) + log2(sd_rng - 1) + log2(e))) / (2 - delta)
             logT -= RR(log2(h) / 2)
@@ -270,9 +264,7 @@ class MITM:
 
         m_ = max(1, round(logT + log(logT, 2)))
         if params.m < m_:
-            raise InsufficientSamplesError(
-                f"MITM: Need {m_} samples but only {params.m} available."
-            )
+            raise InsufficientSamplesError(f"MITM: Need {m_} samples but only {params.m} available.")
 
         # since m = logT + loglogT and rop = T*m, we have rop=2^m
         ret = Cost(rop=RR(2**m_), mem=2**logT * m_, m=m_, k=ZZ(k))
@@ -299,9 +291,7 @@ class MITM:
             split_h = round(h * k / n)
             size_tab = RR((sd_rng - 1) ** split_h * binomial(k, split_h))
             size_sea = RR((sd_rng - 1) ** (h - split_h) * binomial(n - k, h - split_h))
-            success_probability_ = (
-                binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
-            )
+            success_probability_ = binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
         else:
             size_tab = sd_rng**k
             size_sea = sd_rng ** (n - k)
@@ -420,14 +410,10 @@ class Distinguisher:
         """
 
         if params.n > 0:
-            raise OutOfBoundsError(
-                "Secret dimension should be 0 for distinguishing. Try exhaustive search for n > 0."
-            )
+            raise OutOfBoundsError("Secret dimension should be 0 for distinguishing. Try exhaustive search for n > 0.")
         m = amplify_sigma(success_probability, sigmaf(params.Xe.stddev), params.q)
         if m > params.m:
-            raise InsufficientSamplesError(
-                "Not enough samples to distinguish with target advantage."
-            )
+            raise InsufficientSamplesError("Not enough samples to distinguish with target advantage.")
         return Cost(rop=m, mem=m, m=m).sanity_check()
 
     __name__ = "distinguish"
