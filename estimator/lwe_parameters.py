@@ -107,7 +107,7 @@ class LWEParameters:
             return self
         if self.m == oo:
             return self
-        d = self.__dict__
+        d = dict(self.__dict__)
 
         if self.Xe.mean != 0:
             raise NotImplementedError("Amplifying for μ≠0 not implemented.")
