@@ -388,7 +388,7 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
         res = pool.starmap(_batch_estimatef, tasks)
         res = {(f_repr, x): res[i] for i, (_, x, _, f_repr, _) in enumerate(tasks)}
 
-    ret = {x: {} for x in res.values()}
+    ret = {x: {} for _, x in res.keys()}
     for (f, x), v in res.items():
         if v is not None:
             ret[x][f] = v
