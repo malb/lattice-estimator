@@ -112,8 +112,8 @@ class AroraGB:
         dn = cls.equations_for_secret(params)
 
         best, stuck = None, 0
-        for t in range(ceil(params.Xe.stddev), params.n):
-            d = 2 * t + 1
+
+        def t_and_m_can(t):
             C = RR(t / params.Xe.stddev)
             assert C >= 1  # if C is too small, we ignore it
             # Pr[success]^m = Pr[overall success]
@@ -121,11 +121,17 @@ class AroraGB:
             if single_prob == 1:
                 m_can = 2**31  # some arbitrary max
             else:
-                m_can = log(success_probability, 2) / log(single_prob, 2)
-                m_can = floor(m_can)
+                # log(success_probability, single_prob)
+                # == log(success_probability, 2) / log(single_prob, 2)
+                m_can = floor(log(success_probability, single_prob))
+
+            return t, m_can
+
+        for t, m_can in map(t_and_m_can, range(ceil(params.Xe.stddev), params.n)):
             if m_can > params.m:
                 break
 
+            d = 2 * t + 1
             current = gb_cost(params.n, [(d, m_can)] + dn, omega)
 
             if current["dreg"] == oo:
@@ -140,18 +146,15 @@ class AroraGB:
 
             if best is None:
                 best = current
+            elif best > current:
+                best = current
+                stuck = 0
             else:
-                if best > current:
-                    best = current
-                    stuck = 0
-                else:
-                    stuck += 1
-                    if stuck >= 5:
-                        break
+                stuck += 1
+                if stuck >= 5:
+                    break
 
-        if best is None:
-            best = Cost(rop=oo, dreg=oo)
-        return best
+        return best if best is not None else Cost(rop=oo, dreg=oo)
 
     @classmethod
     def equations_for_secret(cls, params):
