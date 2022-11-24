@@ -180,7 +180,7 @@ class ReductionCost:
             beta *= 2
         while ReductionCost._delta(beta + 10) > delta:
             beta += 10
-        while ReductionCost._delta(beta) > delta:
+        while ReductionCost._delta(beta) >= delta:
             beta += 1
 
         return beta
