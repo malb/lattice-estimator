@@ -57,13 +57,10 @@ def gb_cost(n, D, omega=2, prec=None):
 
     for dreg in range(prec):
         if s[dreg] < 0:
+            retval["dreg"] = dreg
+            retval["rop"] = binomial(n + dreg, dreg) ** omega
+            retval["mem"] = binomial(n + dreg, dreg) ** 2
             break
-    else:
-        return retval
-
-    retval["dreg"] = dreg
-    retval["rop"] = binomial(n + dreg, dreg) ** omega
-    retval["mem"] = binomial(n + dreg, dreg) ** 2
 
     return retval
 
