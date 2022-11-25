@@ -24,18 +24,24 @@ class Cost:
         "problem": False,
     }
 
+    @staticmethod
+    def _update_without_overwrite(dst, src):
+        keys_intersect = set(dst.keys()) & set(src.keys())
+        attempts = [
+          f"{k}: {dst[k]} with {src[k]}" for k in keys_intersect if dst[k] != src[k]
+        ]
+        if len(attempts) > 0:
+            s = ", ".join(attempts)
+            raise ValueError(f"Attempting to overwrite {s}")           
+        dst.update(src)
+
+
     @classmethod
     def register_impermanent(cls, data=None, **kwds):
         if data is not None:
-            for k, v in data.items():
-                if cls.impermanents.get(k, v) != v:
-                    raise ValueError(f"Attempting to overwrite {k}:{cls.impermanents[k]} with {v}")
-                cls.impermanents[k] = v
+            cls._update_without_overwrite(cls.impermanents, data)
+        cls._update_without_overwrite(cls.impermanents, kwds)
 
-        for k, v in kwds.items():
-            if cls.impermanents.get(k, v) != v:
-                raise ValueError(f"Attempting to overwrite {k}:{cls.impermanents[k]} with {v}")
-            cls.impermanents[k] = v
 
     key_map = {
         "delta": "δ",
