@@ -193,7 +193,7 @@ class ExhaustiveSearch:
             # so we approximate the cost with oo
             return Cost(rop=oo, mem=oo, m=1)
 
-        if quantum:
+        if quantum is True:
             size = size.sqrt()
 
         # set m according to [ia.cr/2020/515]

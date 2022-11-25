@@ -55,10 +55,9 @@ class CodedBKW:
             start = 2
         ntest_min = 1
         for ntest in range(start, n - t1 * b + 1):
-            if abs(ntop(ntest=ntest).n()) < abs(ntop(ntest=ntest_min).n()):
-                ntest_min = ntest
-            else:
+            if abs(ntop(ntest=ntest).n()) >= abs(ntop(ntest=ntest_min).n()):
                 break
+            ntest_min = ntest
         return int(ntest_min)
 
     def t1(params: LWEParameters, ell, t2, b, ntest=None):
