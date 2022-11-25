@@ -3,6 +3,7 @@
 High-level LWE interface
 """
 
+from functools import partial
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
 from .lwe_bkw import coded_bkw
 from .lwe_guess import exhaustive_search, mitm, distinguish  # noqa
@@ -42,7 +43,6 @@ class Estimate:
 
         """
         # NOTE: Don't import these at the top-level to avoid circular imports
-        from functools import partial
         from .reduction import RC
         from .util import batch_estimate, f_name
 
@@ -56,8 +56,6 @@ class Estimate:
 
         if params.Xs.is_sparse:
             algorithms["hybrid"] = partial(primal_hybrid, red_cost_model=RC.ADPS16, red_shape_model="gsa")
-
-        if params.Xs.is_sparse:
             algorithms["dual_mitm_hybrid"] = partial(dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=True)
         else:
             algorithms["dual_hybrid"] = partial(dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=False)
