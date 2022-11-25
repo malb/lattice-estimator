@@ -211,10 +211,10 @@ class local_minimum(local_minimum_base):
         An iterator over the neighborhood of the currently best value.
         """
 
-        start, stop = self._orig_bounds
-
-        for x in range(max(start, self.x - self._precision), min(stop, self.x + self._precision)):
-            yield x
+        start_bound, stop_bound = self._orig_bounds
+        start = max(start_bound, self.x - self._precision)
+        stop = min(stop_bound, self.x + self._precision)
+        return range(start, stop)
 
 
 class early_abort_range:
