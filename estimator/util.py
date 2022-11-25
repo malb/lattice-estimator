@@ -64,15 +64,13 @@ class local_minimum_base:
         return self
 
     def __next__(self):
-        abort = False
-        if self._next_x is None:
-            abort = True  # we're told to abort
-        elif self._next_x in self._all_x:
-            abort = True  # we're looping
-        elif self._next_x < self._initial_bounds[0] or self._initial_bounds[1] < self._next_x:
-            abort = True  # we're stepping out of bounds
-
-        if not abort:
+        
+        if (self._next_x is not None 
+            and self._next_x not in self._all_x 
+            and self._initial_bounds[0] <= self._next_x <= self._initial_bounds[1]):
+            # we've not been told to abort
+            # we're not looping
+            # we're in bounds
             self._last_x = self._next_x
             self._next_x = None
             return self._last_x
@@ -371,9 +369,7 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
 
     if isinstance(params, LWEParameters):
         params = (params,)
-    try:
-        iter(algorithm)
-    except TypeError:
+    if not hasattr(algorithm, "__iter__"):
         algorithm = (algorithm,)
 
     tasks = [(partial(f, **kwds), x, log_level, f_name(f), catch_exceptions) for x in params for f in algorithm]
