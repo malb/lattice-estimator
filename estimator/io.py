@@ -52,4 +52,6 @@ class Logging:
     @classmethod
     def log(cls, logger, level, msg, *args, **kwds):
         level = int(level)
-        return logging.getLogger(logger).log(cls.INFO - 2 * level, f"{{{level}}} {msg}", *args, **kwds)
+        return logging.getLogger(logger).log(
+            cls.INFO - 2 * level, f"{{{level}}} {msg}", *args, **kwds
+        )

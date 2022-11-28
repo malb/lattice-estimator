@@ -151,7 +151,9 @@ class ReductionCost:
             return beta
 
         try:
-            beta = find_root(lambda beta: RR(ReductionCost._delta(beta) - delta), 40, 2**16, maxiter=500)
+            beta = find_root(
+                lambda beta: RR(ReductionCost._delta(beta) - delta), 40, 2**16, maxiter=500
+            )
             beta = ceil(beta - 1e-8)
         except RuntimeError:
             # finding root failed; reasons:
@@ -380,7 +382,9 @@ class ReductionCost:
 
         c = N / floor(2 ** (0.2075 * beta))
 
-        rho = sqrt(4 / 3.0) * RR(self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim))
+        rho = sqrt(4 / 3.0) * RR(
+            self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim)
+        )
 
         return (
             rho,
@@ -478,7 +482,9 @@ class LaaMosPol14(ReductionCost):
             161.9
 
         """
-        return self.LLL(d, B) + ZZ(2) ** RR((0.265 * beta + 16.4 + log(self.svp_repeat(beta, d), 2)))
+        return self.LLL(d, B) + ZZ(2) ** RR(
+            (0.265 * beta + 16.4 + log(self.svp_repeat(beta, d), 2))
+        )
 
 
 class CheNgu12(ReductionCost):
@@ -521,7 +527,12 @@ class CheNgu12(ReductionCost):
 
         """
         repeat = self.svp_repeat(beta, d)
-        cost = RR(0.270188776350190 * beta * log(beta) - 1.0192050451318417 * beta + 16.10253135200765 + log(100, 2))
+        cost = RR(
+            0.270188776350190 * beta * log(beta)
+            - 1.0192050451318417 * beta
+            + 16.10253135200765
+            + log(100, 2)
+        )
         return self.LLL(d, B) + repeat * ZZ(2) ** cost
 
 
@@ -738,7 +749,9 @@ class Kyber(ReductionCost):
         # be called only once per dimension during progressive sieving, for a cost of C · 2^137.4
         # gates^8." [Kyber20]_
 
-        gate_count = C * 2 ** (RR(self.NN_AGPS[self.nn]["a"]) * beta_ + RR(self.NN_AGPS[self.nn]["b"]))
+        gate_count = C * 2 ** (
+            RR(self.NN_AGPS[self.nn]["a"]) * beta_ + RR(self.NN_AGPS[self.nn]["b"])
+        )
         return self.LLL(d, B=B) + svp_calls * gate_count
 
     def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
@@ -832,10 +845,14 @@ class GJ21(Kyber):
             if beta < d:
                 # set beta_sieve such that complexity of 1 sieve in in dim sieve_dim is approx
                 # the same as the BKZ call
-                sieve_dim = min(d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[self.nn]["a"]))
+                sieve_dim = min(
+                    d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[self.nn]["a"])
+                )
 
         # MATZOV, p.18
-        rho = sqrt(4 / 3.0) * RR(self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim))
+        rho = sqrt(4 / 3.0) * RR(
+            self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim)
+        )
 
         if N == 1:
             if preprocess:

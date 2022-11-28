@@ -198,7 +198,9 @@ class ExhaustiveSearch:
 
         # set m according to [ia.cr/2020/515]
         sigma = params.Xe.stddev / params.q
-        m_required = RR(8 * exp(4 * pi * pi * sigma * sigma) * (log(size) - log(log(1 / probability))))
+        m_required = RR(
+            8 * exp(4 * pi * pi * sigma * sigma) * (log(size) - log(log(1 / probability)))
+        )
 
         if params.m < m_required:
             raise InsufficientSamplesError(
@@ -264,7 +266,9 @@ class MITM:
 
         m_ = max(1, round(logT + log(logT, 2)))
         if params.m < m_:
-            raise InsufficientSamplesError(f"MITM: Need {m_} samples but only {params.m} available.")
+            raise InsufficientSamplesError(
+                f"MITM: Need {m_} samples but only {params.m} available."
+            )
 
         # since m = logT + loglogT and rop = T*m, we have rop=2^m
         ret = Cost(rop=RR(2**m_), mem=2**logT * m_, m=m_, k=ZZ(k))
@@ -410,10 +414,14 @@ class Distinguisher:
         """
 
         if params.n > 0:
-            raise OutOfBoundsError("Secret dimension should be 0 for distinguishing. Try exhaustive search for n > 0.")
+            raise OutOfBoundsError(
+                "Secret dimension should be 0 for distinguishing. Try exhaustive search for n > 0."
+            )
         m = amplify_sigma(success_probability, sigmaf(params.Xe.stddev), params.q)
         if m > params.m:
-            raise InsufficientSamplesError("Not enough samples to distinguish with target advantage.")
+            raise InsufficientSamplesError(
+                "Not enough samples to distinguish with target advantage."
+            )
         return Cost(rop=m, mem=m, m=m).sanity_check()
 
     __name__ = "distinguish"

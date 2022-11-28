@@ -176,7 +176,9 @@ class AroraGB:
             raise NotImplementedError(f"Do not know how to handle {params.Xs}.")
         return [(d, params.n)]
 
-    def __call__(self, params: LWEParameters, success_probability=0.99, omega=2, log_level=1, **kwds):
+    def __call__(
+        self, params: LWEParameters, success_probability=0.99, omega=2, log_level=1, **kwds
+    ):
         """
         Arora-GB as described in [ICALP:AroGe11]_, [EPRINT:ACFP14]_.
 

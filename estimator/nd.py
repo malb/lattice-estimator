@@ -226,7 +226,9 @@ class NoiseDistribution:
             p = self.gaussian_tail_prob
 
             if p**n < fraction:
-                raise NotImplementedError(f"TODO(nd.support-size): raise t. {RR(p ** n)}, {n}, {fraction}")
+                raise NotImplementedError(
+                    f"TODO(nd.support-size): raise t. {RR(p ** n)}, {n}, {fraction}"
+                )
 
             b = 2 * t * sigmaf(self.stddev) + 1
             return (2 * b + 1) ** n
@@ -252,11 +254,12 @@ class NoiseDistribution:
             D(σ=3.00, μ=1.00)
 
         """
+        b_val = oo if n is None else ceil(log(n, 2) * stddev)
         return NoiseDistribution(
             stddev=RR(stddev),
             mean=RR(mean),
             n=n,
-            bounds=(-oo, oo) if n is None else (-ceil(log(n, 2) * stddev), ceil(log(n, 2) * stddev)),
+            bounds=(-b_val, b_val),
             density=1 - min(RR(1 / (sqrt(2 * pi) * stddev)), 1.0),
             tag="DiscreteGaussian",
         )
@@ -324,7 +327,9 @@ class NoiseDistribution:
         else:
             density = 0.0
 
-        return NoiseDistribution(n=n, stddev=stddev, mean=mean, bounds=(a, b), density=density, tag="Uniform")
+        return NoiseDistribution(
+            n=n, stddev=stddev, mean=mean, bounds=(a, b), density=density, tag="Uniform"
+        )
 
     @staticmethod
     def UniformMod(q, n=None):
@@ -367,12 +372,16 @@ class NoiseDistribution:
 
         if n == 0:
             # this might happen in the dual attack
-            return NoiseDistribution(stddev=0, mean=0, density=0, bounds=(-1, 1), tag="SparseTernary", n=0)
+            return NoiseDistribution(
+                stddev=0, mean=0, density=0, bounds=(-1, 1), tag="SparseTernary", n=0
+            )
         mean = RR(p / n - m / n)
 
-        stddev = sqrt(p / n * (1 - mean) ** 2 + m / n * (-1 - mean) ** 2 + (n - (p + m)) / n * (mean) ** 2)
+        stddev = sqrt(p / n * (1 - mean)**2 +
+                      m / n * (-1 - mean)**2 +
+                      (n - (p + m)) / n * (mean)**2)
 
         density = RR((p + m) / n)
-        D = NoiseDistribution(stddev=stddev, mean=mean, density=density, bounds=(-1, 1), tag="SparseTernary", n=n)
-
-        return D
+        return NoiseDistribution(
+            stddev=stddev, mean=mean, density=density, bounds=(-1, 1), tag="SparseTernary", n=n
+        )

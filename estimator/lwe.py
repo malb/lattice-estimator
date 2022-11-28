@@ -55,10 +55,16 @@ class Estimate:
         algorithms["usvp"] = partial(primal_usvp, red_cost_model=RC.ADPS16, red_shape_model="gsa")
 
         if params.Xs.is_sparse:
-            algorithms["hybrid"] = partial(primal_hybrid, red_cost_model=RC.ADPS16, red_shape_model="gsa")
-            algorithms["dual_mitm_hybrid"] = partial(dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=True)
+            algorithms["hybrid"] = partial(
+                primal_hybrid, red_cost_model=RC.ADPS16, red_shape_model="gsa"
+            )
+            algorithms["dual_mitm_hybrid"] = partial(
+                dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=True
+            )
         else:
-            algorithms["dual_hybrid"] = partial(dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=False)
+            algorithms["dual_hybrid"] = partial(
+                dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=False
+            )
 
         if params.m > params.n**2 and params.Xe.is_bounded:
             if params.Xs.is_sparse:
@@ -66,10 +72,14 @@ class Estimate:
             else:
                 algorithms["arora-gb"] = arora_gb.cost_bounded
 
-        res_raw = batch_estimate(params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions)
+        res_raw = batch_estimate(
+            params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
+        )
         res_raw = res_raw[params]
         res = {
-            algorithm: v for algorithm, attack in algorithms.items() for k, v in res_raw.items() if f_name(attack) == k
+            algorithm: v for algorithm, attack in algorithms.items()
+            for k, v in res_raw.items()
+            if f_name(attack) == k
         }
 
         for algorithm in algorithms:
@@ -132,8 +142,12 @@ class Estimate:
         algorithms["arora-gb"] = guess_composition(arora_gb)
         algorithms["bkw"] = coded_bkw
 
-        algorithms["usvp"] = partial(primal_usvp, red_cost_model=red_cost_model, red_shape_model=red_shape_model)
-        algorithms["bdd"] = partial(primal_bdd, red_cost_model=red_cost_model, red_shape_model=red_shape_model)
+        algorithms["usvp"] = partial(
+            primal_usvp, red_cost_model=red_cost_model, red_shape_model=red_shape_model
+        )
+        algorithms["bdd"] = partial(
+            primal_bdd, red_cost_model=red_cost_model, red_shape_model=red_shape_model
+        )
         algorithms["bdd_hybrid"] = partial(
             primal_hybrid,
             mitm=False,
@@ -150,16 +164,24 @@ class Estimate:
             red_shape_model=red_shape_model,
         )
         algorithms["dual"] = partial(dual, red_cost_model=red_cost_model)
-        algorithms["dual_hybrid"] = partial(dual_hybrid, red_cost_model=red_cost_model, mitm_optimization=False)
-        algorithms["dual_mitm_hybrid"] = partial(dual_hybrid, red_cost_model=red_cost_model, mitm_optimization=True)
+        algorithms["dual_hybrid"] = partial(
+            dual_hybrid, red_cost_model=red_cost_model, mitm_optimization=False
+        )
+        algorithms["dual_mitm_hybrid"] = partial(
+            dual_hybrid, red_cost_model=red_cost_model, mitm_optimization=True
+        )
 
         algorithms = {k: v for k, v in algorithms.items() if k not in deny_list}
         algorithms.update(add_list)
 
-        res_raw = batch_estimate(params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions)
+        res_raw = batch_estimate(
+            params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
+        )
         res_raw = res_raw[params]
         res = {
-            algorithm: v for algorithm, attack in algorithms.items() for k, v in res_raw.items() if f_name(attack) == k
+            algorithm: v for algorithm, attack in algorithms.items()
+            for k, v in res_raw.items()
+            if f_name(attack) == k
         }
 
         for algorithm in algorithms:
