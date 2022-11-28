@@ -191,8 +191,7 @@ class Cost:
 
         """
         base_dict = {} if base is None else base.__dict__
-        cost = {**base_dict, **self.__dict__, **right.__dict__}
-        return Cost(**cost)
+        return Cost(**base_dict, **self.__dict__, **right.__dict__)
 
     def __bool__(self):
         return self.__dict__.get("rop", oo) < oo
