@@ -177,7 +177,7 @@ class CodedBKW:
         for i in range(1, t2 + 1):
             C2 += float(
                 ntop + ntest + sum(CodedBKW.N(j, sigma_set, b, params.q) for j in range(1, i + 1))
-            ) * ( M + (i - 1) * ZZ(params.q**b - 1) / 2)
+            ) * (M + (i - 1) * ZZ(params.q**b - 1) / 2)
         assert C2 >= 0
 
         # Equation (10)
