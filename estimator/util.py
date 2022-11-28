@@ -64,10 +64,10 @@ class local_minimum_base:
         return self
 
     def __next__(self):
-        
-        if (self._next_x is not None 
-            and self._next_x not in self._all_x 
-            and self._initial_bounds[0] <= self._next_x <= self._initial_bounds[1]):
+
+        if (self._next_x is not None
+                and self._next_x not in self._all_x
+                and self._initial_bounds[0] <= self._next_x <= self._initial_bounds[1]):
             # we've not been told to abort
             # we're not looping
             # we're in bounds

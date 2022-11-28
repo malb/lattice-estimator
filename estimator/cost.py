@@ -32,16 +32,14 @@ class Cost:
         ]
         if len(attempts) > 0:
             s = ", ".join(attempts)
-            raise ValueError(f"Attempting to overwrite {s}")           
+            raise ValueError(f"Attempting to overwrite {s}")
         dst.update(src)
-
 
     @classmethod
     def register_impermanent(cls, data=None, **kwds):
         if data is not None:
             cls._update_without_overwrite(cls.impermanents, data)
         cls._update_without_overwrite(cls.impermanents, kwds)
-
 
     key_map = {
         "delta": "δ",

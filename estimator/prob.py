@@ -21,7 +21,7 @@ def mitm_babai_probability(r, stddev, q, fast=False):
     if fast:
         # overestimate the probability -> underestimate security
         return 1
-        
+
     # get non-squared norms
     alphaq = sigmaf(stddev)
     probs = (

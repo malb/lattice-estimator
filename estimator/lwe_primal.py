@@ -128,7 +128,6 @@ class PrimalUSVP:
 
         return costf(red_cost_model, beta, d, predicate=predicate)
 
-
     def __call__(
         self,
         params: LWEParameters,
