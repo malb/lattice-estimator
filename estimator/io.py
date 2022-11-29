@@ -16,7 +16,7 @@ class Logging:
     logging.getLogger("estimator").handlers = [plain_logger]
     logging.getLogger("estimator").setLevel(logging.INFO)
 
-    loggers = ("batch", "bdd", "usvp", "bkw", "gb", "repeat", "guess", "bins", "dual")
+    loggers = ("batch", "bdd", "usvp", "bkw", "gb", "repeat", "guess", "bins", "dual", "sweep")
 
     CRITICAL = logging.CRITICAL
     ERROR = logging.ERROR
