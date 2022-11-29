@@ -3,6 +3,7 @@
 High-level LWE interface
 """
 
+from functools import partial
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
 from .lwe_bkw import coded_bkw
 from .lwe_guess import exhaustive_search, mitm, distinguish  # noqa
@@ -42,7 +43,6 @@ class Estimate:
 
         """
         # NOTE: Don't import these at the top-level to avoid circular imports
-        from functools import partial
         from .reduction import RC
         from .util import batch_estimate, f_name
 
@@ -58,8 +58,6 @@ class Estimate:
             algorithms["hybrid"] = partial(
                 primal_hybrid, red_cost_model=RC.ADPS16, red_shape_model="gsa"
             )
-
-        if params.Xs.is_sparse:
             algorithms["dual_mitm_hybrid"] = partial(
                 dual_hybrid, red_cost_model=RC.ADPS16, mitm_optimization=True
             )
@@ -78,18 +76,18 @@ class Estimate:
             params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
         )
         res_raw = res_raw[params]
-        res = {}
-        for algorithm in algorithms:
-            for k, v in res_raw.items():
-                if f_name(algorithms[algorithm]) == k:
-                    res[algorithm] = v
+        res = {
+            algorithm: v for algorithm, attack in algorithms.items()
+            for k, v in res_raw.items()
+            if f_name(attack) == k
+        }
 
         for algorithm in algorithms:
             for k, v in res.items():
                 if algorithm == k:
                     if v["rop"] == oo:
                         continue
-                    print(f"{algorithm:20s} :: {repr(v)}")
+                    print(f"{algorithm:20s} :: {v!r}")
         return res
 
     def __call__(
@@ -173,20 +171,18 @@ class Estimate:
             dual_hybrid, red_cost_model=red_cost_model, mitm_optimization=True
         )
 
-        for k in deny_list:
-            del algorithms[k]
-        for k, v in add_list:
-            algorithms[k] = v
+        algorithms = {k: v for k, v in algorithms.items() if k not in deny_list}
+        algorithms.update(add_list)
 
         res_raw = batch_estimate(
             params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
         )
         res_raw = res_raw[params]
-        res = {}
-        for algorithm in algorithms:
-            for k, v in res_raw.items():
-                if f_name(algorithms[algorithm]) == k:
-                    res[algorithm] = v
+        res = {
+            algorithm: v for algorithm, attack in algorithms.items()
+            for k, v in res_raw.items()
+            if f_name(attack) == k
+        }
 
         for algorithm in algorithms:
             for k, v in res.items():
@@ -197,7 +193,7 @@ class Estimate:
                         continue
                     if k == "dual_mitm_hybrid" and res["dual_hybrid"]["rop"] < v["rop"]:
                         continue
-                    print(f"{algorithm:20s} :: {repr(v)}")
+                    print(f"{algorithm:20s} :: {v!r}")
         return res
 
 

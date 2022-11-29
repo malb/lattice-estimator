@@ -17,7 +17,7 @@ where
 The last row is optional.
 """
 
-from sage.all import RR, log
+from sage.all import RR, log, line
 
 
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
@@ -33,18 +33,18 @@ def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
     :param dual: perform reduction on the dual.
 
     """
-    if tau is not None:
-        r = [q**2] * (d - n - 1) + [xi**2] * n + [tau**2]
-    else:
+    if tau is None:
         r = [q**2] * (d - n) + [xi**2] * n
+    else:
+        r = [q**2] * (d - n - 1) + [xi**2] * n + [tau**2]
 
     if dual:
         # 1. reverse and reflect the basis (go to dual)
-        r = [1 / r_ for r_ in r[::-1]]
+        r = [1 / r_ for r_ in reversed(r)]
         # 2. simulate reduction on the dual basis
         r = f(r, beta)
         # 3. reflect and reverse the basis (go back to primal)
-        r = [1 / r_ for r_ in r[::-1]]
+        r = [1 / r_ for r_ in reversed(r)]
         return r
     else:
         return f(r, beta)
@@ -91,10 +91,10 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     """
     from .reduction import delta as deltaf
 
-    if tau is not None:
-        log_vol = RR(log(q, 2) * (d - n - 1) + log(xi, 2) * n + log(tau, 2))
-    else:
+    if tau is None:
         log_vol = RR(log(q, 2) * (d - n) + log(xi, 2) * n)
+    else:
+        log_vol = RR(log(q, 2) * (d - n - 1) + log(xi, 2) * n + log(tau, 2))
 
     delta = deltaf(beta)
     r_log = [(d - 1 - 2 * i) * RR(log(delta, 2)) + log_vol / d for i in range(d)]
@@ -105,13 +105,12 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 def normalize(name):
     if str(name).upper() == "CN11":
         return CN11
-    elif str(name).upper() == "GSA":
+
+    if str(name).upper() == "GSA":
         return GSA
-    else:
-        return name
+
+    return name
 
 
 def plot_gso(r, *args, **kwds):
-    from sage.all import line
-
     return line([(i, log(r_, 2) / 2.0) for i, r_ in enumerate(r)], *args, **kwds)

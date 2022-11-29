@@ -83,9 +83,7 @@ class guess_composition:
         :returns: (number of repetitions, γ, size of the search space, probability of success)
 
         """
-        if h == 0:
-            return 1, 0, 0, 1.0
-        if not zeta:
+        if h == 0 or not zeta:
             return 1, 0, 0, 1.0
 
         search_space = 0
@@ -195,7 +193,7 @@ class ExhaustiveSearch:
             # so we approximate the cost with oo
             return Cost(rop=oo, mem=oo, m=1)
 
-        if quantum:
+        if quantum is True:
             size = size.sqrt()
 
         # set m according to [ia.cr/2020/515]
@@ -257,9 +255,7 @@ class MITM:
         if params.Xs.is_sparse:
             h = params.Xs.get_hamming_weight(n=params.n)
             split_h = round(h * k / n)
-            success_probability_ = (
-                binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
-            )
+            success_probability_ = binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
 
             logT = RR(h * (log2(n) - log2(h) + log2(sd_rng - 1) + log2(e))) / (2 - delta)
             logT -= RR(log2(h) / 2)
@@ -299,9 +295,7 @@ class MITM:
             split_h = round(h * k / n)
             size_tab = RR((sd_rng - 1) ** split_h * binomial(k, split_h))
             size_sea = RR((sd_rng - 1) ** (h - split_h) * binomial(n - k, h - split_h))
-            success_probability_ = (
-                binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
-            )
+            success_probability_ = binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
         else:
             size_tab = sd_rng**k
             size_sea = sd_rng ** (n - k)

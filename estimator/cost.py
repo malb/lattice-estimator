@@ -24,18 +24,22 @@ class Cost:
         "problem": False,
     }
 
+    @staticmethod
+    def _update_without_overwrite(dst, src):
+        keys_intersect = set(dst.keys()) & set(src.keys())
+        attempts = [
+          f"{k}: {dst[k]} with {src[k]}" for k in keys_intersect if dst[k] != src[k]
+        ]
+        if len(attempts) > 0:
+            s = ", ".join(attempts)
+            raise ValueError(f"Attempting to overwrite {s}")
+        dst.update(src)
+
     @classmethod
     def register_impermanent(cls, data=None, **kwds):
         if data is not None:
-            for k, v in data.items():
-                if cls.impermanents.get(k, v) != v:
-                    raise ValueError(f"Attempting to overwrite {k}:{cls.impermanents[k]} with {v}")
-                cls.impermanents[k] = v
-
-        for k, v in kwds.items():
-            if cls.impermanents.get(k, v) != v:
-                raise ValueError(f"Attempting to overwrite {k}:{cls.impermanents[k]} with {v}")
-            cls.impermanents[k] = v
+            cls._update_without_overwrite(cls.impermanents, data)
+        cls._update_without_overwrite(cls.impermanents, kwds)
 
     key_map = {
         "delta": "δ",
@@ -56,7 +60,7 @@ class Cost:
         for k, v in kwds.items():
             setattr(self, k, v)
 
-    def str(self, keyword_width=None, newline=None, round_bound=2048, compact=False):  # noqa C901
+    def str(self, keyword_width=0, newline=False, round_bound=2048, compact=False):  # noqa C901
         """
 
         :param keyword_width:  keys are printed with this width
@@ -73,19 +77,9 @@ class Cost:
 
         """
 
-        def wfmtf(k):
-            if keyword_width:
-                fmt = "%%%ss" % keyword_width
-            else:
-                fmt = "%s"
-            return fmt % k
-
-        d = self.__dict__
-        s = []
-        for k, v in d.items():
-            if k == "problem":  # we store the problem instance in a cost object for reference
-                continue
-            kk = wfmtf(self.key_map.get(k, k))
+        def value_str(k, v):
+            kstr = self.key_map.get(k, k)
+            kk = f"{kstr:>{keyword_width}}"
             try:
                 if (1 / round_bound < abs(v) < round_bound) or (not v) or (k in self.val_map):
                     if abs(v % 1) < 0.0000001:
@@ -96,19 +90,19 @@ class Cost:
                     vv = "%7s" % ("≈2^%.1f" % log(v, 2))
             except TypeError:  # strings and such
                 vv = "%8s" % v
-            if compact:
+            if compact is True:
                 kk = kk.strip()
                 vv = vv.strip()
-            s.append(f"{kk}: {vv}")
+            return f"{kk}: {vv}"
 
-        if not newline:
-            return ", ".join(s)
-        else:
-            return "\n".join(s)
+        # we store the problem instance in a cost object for reference
+        s = [value_str(k, v) for k, v in self.__dict__.items() if k != "problem"]
+        delimiter = "\n" if newline is True else ", "
+        return delimiter.join(s)
 
     def reorder(self, *args):
         """
-        Return a new ordered dict from the key:value pairs in dictinonary but reordered such that the
+        Return a new ordered dict from the key:value pairs in dictionary but reordered such that the
         keys given to this function come first.
 
         :param args: keys which should come first (in order)
@@ -123,25 +117,18 @@ class Cost:
             b: 2, c: 3, a: 1
 
         """
-        keys = list(self.__dict__.keys())
-        for key in args:
-            keys.pop(keys.index(key))
-        keys = list(args) + keys
-        r = dict()
-        for key in keys:
-            r[key] = self.__dict__[key]
-        return Cost(**r)
+        reord = {k: self.__dict__[k] for k in args if k in self.__dict__}
+        reord.update(self.__dict__)
+        return Cost(**reord)
 
     def filter(self, **keys):
         """
-        Return new ordered dictinonary from dictionary restricted to the keys.
+        Return new ordered dictionary from dictionary restricted to the keys.
 
         :param dictionary: input dictionary
         :param keys: keys which should be copied (ordered)
         """
-        r = dict()
-        for key in keys:
-            r[key] = self.__dict__[key]
+        r = {k: self.__dict__[k] for k in keys if k in self.__dict__}
         return Cost(**r)
 
     def repeat(self, times, select=None):
@@ -170,20 +157,14 @@ class Cost:
         impermanents = dict(self.impermanents)
 
         if select is not None:
-            for key in select:
-                impermanents[key] = select[key]
+            impermanents.update(select)
 
-        ret = dict()
-        for key in self.__dict__:
-            try:
-                if impermanents[key]:
-                    ret[key] = times * self.__dict__[key]
-                else:
-                    ret[key] = self.__dict__[key]
-            except KeyError:
-                raise NotImplementedError(
-                    f"You found a bug, this function does not know about '{key}' but should."
-                )
+        try:
+            ret = {k: times * v if impermanents[k] else v for k, v in self.__dict__.items()}
+        except KeyError as error:
+            raise NotImplementedError(
+                f"You found a bug, this function does not know about about a key but should: {error}"
+            )
         ret["repetitions"] = times * ret.get("repetitions", 1)
         return Cost(**ret)
 
@@ -209,14 +190,8 @@ class Cost:
             c: 3, a: 1, b: 2
 
         """
-        if base is None:
-            cost = dict()
-        else:
-            cost = base.__dict__
-        for key in self.__dict__:
-            cost[key] = self.__dict__[key]
-        for key in right:
-            cost[key] = right.__dict__[key]
+        base_dict = {} if base is None else base.__dict__
+        cost = {**base_dict, **self.__dict__, **right.__dict__}
         return Cost(**cost)
 
     def __bool__(self):
