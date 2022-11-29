@@ -47,7 +47,7 @@ We use Python classes as namespaces, something like this::
         
 We explain what is going on above:
     
-1. LWE objects know how to normalize themselves by calling ``params.normalize()``. We assume that high-level functions (such as ``__call___`` above) call ``params.normalize()``.
+1. LWE objects know how to normalize themselves by calling ``params.normalize()``. We assume that high-level functions (such as ``__call__`` above) call ``params.normalize()``.
 
 2. Often optimizing parameters means finding the optimimum in some range. We provide some syntactical sugar to make this easy/readable.
 

@@ -13,7 +13,7 @@ docker exec lattice-estimator-tests sage -sh -c pytest
 
 Note that due to [this open
 ticket](https://trac.sagemath.org/ticket/34242#comment:20) on Sage, the
-published sage container is using an OEL'ed version of Ubunutu, and so we have
+published sage container is using an OEL'ed version of Ubuntu, and so we have
 to wait for the sagemath image to be updated in order to use `Dockerfile`
-standlone (`git clone`ing from inside the container).
+standalone (`git clone` from inside the container).
 

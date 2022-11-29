@@ -22,6 +22,7 @@ from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
 from .conf import red_simulator as red_simulator_default
+from fpylll.util import gaussian_heuristic
 
 
 class PrimalUSVP:
@@ -123,11 +124,9 @@ class PrimalUSVP:
 
         r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
         lhs = params.Xe.stddev**2 * (beta - 1) + tau**2
-        if r[d - beta] > lhs:
-            cost = costf(red_cost_model, beta, d)
-        else:
-            cost = costf(red_cost_model, beta, d, predicate=False)
-        return cost
+        predicate = r[d - beta] > lhs
+
+        return costf(red_cost_model, beta, d, predicate=predicate)
 
     def __call__(
         self,
@@ -263,8 +262,6 @@ class PrimalHybrid:
         :param r: squared Gram-Schmidt norms
 
         """
-        from fpylll.util import gaussian_heuristic
-
         d = len(r)
         for i, _ in enumerate(r):
             if gaussian_heuristic(r[i:]) < D.stddev**2 * (d - i):
@@ -447,7 +444,7 @@ class PrimalHybrid:
                 it.update(f(beta))
             cost = it.y
 
-        Logging.log("bdd", log_level, f"H1: {repr(cost)}")
+        Logging.log("bdd", log_level, f"H1: {cost!r}")
 
         # step 2. optimize d
         if cost and cost.get("tag", "XXX") != "usvp" and optimize_d:
@@ -457,7 +454,7 @@ class PrimalHybrid:
                 for d in it:
                     it.update(f(beta=cost["beta"], d=d))
                 cost = it.y
-            Logging.log("bdd", log_level, f"H2: {repr(cost)}")
+            Logging.log("bdd", log_level, f"H2: {cost!r}")
 
         if cost is None:
             return Cost(rop=oo)
@@ -569,15 +566,11 @@ class PrimalHybrid:
         cost["problem"] = params
 
         if tag == "bdd":
-            cost["tag"] = tag
-            cost["problem"] = params
-            try:
-                del cost["|S|"]
-                del cost["prob"]
-                del cost["repetitions"]
-                del cost["zeta"]
-            except KeyError:
-                pass
+            for k in ("|S|", "prob", "repetitions", "zeta"):
+                try:
+                    del cost[k]
+                except KeyError:
+                    pass
 
         return cost.sanity_check()
 

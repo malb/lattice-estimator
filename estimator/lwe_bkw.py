@@ -46,7 +46,7 @@ class CodedBKW:
         # solve for ntest by aiming for ntop == 0
         ntest = var("ntest")
         sigma_set = sqrt(q ** (2 * (1 - ell / ntest)) / 12)
-        ncod = sum([CodedBKW.N(i, sigma_set, b, q) for i in range(1, t2 + 1)])
+        ncod = sum(CodedBKW.N(i, sigma_set, b, q) for i in range(1, t2 + 1))
         ntop = n - ncod - ntest - t1 * b
 
         try:
@@ -55,10 +55,9 @@ class CodedBKW:
             start = 2
         ntest_min = 1
         for ntest in range(start, n - t1 * b + 1):
-            if abs(ntop(ntest=ntest).n()) < abs(ntop(ntest=ntest_min).n()):
-                ntest_min = ntest
-            else:
+            if abs(ntop(ntest=ntest).n()) >= abs(ntop(ntest=ntest_min).n()):
                 break
+            ntest_min = ntest
         return int(ntest_min)
 
     def t1(params: LWEParameters, ell, t2, b, ntest=None):
@@ -132,7 +131,7 @@ class CodedBKW:
         # if there's no ntest then there's no `σ_{set}` and hence no ncod
         if ntest:
             sigma_set = sqrt(params.q ** (2 * (1 - ell / ntest)) / 12)
-            ncod = sum([CodedBKW.N(i, sigma_set, b, params.q) for i in range(1, t2 + 1)])
+            ncod = sum(CodedBKW.N(i, sigma_set, b, params.q) for i in range(1, t2 + 1))
         else:
             ncod = 0
 
@@ -166,22 +165,18 @@ class CodedBKW:
             C0 = 0
 
         # Equation (8)
-        C1 = sum(
-            [(params.n + 1 - i * b) * (m - i * ZZ(params.q**b - 1) / 2) for i in range(1, t1 + 1)]
-        )
+        C1 = sum((params.n + 1 - i * b) * (m - i * ZZ(params.q**b - 1) / 2) for i in range(1, t1 + 1))
         assert C1 >= 0
 
         # Equation (9)
         C2_ = sum(
-            [
-                4 * (M + i * ZZ(params.q**b - 1) / 2) * CodedBKW.N(i, sigma_set, b, params.q)
-                for i in range(1, t2 + 1)
-            ]
+            4 * (M + i * ZZ(params.q**b - 1) / 2) * CodedBKW.N(i, sigma_set, b, params.q)
+            for i in range(1, t2 + 1)
         )
         C2 = float(C2_)
         for i in range(1, t2 + 1):
             C2 += float(
-                ntop + ntest + sum([CodedBKW.N(j, sigma_set, b, params.q) for j in range(1, i + 1)])
+                ntop + ntest + sum(CodedBKW.N(j, sigma_set, b, params.q) for j in range(1, i + 1))
             ) * (M + (i - 1) * ZZ(params.q**b - 1) / 2)
         assert C2 >= 0
 

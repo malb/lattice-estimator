@@ -182,9 +182,7 @@ class ReductionCost:
             beta *= 2
         while ReductionCost._delta(beta + 10) > delta:
             beta += 10
-        while True:
-            if ReductionCost._delta(beta) < delta:
-                break
+        while ReductionCost._delta(beta) >= delta:
             beta += 1
 
         return beta
@@ -237,10 +235,10 @@ class ReductionCost:
         :param B: Bit-size of entries.
 
         """
-        if B:
-            return d**3 * B**2
-        else:
+        if B is None:
             return d**3  # ignoring B for backward compatibility
+        else:
+            return d**3 * B**2
 
     def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
         """
@@ -908,7 +906,7 @@ class MATZOV(GJ21):
     }
 
 
-def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
+def cost(cost_model, beta, d, B=None, predicate=True, **kwds):
     """
     Return cost dictionary for computing vector of norm` δ_0^{d-1} Vol(Λ)^{1/d}` using provided lattice
     reduction algorithm.
@@ -938,7 +936,7 @@ def cost(cost_model, beta, d, B=None, predicate=None, **kwds):
     delta_ = ReductionCost.delta(beta)
     cost = Cost(rop=cost, red=cost, delta=delta_, beta=beta, d=d, **kwds)
     cost.register_impermanent(rop=True, red=True, delta=False, beta=False, d=False)
-    if predicate is not None and not predicate:
+    if predicate is False:
         cost["red"] = oo
         cost["rop"] = oo
     return cost
