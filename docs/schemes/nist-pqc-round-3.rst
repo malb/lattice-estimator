@@ -33,25 +33,25 @@ NIST PQC Round 3 Finalists
 
     >>> from estimator import *
     >>> LightSaber
-    LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=2.00), m=512, tag='LightSaber')
+    LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=2.29, μ=-0.50), m=512, tag='LightSaber')
     >>> LWE.primal_bdd(LightSaber)
-    rop: ≈2^137.8, red: ≈2^137.3, svp: ≈2^136.3, β: 382, η: 412, d: 1024, tag: bdd
+    rop: ≈2^140.1, red: ≈2^139.5, svp: ≈2^138.5, β: 390, η: 420, d: 1025, tag: bdd
 
 ::
 
     >>> from estimator import *
     >>> Saber
-    LWEParameters(n=768, q=8192, Xs=D(σ=1.41), Xe=D(σ=2.00), m=768, tag='Saber')
+    LWEParameters(n=768, q=8192, Xs=D(σ=1.41), Xe=D(σ=2.29, μ=-0.50), m=768, tag='Saber')
     >>> LWE.primal_bdd(Saber)
-    rop: ≈2^204.9, red: ≈2^203.9, svp: ≈2^204.0, β: 620, η: 655, d: 1475, tag: bdd
+    rop: ≈2^208.2, red: ≈2^207.0, svp: ≈2^207.3, β: 631, η: 667, d: 1478, tag: bdd
 
 ::
 
     >>> from estimator import *
     >>> FireSaber
-    LWEParameters(n=1024, q=8192, Xs=D(σ=1.22), Xe=D(σ=2.00), m=1024, tag='FireSaber')
+    LWEParameters(n=1024, q=8192, Xs=D(σ=1.22), Xe=D(σ=2.29, μ=-0.50), m=1024, tag='FireSaber')
     >>> LWE.primal_bdd(FireSaber)
-    rop: ≈2^271.8, red: ≈2^270.7, svp: ≈2^270.8, β: 858, η: 894, d: 1886, tag: bdd
+    rop: ≈2^275.8, red: ≈2^274.9, svp: ≈2^274.7, β: 873, η: 908, d: 1894, tag: bdd
 
 
 `NTRU <https://ntru.org/f/ntru-20190330.pdf>`__
