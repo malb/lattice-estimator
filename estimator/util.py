@@ -360,7 +360,8 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
 
     Example::
 
-        >>> from estimator import Kyber512, LWE
+        >>> from estimator import LWE
+        >>> from estimator.schemes import Kyber512
         >>> _ = batch_estimate(Kyber512, [LWE.primal_usvp, LWE.primal_bdd])
         >>> _ = batch_estimate(Kyber512, [LWE.primal_usvp, LWE.primal_bdd], jobs=2)
 

@@ -396,13 +396,13 @@ class DualHybrid:
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^160.7, mem: ≈2^156.8, m: 1473, k: 25, ↻: 1, β: 456, d: 2472, ζ: 25, tag: dual_mitm_hybrid
 
-            >>> LWE.dual_hybrid(NTRUHPS2048509Enc)
+            >>> LWE.dual_hybrid(schemes.NTRUHPS2048509Enc)
             rop: ≈2^131.7, mem: ≈2^128.5, m: 436, β: 358, d: 906, ↻: 1, ζ: 38, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
             rop: ≈2^206.9, mem: ≈2^126.0, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
 
-            >>> LWE.dual_hybrid(Kyber512, red_cost_model=RC.GJ21, fft=True)
+            >>> LWE.dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21, fft=True)
             rop: ≈2^149.6, mem: ≈2^145.7, m: 510, β: 399, t: 76, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
         """
 
