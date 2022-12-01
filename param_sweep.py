@@ -64,13 +64,13 @@ attack_keys = [
 def PerformCalculation(input_params: tuple[int, float],
                        results: dict,
                        log_level=None) -> None:
-"""
-Call the lattice-estimator for a given set of input parameters, and append the
-output to the `results` dict. 
-The `input_params` field looks like (n, xe).
-The q and Xs parameters are hardcoded for common LWE settings, but can be
-modified to fit other settings.
-"""
+    """
+    This function calls the lattice-estimator for a given set of input
+    parameters, and appends the output to the `results` dict. 
+    The `input_params` field looks like (n, xe).
+    The q and Xs parameters are hardcoded for common LWE settings, but can be
+    modified to fit other settings.
+    """
     n, xe = input_params
     Logging.log('sweep', log_level, f'Running for {n=}, {xe=}')
     LWEParams = LWEParameters(
