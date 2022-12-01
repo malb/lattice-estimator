@@ -1,7 +1,7 @@
 """
 This module provides a function to iterate over multiple inputs to the
-Lattice Estimator, and graph the resulting security of an associated lattice
-instance.
+Lattice Estimator, and graph the resulting bits of security of the associated
+lattice instances.
 
 Required arguments:
 * nrange: [minimum n, inclusive]:[maximum n, exclusive]:[increment interval]
@@ -11,14 +11,14 @@ Required arguments:
   Xe is the log_2 of the standard deviation of the error.
 
 Example command for a simple sweep from n=600 (inclusive) to 700 (exclusive),
-by increments of 20, and a log of error standard deviation from xe=6 (inclusive)
-to 7 (exclusive), by increments of 0.2:
+by increments of 20, and a log_2 of standard deviation or error from xe=6
+(inclusive) to 7 (exclusive), by increments of 0.2:
   sage --python param_sweep.py 600:700:20 6:7:0.2
 
-Optional flags that can be passed in as arguments:
+Optional flags that can be passed in:
 * --security_cutoff: the number of bits of security of interest - values at or
   above this cutoff will be colored differently in the cutoff graph.
-* --output_dir: the directory to output the resulting graphs and pickle files.
+* --output_dir: the directory to output the resulting graphs and pickle files to.
   Defaults to the lattice-esimator directory if not specified.
 * --num_proc: the number of parallel processes to launch while performing
   computations using the lattice-estimator. Defaults to 8.
@@ -30,11 +30,14 @@ Optional flags that can be passed in as arguments:
 
 Example command using many of the flags, generating a pickle file:
   sage --python param_sweep.py 600:1140:20 6:20:1 --security_cutoff=120 \
-    --output_dir=/tmp/param_sweep --num_proc=4 --make_pickle
+    --output_dir=param_sweep/ --num_proc=4 --make_pickle
 
 Example command to generate graphs from a pre-existing pickle file:
   sage --python param_sweep.py 600:1140:20 6:20:1 --load_pickle=path/to/file
 
+Note: running the parameter sweep can take minutes to hours, depending on the
+number of parameter combinations (the larger the ranges and the smaller the 
+increment intervals, the more parameter combinations will be computed).
 """
 
 import argparse
@@ -52,19 +55,19 @@ import numpy as np
 import os
 import re
 
-# Example command to run:
-# sage --python param_sweep.py 600:700:20 6:7:0.5 --make_pickle --security_cutoff=120
-
-keys = [
+attack_keys = [
     'arora-gb', 'bkw', 'usvp', 'bdd', 'bdd_hybrid', 'bdd_mitm_hybrid', 'dual',
     'dual_hybrid', 'dual_mitm_hybrid'
 ]
 
 
-def PerformCalculation(input_params: tuple[int, float], results: dict, log_level=None) -> None:
-    # input_params looks like (n, xe)
+# input_params looks like (n, xe)
+# results will be populated from the lattice-estimator results
+def PerformCalculation(input_params: tuple[int, float],
+                       results: dict,
+                       log_level=None) -> None:
     n, xe = input_params
-    Logging.log(f'Running for {n=}, {xe=}')
+    Logging.log('sweep', log_level, f'Running for {n=}, {xe=}')
     LWEParams = LWEParameters(
         n=n,
         q=2**32,
@@ -74,11 +77,14 @@ def PerformCalculation(input_params: tuple[int, float], results: dict, log_level
     )
     attacks = LWE.estimate(LWEParams)
     results[(n, xe)] = min(
-        [math.log(attacks[i].rop, 2) for i in keys if i in attacks])
+        [math.log(attacks[i].rop, 2) for i in attack_keys if i in attacks])
     Logging.log('sweep', log_level, f'Finished running {n=}, {xe=}')
 
 
-def MakeGraph(result_dict: dict, file_name: str, bit_cutoff: int, log_level=None) -> None:
+def MakeGraph(result_dict: dict,
+              file_name: str,
+              bit_cutoff: int,
+              log_level=None) -> None:
     x = list(result_dict.items())
     x = sorted(x)
     x, values = zip(*x)
@@ -125,10 +131,11 @@ def MakeGraph(result_dict: dict, file_name: str, bit_cutoff: int, log_level=None
 
     fig.savefig(file_name + '_gradient.png')
     Logging.log('sweep', log_level, 'Saved the gradient graph to: %s',
-                 file_name + '_gradient.png')
+                file_name + '_gradient.png')
 
     fig2.savefig(file_name + '_cutoff.png')
-    Logging.log('sweep', log_level, 'Saved the cutoff graph to: %s', file_name + '_cutoff.png')
+    Logging.log('sweep', log_level, 'Saved the cutoff graph to: %s',
+                file_name + '_cutoff.png')
 
 
 if __name__ == "__main__":
@@ -175,6 +182,7 @@ if __name__ == "__main__":
         default='',
         required=False)
     args = parser.parse_args()
+    log_level = 1
 
     # Validate the input arguments
     nrange = [int(i) for i in args.nrange.split(':')]
@@ -188,14 +196,14 @@ if __name__ == "__main__":
         output_dir = os.path.dirname(os.path.realpath(__file__))
     assert args.num_proc >= 1, 'need at least one process to execute'
     assert args.security_cutoff >= 1, 'needs at least one bit of security'
-    log_level = 1
 
     file_name = time.strftime('%d-%m-%Y_%H-%M-%S')
-    file_name = file_name + '_n' + re.sub(':', '-', args.nrange) + '_xe' + re.sub(':', '-', args.xerange)
+    file_name = file_name + '_n' + re.sub(
+        ':', '-', args.nrange) + '_xe' + re.sub(':', '-', args.xerange)
     file_name = os.path.join(output_dir, file_name)
 
     if not args.load_pickle:
-        # Create the permutations of n and Xe configuration
+        # Create the permutations of n and Xe
         result_dict = multiprocessing.Manager().dict()
         work = []
         for n in range(*nrange):
@@ -205,7 +213,8 @@ if __name__ == "__main__":
         # Parallel process the calculations
         pool = multiprocessing.Pool(processes=args.num_proc)
         for i in range(len(work)):
-            pool.apply_async(PerformCalculation, (work[i], result_dict, log_level))
+            pool.apply_async(PerformCalculation,
+                             (work[i], result_dict, log_level))
         pool.close()
         pool.join()
 
@@ -213,8 +222,9 @@ if __name__ == "__main__":
         if args.make_pickle:
             pickle.dump(dict(result_dict),
                         open(file_name + '_result.pickle', 'wb'))
-            Logging.log('sweep', log_level, 'Pickled the intermediate computations to: %s',
-                         file_name + '_result.pickle')
+            Logging.log('sweep', log_level,
+                        'Pickled the intermediate computations to: %s',
+                        file_name + '_result.pickle')
     else:
         result_dict = pickle.load(open(args.load_pickle, 'rb'))
 
