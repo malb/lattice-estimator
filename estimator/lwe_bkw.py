@@ -268,16 +268,16 @@ class CodedBKW:
 
             >>> from sage.all import oo
             >>> from estimator import *
-            >>> LWE.coded_bkw(LightSaber.updated(m=oo))
+            >>> LWE.coded_bkw(schemes.LightSaber.updated(m=oo))
             rop: ≈2^171.7, m: ≈2^159.4, mem: ≈2^160.4, b: 12, t1: 3, t2: 18, ℓ: 11, #cod: 423, #top: 1...
 
         We may need to amplify the number of samples, which modifies the noise distribution::
 
             >>> from sage.all import oo
             >>> from estimator import *
-            >>> Kyber512
+            >>> schemes.Kyber512
             LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
-            >>> cost = LWE.coded_bkw(Kyber512); cost
+            >>> cost = LWE.coded_bkw(schemes.Kyber512); cost
             rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448, #top: 0, #test: 64, ...
             >>> cost["problem"]
             LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=6.24), m=..., tag='Kyber 512')
