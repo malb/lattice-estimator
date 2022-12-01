@@ -165,7 +165,9 @@ class CodedBKW:
             C0 = 0
 
         # Equation (8)
-        C1 = sum((params.n + 1 - i * b) * (m - i * ZZ(params.q**b - 1) / 2) for i in range(1, t1 + 1))
+        C1 = sum(
+            (params.n + 1 - i * b) * (m - i * ZZ(params.q**b - 1) / 2) for i in range(1, t1 + 1)
+        )
         assert C1 >= 0
 
         # Equation (9)
@@ -273,12 +275,12 @@ class CodedBKW:
 
             >>> from sage.all import oo
             >>> from estimator import *
-            >>> LightSaber
-            LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=2.00), m=512, tag='LightSaber')
-            >>> cost = LWE.coded_bkw(LightSaber); cost
-            rop: ≈2^184.3, m: ≈2^172.2, mem: ≈2^173.2, b: 13, t1: 0, t2: 18, ℓ: 12, #cod: 456, #top: 0...
+            >>> Kyber512
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
+            >>> cost = LWE.coded_bkw(Kyber512); cost
+            rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448, #top: 0, #test: 64, ...
             >>> cost["problem"]
-            LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=10.39), m=..., tag='LightSaber')
+            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=6.24), m=..., tag='Kyber 512')
 
         TESTS::
 
