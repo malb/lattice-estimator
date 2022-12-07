@@ -16,7 +16,6 @@ from .cost import Cost
 from .lwe_parameters import LWEParameters
 from .prob import drop as prob_drop
 from .prob import amplify as prob_amplify
-from .reduction import RC
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import mitm_opt as mitm_opt_default
@@ -144,6 +143,7 @@ class DualHybrid:
         delta = deltaf(beta)
 
         # only care about the scaling factor and don't know d yet -> use 2 * beta as dummy d
+        from .reduction import RC
         if red_cost_model == RC.Kyber:
             rho, _, _ = red_cost_model.short_vectors(beta=beta, d=2 * beta)
 
