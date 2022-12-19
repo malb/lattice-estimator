@@ -1,9 +1,12 @@
 from multiprocessing import Pool
 from functools import partial
+import itertools as it
+from typing import Callable, NamedTuple
 
 from sage.all import ceil, floor, oo
 
 from .io import Logging
+from .lwe_parameters import LWEParameters
 
 
 class local_minimum_base:
@@ -348,6 +351,14 @@ def f_name(f):
         return repr(f)
 
 
+class Task(NamedTuple):
+    f: Callable
+    x: LWEParameters
+    log_level: int
+    f_name: str
+    catch_exceptions: bool
+
+
 def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True, **kwds):
     """
     Run estimates for all algorithms for all parameters.
@@ -366,27 +377,28 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
         >>> _ = batch_estimate(Kyber512, [LWE.primal_usvp, LWE.primal_bdd], jobs=2)
 
     """
-    from .lwe_parameters import LWEParameters
 
     if isinstance(params, LWEParameters):
         params = (params,)
     if not hasattr(algorithm, "__iter__"):
         algorithm = (algorithm,)
-
-    tasks = [(partial(f, **kwds), x, log_level, f_name(f), catch_exceptions) for x in params for f in algorithm]
+    tasks = (
+        Task(partial(f, **kwds), x, log_level, f_name(f), catch_exceptions)
+        for f, x in it.product(algorithm, params)
+    )
 
     if jobs == 1:
-        res = {
+        result = {
             (f_repr, x): _batch_estimatef(f, x, lvl, f_repr, catch_exceptions)
             for f, x, lvl, f_repr, catch_exceptions in tasks
         }
     else:
-        pool = Pool(jobs)
-        res = pool.starmap(_batch_estimatef, tasks)
-        res = {(f_repr, x): res[i] for i, (_, x, _, f_repr, _) in enumerate(tasks)}
+        with Pool(jobs) as pool:
+            results = pool.starmap(_batch_estimatef, tasks)
+        result = {(task.f_name, task.x): result for result, task in zip(results, tasks)}
 
-    ret = {x: {} for _, x in res.keys()}
-    for (f, x), v in res.items():
+    ret = {x: {} for _, x in result.keys()}
+    for (f, x), v in result.items():
         if v is not None:
             ret[x][f] = v
 

@@ -4,13 +4,18 @@ High-level LWE interface
 """
 
 from functools import partial
+from sage.all import oo
+
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
 from .lwe_bkw import coded_bkw
-from .lwe_guess import exhaustive_search, mitm, distinguish  # noqa
+from .lwe_guess import exhaustive_search, mitm, distinguish, guess_composition # noqa
 from .lwe_dual import dual, dual_hybrid
-from .lwe_guess import guess_composition
 from .gb import arora_gb  # noqa
 from .lwe_parameters import LWEParameters as Parameters  # noqa
+from .conf import (red_cost_model as red_cost_model_default,
+                   red_shape_model as red_shape_model_default)
+from .util import batch_estimate, f_name
+from .reduction import RC
 
 
 class Estimate:
@@ -42,12 +47,6 @@ class Estimate:
 
 
         """
-        # NOTE: Don't import these at the top-level to avoid circular imports
-        from .reduction import RC
-        from .util import batch_estimate, f_name
-
-        from sage.all import oo
-
         params = params.normalize()
 
         algorithms = {}
@@ -124,12 +123,6 @@ class Estimate:
             dual_hybrid          :: rop: ≈2^145.6, mem: ≈2^140.5, m: 512, β: 408, d: 1004, ↻: 1, ζ: 20, tag: dual_hybrid
 
         """
-        from sage.all import oo
-        from functools import partial
-        from .conf import red_cost_model as red_cost_model_default
-        from .conf import red_shape_model as red_shape_model_default
-        from .util import batch_estimate, f_name
-
         params = params.normalize()
 
         if red_cost_model is None:
