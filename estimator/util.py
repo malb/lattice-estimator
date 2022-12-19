@@ -267,7 +267,7 @@ class early_abort_range:
     def __next__(self):
         if self._next_x is None:
             raise StopIteration
-        elif self._next_x >= self._stop:
+        if self._next_x >= self._stop:
             raise StopIteration
 
         self._last_x = self._next_x
@@ -292,11 +292,10 @@ class early_abort_range:
 
         if res is False:
             self._next_x = None
+        elif self._smallerf(res, self._best[1]):
+            self._best = self._last_x, res
         else:
-            if self._smallerf(res, self._best[1]):
-                self._best = self._last_x, res
-            else:
-                self._next_x = None
+            self._next_x = None
 
 
 def binary_search(f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds):
@@ -388,17 +387,14 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
     )
 
     if jobs == 1:
-        result = {
-            (f_repr, x): _batch_estimatef(f, x, lvl, f_repr, catch_exceptions)
-            for f, x, lvl, f_repr, catch_exceptions in tasks
-        }
+        results = {(task.f_name, task.x): _batch_estimatef(*task) for task in tasks}
     else:
         with Pool(jobs) as pool:
             results = pool.starmap(_batch_estimatef, tasks)
-        result = {(task.f_name, task.x): result for result, task in zip(results, tasks)}
+        results = {(task.f_name, task.x): result for result, task in zip(results, tasks)}
 
-    ret = {x: {} for _, x in result.keys()}
-    for (f, x), v in result.items():
+    ret = {x: {} for _, x in results.keys()}
+    for (f, x), v in results.items():
         if v is not None:
             ret[x][f] = v
 

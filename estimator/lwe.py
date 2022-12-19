@@ -19,8 +19,8 @@ from .reduction import RC
 
 
 class Estimate:
-    @classmethod
-    def rough(cls, params, jobs=1, catch_exceptions=True):
+
+    def rough(self, params, jobs=1, catch_exceptions=True):
         """
         This function makes the following somewhat routine assumptions:
 
@@ -82,18 +82,19 @@ class Estimate:
         }
 
         for algorithm in algorithms:
-            for k, v in res.items():
-                if algorithm == k:
-                    if v["rop"] == oo:
-                        continue
-                    print(f"{algorithm:20s} :: {v!r}")
+            if algorithm not in res:
+                continue
+            result = res[algorithm]
+            if result["rop"] != oo:
+                print(f"{algorithm:20s} :: {result!r}")
+
         return res
 
     def __call__(
         self,
         params,
-        red_cost_model=None,
-        red_shape_model=None,
+        red_cost_model=red_cost_model_default,
+        red_shape_model=red_shape_model_default,
         deny_list=tuple(),
         add_list=tuple(),
         jobs=1,
@@ -124,11 +125,6 @@ class Estimate:
 
         """
         params = params.normalize()
-
-        if red_cost_model is None:
-            red_cost_model = red_cost_model_default
-        if red_shape_model is None:
-            red_shape_model = red_shape_model_default
 
         algorithms = {}
 
@@ -172,21 +168,24 @@ class Estimate:
         )
         res_raw = res_raw[params]
         res = {
-            algorithm: v for algorithm, attack in algorithms.items()
+            algorithm: v
+            for algorithm, attack in algorithms.items()
             for k, v in res_raw.items()
             if f_name(attack) == k
         }
 
         for algorithm in algorithms:
-            for k, v in res.items():
-                if algorithm == k:
-                    if v["rop"] == oo:
-                        continue
-                    if k == "hybrid" and res["bdd"]["rop"] < v["rop"]:
-                        continue
-                    if k == "dual_mitm_hybrid" and res["dual_hybrid"]["rop"] < v["rop"]:
-                        continue
-                    print(f"{algorithm:20s} :: {v!r}")
+            if algorithm not in res:
+                continue
+            result = res[algorithm]
+            if result["rop"] == oo:
+                continue
+            if algorithm == "hybrid" and res["bdd"]["rop"] < result["rop"]:
+                continue
+            if algorithm == "dual_mitm_hybrid" and res["dual_hybrid"]["rop"] < result["rop"]:
+                continue
+            print(f"{algorithm:20s} :: {result!r}")
+
         return res
 
 
