@@ -8,6 +8,10 @@ from sage.all import ceil, floor, oo
 from .io import Logging
 from .lwe_parameters import LWEParameters
 
+class Bounds(NamedTuple):
+    low: int
+    high: int
+
 
 class local_minimum_base:
     """
@@ -44,14 +48,14 @@ class local_minimum_base:
         self._log_level = log_level
         self._start = start
         self._stop = stop - 1
-        self._initial_bounds = (start, stop - 1)
+        self._initial_bounds = Bounds(start, stop - 1)
         self._smallerf = smallerf
         # abs(self._direction) == 2: binary search step
         # abs(self._direction) == 1: gradient descent direction
         self._direction = -1  # going down
         self._last_x = None
         self._next_x = self._stop
-        self._best = (None, None)
+        self._best = Bounds(None, None)
         self._all_x = set()
 
     def __enter__(self):
@@ -70,7 +74,7 @@ class local_minimum_base:
 
         if (self._next_x is not None
                 and self._next_x not in self._all_x
-                and self._initial_bounds[0] <= self._next_x <= self._initial_bounds[1]):
+                and self._initial_bounds.low <= self._next_x <= self._initial_bounds.high):
             # we've not been told to abort
             # we're not looping
             # we're in bounds
@@ -78,23 +82,23 @@ class local_minimum_base:
             self._next_x = None
             return self._last_x
 
-        if self._best[0] in self._initial_bounds and not self._suppress_bounds_warning:
+        if self._best.low in self._initial_bounds and not self._suppress_bounds_warning:
             # We warn the user if the optimal solution is at the edge and thus possibly not optimal.
             Logging.log(
                 "bins",
                 self._log_level,
-                f'warning: "optimal" solution {self._best[0]} matches a bound ∈ {self._initial_bounds}.',
+                f'warning: "optimal" solution {self._best.low} matches a bound ∈ {self._initial_bounds}.',
             )
 
         raise StopIteration
 
     @property
     def x(self):
-        return self._best[0]
+        return self._best.low
 
     @property
     def y(self):
-        return self._best[1]
+        return self._best.high
 
     def update(self, res):
         """
@@ -116,13 +120,13 @@ class local_minimum_base:
         self._all_x.add(self._last_x)
 
         # We got nothing yet
-        if self._best[0] is None:
-            self._best = self._last_x, res
+        if self._best.low is None:
+            self._best = Bounds(self._last_x, res)
 
         # We found something better
-        if res is not False and self._smallerf(res, self._best[1]):
+        if res is not False and self._smallerf(res, self._best.high):
             # store it
-            self._best = self._last_x, res
+            self._best = Bounds(self._last_x, res)
 
             # if it's a result of a long jump figure out the next direction
             if abs(self._direction) != 1:
@@ -204,7 +208,7 @@ class local_minimum(local_minimum_base):
 
     @property
     def x(self):
-        return self._best[0] * self._precision
+        return self._best.low * self._precision
 
     @property
     def neighborhood(self):
@@ -258,7 +262,7 @@ class early_abort_range:
         self._smallerf = smallerf
         self._last_x = None
         self._next_x = self._start
-        self._best = (None, None)
+        self._best = Bounds(None, None)
 
     def __iter__(self):
         """ """
@@ -276,23 +280,23 @@ class early_abort_range:
 
     @property
     def x(self):
-        return self._best[0]
+        return self._best.low
 
     @property
     def y(self):
-        return self._best[1]
+        return self._best.high
 
     def update(self, res):
         """ """
         Logging.log("lins", self._log_level, f"({self._last_x}, {repr(res)})")
 
-        if self._best[0] is None:
+        if self._best.low is None:
             self._best = self._last_x, res
             return
 
         if res is False:
             self._next_x = None
-        elif self._smallerf(res, self._best[1]):
+        elif self._smallerf(res, self._best.high):
             self._best = self._last_x, res
         else:
             self._next_x = None
