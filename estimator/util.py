@@ -1,5 +1,6 @@
 from multiprocessing import Pool
 from functools import partial
+from dataclasses import dataclass
 import itertools as it
 from typing import Callable, NamedTuple
 
@@ -84,11 +85,8 @@ class local_minimum_base:
 
         if self._best.low in self._initial_bounds and not self._suppress_bounds_warning:
             # We warn the user if the optimal solution is at the edge and thus possibly not optimal.
-            Logging.log(
-                "bins",
-                self._log_level,
-                f'warning: "optimal" solution {self._best.low} matches a bound ∈ {self._initial_bounds}.',
-            )
+            msg = f'warning: "optimal" solution {self._best.low} matches a bound ∈ {self._initial_bounds}.',
+            Logging.log("bins", self._log_level, msg)
 
         raise StopIteration
 
@@ -362,6 +360,18 @@ class Task(NamedTuple):
     catch_exceptions: bool
 
 
+@dataclass(frozen=True)
+class TaskResults:
+    _map: dict
+
+    def __getitem__(self, params):
+        return {
+            task.f_name: result
+            for task, result in self._map.items()
+            if task.x == params and result != None
+        }
+
+
 def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True, **kwds):
     """
     Run estimates for all algorithms for all parameters.
@@ -385,21 +395,15 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
         params = (params,)
     if not hasattr(algorithm, "__iter__"):
         algorithm = (algorithm,)
-    tasks = (
+    tasks = [
         Task(partial(f, **kwds), x, log_level, f_name(f), catch_exceptions)
         for f, x in it.product(algorithm, params)
-    )
+    ]
 
     if jobs == 1:
-        results = {(task.f_name, task.x): _batch_estimatef(*task) for task in tasks}
+        results = [_batch_estimatef(*task) for task in tasks]
     else:
         with Pool(jobs) as pool:
             results = pool.starmap(_batch_estimatef, tasks)
-        results = {(task.f_name, task.x): result for result, task in zip(results, tasks)}
 
-    ret = {x: {} for _, x in results.keys()}
-    for (f, x), v in results.items():
-        if v is not None:
-            ret[x][f] = v
-
-    return ret
+    return TaskResults(dict(zip(tasks, results)))
