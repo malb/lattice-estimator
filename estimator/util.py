@@ -9,6 +9,7 @@ from sage.all import ceil, floor, oo
 from .io import Logging
 from .lwe_parameters import LWEParameters
 
+
 class Bounds(NamedTuple):
     low: int
     high: int
@@ -368,7 +369,7 @@ class TaskResults:
         return {
             task.f_name: result
             for task, result in self._map.items()
-            if task.x == params and result != None
+            if task.x == params and result is not None
         }
 
 
