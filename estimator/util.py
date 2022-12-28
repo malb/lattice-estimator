@@ -404,7 +404,7 @@ def batch_estimate(params, algorithm, jobs=1, log_level=0, catch_exceptions=True
     if jobs == 1:
         results = [_batch_estimatef(*task) for task in tasks]
     else:
-        with Pool(min(jobs, cpu_count())) as pool:
+        with Pool(jobs) as pool:
             results = pool.starmap(_batch_estimatef, tasks)
 
     return TaskResults(dict(zip(tasks, results)))
