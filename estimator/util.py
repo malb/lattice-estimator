@@ -1,4 +1,4 @@
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool
 from functools import partial
 from dataclasses import dataclass
 import itertools as it
