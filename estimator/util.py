@@ -1,18 +1,22 @@
+import itertools as it
 from multiprocessing import Pool
 from functools import partial
 from dataclasses import dataclass
-import itertools as it
-from typing import Callable, NamedTuple
+from typing import Any, Callable, NamedTuple
 
-from sage.all import ceil, floor, oo
+from sage.all import ceil, floor, log, oo
 
 from .io import Logging
 from .lwe_parameters import LWEParameters
 
 
+def log2(x):
+    return log(x, 2.0)
+
+
 class Bounds(NamedTuple):
-    low: int
-    high: int
+    low: Any
+    high: Any
 
 
 class local_minimum_base:

@@ -10,15 +10,15 @@ from functools import partial
 from dataclasses import replace
 
 from sage.all import oo, ceil, sqrt, log, cached_function, RR, exp, pi
+
 from .reduction import delta as deltaf
 from .util import local_minimum
 from .cost import Cost
 from .lwe_parameters import LWEParameters
-from .prob import drop as prob_drop
-from .prob import amplify as prob_amplify
+from .prob import drop as prob_drop, amplify as prob_amplify
 from .io import Logging
-from .conf import red_cost_model as red_cost_model_default
-from .conf import mitm_opt as mitm_opt_default
+from .conf import (red_cost_model as red_cost_model_default,
+                   mitm_opt as mitm_opt_default)
 from .errors import OutOfBoundsError, InsufficientSamplesError
 from .nd import NoiseDistribution
 from .lwe_guess import exhaustive_search, mitm, distinguish
@@ -143,7 +143,7 @@ class DualHybrid:
         delta = deltaf(beta)
 
         # only care about the scaling factor and don't know d yet -> use 2 * beta as dummy d
-        rho, _, _, _ = red_cost_model.short_vectors(beta=beta, d=2 * beta)
+        rho = red_cost_model.short_vectors(beta=beta, d=2 * beta)[0]
 
         params_slv, m_ = DualHybrid.dual_reduce(
             delta, params, zeta, h1, rho, t, log_level=log_level + 1
@@ -155,14 +155,15 @@ class DualHybrid:
         else:
             cost = solver(params_slv, success_probability)
 
-        Logging.log("dual", log_level + 2, f"solve: {repr(cost)}")
+        Logging.log("dual", log_level + 2, f"solve: {cost!r}")
 
         if cost["rop"] == oo or cost["m"] == oo:
-            return replace(cost, beta=beta)
+            cost["beta"] = beta
+            return cost
 
         d = m_ + params.n - zeta
-        _, cost_red, _, _ = red_cost_model.short_vectors(beta, d, cost["m"])
-        Logging.log("dual", log_level + 2, f"red: {repr(Cost(rop=cost_red))}")
+        cost_red = red_cost_model.short_vectors(beta, d, cost["m"])[1]
+        Logging.log("dual", log_level + 2, f"red: {Cost(rop=cost_red)!r}")
 
         cost["rop"] += cost_red
         cost["m"] = m_
@@ -234,8 +235,7 @@ class DualHybrid:
 
         cost = size * (m + t * size_fft)
 
-        ret = Cost(rop=cost, mem=cost, m=m)
-        return ret
+        return Cost(rop=cost, mem=cost, m=m)
 
     @staticmethod
     def optimize_blocksize(
@@ -279,7 +279,7 @@ class DualHybrid:
             log_level=log_level,
         )
 
-        if fft:
+        if fft is True:
 
             def f(beta):
                 with local_minimum(0, params.n - zeta) as it:
@@ -532,7 +532,7 @@ def dual(
         log_level=1,
     )
     del ret["zeta"]
-    if hasattr(ret, "h1"):
+    if "h1" in ret:
         del ret["h1"]
     ret["tag"] = "dual"
     return ret

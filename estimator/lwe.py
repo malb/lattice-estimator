@@ -41,7 +41,7 @@ class Estimate:
         EXAMPLE ::
 
             >>> from estimator import *
-            >>> _ = lwe.estimate.rough(schemes.Kyber512)
+            >>> _ = LWE.estimate.rough(schemes.Kyber512)
             usvp                 :: rop: ≈2^118.6, red: ≈2^118.6, δ: 1.003941, β: 406, d: 998, tag: usvp
             dual_hybrid          :: rop: ≈2^121.9, mem: ≈2^116.8, m: 512, β: 417, d: 1013, ↻: 1, ζ: 11...
 
@@ -114,7 +114,7 @@ class Estimate:
         EXAMPLE ::
 
             >>> from estimator import *
-            >>> _ = lwe.estimate(schemes.Kyber512)
+            >>> _ = LWE.estimate(schemes.Kyber512)
             bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448...
             usvp                 :: rop: ≈2^143.8, red: ≈2^143.8, δ: 1.003941, β: 406, d: 998, tag: usvp
             bdd                  :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, d: 1013, tag: bdd

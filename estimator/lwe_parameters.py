@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from sage.all import oo, binomial, log, sqrt, ceil
 from dataclasses import dataclass
 from copy import copy
+
+from sage.all import oo, binomial, log, sqrt, ceil
+
 from .nd import NoiseDistribution
 from .errors import InsufficientSamplesError
 

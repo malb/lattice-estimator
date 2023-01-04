@@ -27,7 +27,7 @@ class CodedBKW:
 
     @staticmethod
     @cached_function
-    def ntest(n, ell, t1, t2, b, q):  # noqa
+    def ntest(n, ell, t1, t2, b, q):
         """
         If the parameter ``ntest`` is not provided, we use this function to estimate it.
 
@@ -72,7 +72,7 @@ class CodedBKW:
             ntest = CodedBKW.ntest(params.n, ell, t1, t2, b, params.q)
         sigma_set = sqrt(params.q ** (2 * (1 - ell / ntest)) / 12)
         Ni = [CodedBKW.N(i, sigma_set, b, params.q) for i in range(1, t2 + 1)]
-        t1 = len([e for e in Ni if e <= b])
+        t1 = sum(e <= b for e in Ni)
         # there is no point in having more tables than needed to cover n
         if b * t1 > params.n:
             t1 = params.n // b
@@ -103,7 +103,7 @@ class CodedBKW:
         # [C:GuoJohSta15].
 
         cost["b"] = b
-        ell = b - 1  # noqa
+        ell = b - 1
         cost["ell"] = ell
 
         secret_bounds = params.Xs.bounds
@@ -205,7 +205,7 @@ class CodedBKW:
         cost = cost.reorder("rop", "m", "mem", "b", "t1", "t2")
         cost["tag"] = "coded-bkw"
         cost["problem"] = params
-        Logging.log("bkw", log_level + 1, f"{repr(cost)}")
+        Logging.log("bkw", log_level + 1, f"{cost!r}")
 
         return cost
 
@@ -217,7 +217,7 @@ class CodedBKW:
         log_level=1,
     ):
         def sf(x, best):
-            return (x["rop"] <= best["rop"]) and (best["m"] > params.m or x["m"] <= params.m)
+            return (x["rop"] <= best["rop"]) and not (best["m"] <= params.m < x["m"])
 
         # the outer search is over b, which determines the size of the tables: q^b
         b_max = 3 * ceil(log(params.q, 2))
@@ -291,19 +291,13 @@ class CodedBKW:
 
         """
         params = LWEParameters.normalize(params)
-        try:
-            cost = self.b(params, ntest=ntest, log_level=log_level)
-        except InsufficientSamplesError as e:
-            m = e.args[1]
-            while True:
+        params_ = params
+        while True:
+            try:
+                return self.b(params_, ntest=ntest, log_level=log_level)
+            except InsufficientSamplesError as e:
+                m = e.args[1]
                 params_ = params.amplify_m(m)
-                try:
-                    cost = self.b(params_, ntest=ntest, log_level=log_level)
-                    break
-                except InsufficientSamplesError as e:
-                    m = e.args[1]
-
-        return cost
 
 
 coded_bkw = CodedBKW()
