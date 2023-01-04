@@ -11,8 +11,8 @@ We construct an example LWE instance::
 
 and estimate the cost of Coded-BKW [C:GuoJohSta15]_, [C:KirFou15]_::
 
-    lwe.coded_bkw(params)
+    LWE.coded_bkw(params)
 
 All BKW variants require *a lot* of samples. As called above, the algorithm will produce the required samples from what it is given, which increases the noise. Let's pretend we have as many as we like::
 
-    lwe.coded_bkw(params.updated(m=2**100))
+    LWE.coded_bkw(params.updated(m=2**100))
