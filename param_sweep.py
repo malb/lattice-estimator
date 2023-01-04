@@ -4,18 +4,38 @@ Lattice Estimator, and graph the resulting bits of security of the associated
 lattice instances.
 
 Required arguments:
-* nrange: [minimum n, inclusive]:[maximum n, exclusive]:[increment interval]
-  Inputs must all be integers.
-* xerange: [minimum xe, inclusive]:[maximum xe, exclusive]:[increment interval]
-  Inputs can be floats or integers, they will be parsed as floats.
-  Xe is the log_2 of the standard deviation of the error.
+* -n: Value(s) for the LWE dimension n. This can be a
+  - list: looks like -n=25,70,80,100
+  - range: looks like -n=25:125:25
+  - single value: looks like -n=200
+* -e or --sigma_e: Value(s) for sigma of error e, as inputs to a discrete
+  gaussian distribution (unless specified otherwise.) This can be a
+  - list: looks like -e=6.1,7.2,7.5 or --sigma_e=6,7,8
+  - range: looks like -e=6:8:0.2 or --sigma-e=6:8 (increments by 1)
+  - single value: looks like --sigma_e=200
+* -s or --sigma_s: Value(s) for sigma of secret s, as inputs to a discrete
+  gaussian distribution (unless specified otherwise.) This can be a
+  - list: looks like -s=6.1,7.2,7.5 or --sigma_s=6,7,8
+  - range: looks like -s=6:8:0.2 or --sigma-s=6:8 (increments by 1)
+  - single value: looks like --sigma_s=200 
 
-Example command for a simple sweep from n=600 (inclusive) to 700 (exclusive),
-by increments of 20, and a log_2 of standard deviation or error from xe=6
-(inclusive) to 7 (exclusive), by increments of 0.2:
-  sage --python param_sweep.py 600:700:20 6:7:0.2
+Example command for a simple sweep:
+* n=600 to 800, by increments of 20
+* Xe from 6 to 20, by increments of 1 (discrete gaussian)
+* Xs as 5 (discrete gaussian)
+  sage --python param_sweep.py -n=600:800:20 -e=6:20 -s=5 -f
 
-Optional flags that can be passed in:
+Optional flags:
+* -u or --uniform_s: Whether to use a uniform distribution for secret key s.
+  If unset, defaults to using a discrete gaussian distribution. Useful for FHE
+  schemes.
+* -q: Value(s) for the modulus q. This can be a
+  * list: looks like -q=25,70,80,100
+  * range: looks like -q=25:125:25
+  * single value: looks like -q=200
+  If unset, defaults to 2**32.
+* -f or --fast: Use LWE.Estimate.Rough, for a faster estimate. If unset,
+  defaults to using LWE.Estimate which is slower.
 * --security_cutoff: the number of bits of security of interest - values at or
   above this cutoff will be colored differently in the cutoff graph.
 * --output_dir: the directory to output the resulting graphs and pickle files to.
@@ -29,15 +49,17 @@ Optional flags that can be passed in:
   computing the data from scratch.
 
 Example command using many of the flags, generating a pickle file:
-  sage --python param_sweep.py 600:1140:20 6:20:1 --security_cutoff=120 \
-    --output_dir=param_sweep/ --num_proc=4 --make_pickle
+  sage --python param_sweep.py -n=600:1140:20 -e=6:20 -s=2 --uniform_s --fast \
+  --output_dir=param_sweep/ --num_proc=4 --make_pickle
 
 Example command to generate graphs from a pre-existing pickle file:
-  sage --python param_sweep.py 600:1140:20 6:20:1 --load_pickle=path/to/file
+  sage --python param_sweep.py -n=600:1140:20 -e=6:20 -s=2 --uniform_s \
+  --load_pickle=path/to/file
 
 Note: running the parameter sweep can take minutes to hours, depending on the
 number of parameter combinations (the larger the ranges and the smaller the 
-increment intervals, the more parameter combinations will be computed).
+increment intervals, the more parameter combinations will be computed). For
+faster and rougher results, use the --fast flag.
 """
 
 from typing import Iterable, Union
@@ -51,6 +73,7 @@ import math
 import multiprocessing
 import numpy as np
 import os
+import pickle
 from matplotlib import pyplot as plt
 
 
@@ -137,7 +160,7 @@ def GraphResults(result_dict: dict,
 
         values = [i[1] for i in sorted(result_dict.items(), key=lambda x: x[0])]
         mat = np.flip(np.array(values).reshape(
-            (len(set(x)), len(set(y)))).transpose(),
+            (len(set(y)), len(set(x)))),
                       axis=0)
 
         fig, ax = plt.subplots(figsize=(20, 20), dpi=80)
@@ -165,6 +188,7 @@ def GraphResults(result_dict: dict,
 def PerformCalculation(input_params: tuple[int, float],
                        results: dict,
                        uniform_s: bool,
+                       fast: bool,
                        log_level=None) -> None:
     """
     This function calls the lattice-estimator for a given set of input
@@ -172,6 +196,7 @@ def PerformCalculation(input_params: tuple[int, float],
     """
     Logging.log('sweep', log_level, f'Running for n, q, Xe, Xs = {input_params}')
     Xs_ = ND.DiscreteGaussian if uniform_s else ND.UniformMod
+    f_ = LWE.estimate.rough if fast else LWE.estimate
     params = LWE.Parameters(
         n=int(input_params[0]),
         q=int(input_params[1]),
@@ -179,7 +204,7 @@ def PerformCalculation(input_params: tuple[int, float],
         Xs=Xs_(input_params[3]),
         m=input_params[0],
     )
-    results[input_params] = security_level(params, f=LWE.estimate.rough)
+    results[input_params] = security_level(params, f=f_)
 
 
 def security_level(params, f=LWE.estimate, *args, **kwargs):
@@ -199,13 +224,27 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument('-e', '--sigma_e',
                         type=str,
-                        help='Value(s) for sigma of error e, as inputs '
-                        'to a discrete gaussian distribution (unless specified '
-                        'otherwise.) This can be a\n'
-                        '* list: looks like --sigma_e=25,70,80,100\n'
-                        '* range: looks like --sigma_e=25:125:25\n'
-                        '* single value: looks like --sigma_e=200\n',
+                        help=
+        'Value(s) for sigma of error e, as inputs to a discrete gaussian '
+        'distribution (unless specified otherwise.) This can be a\n'
+        '* list: looks like -e=6.1,7.2,7.5 or --sigma_e=6,7,8\n'
+        '* range: looks like -e=6:8:0.2 or --sigma-e=6:8 (increments by 1)\n'
+        '* single value: looks like --sigma_e=5\n',
                         required=True)
+    parser.add_argument('-s', '--sigma_s',
+                        type=str,
+                        help=
+        'Value(s) for sigma of secret s, as inputs to a discrete gaussian '
+        'distribution (unless specified otherwise.) This can be a\n'
+        '* list: looks like -s=6.1,7.2,7.5 or --sigma_s=6,7,8\n'
+        '* range: looks like -s=6:8:0.2 or --sigma-s=6:8 (increments by 1)\n'
+        '* single value: looks like --sigma_s=5\n',
+                        required=True)
+    parser.add_argument('-u', '--uniform_s',
+                        help='Whether to use a uniform distribution for secret '
+                        'key s. If unset, defaults to using a discrete '
+                        'gaussian distribution. Useful for FHE schemes.',
+                        action='store_true')
     parser.add_argument('-q',
                         type=str,
                         help='Value(s) for the modulus q. This can be a\n'
@@ -214,23 +253,10 @@ if __name__ == "__main__":
                         '* single value: looks like -q=200\n',
                         default='4294967296', # q=2**32
                         )
-    parser.add_argument('-s', '--sigma_s',
-                        type=str,
-                        help='Value(s) for sigma of secret key s, as inputs '
-                        'to a discrete gaussian distribution (unless specified '
-                        'otherwise.) This can be a\n'
-                        '* list: looks like --sigma_s=25,70,80,100\n'
-                        '* range: looks like --sigma_s=25:125:25\n'
-                        '* single value: looks like --sigma_s=200.0\n',
-                        default='2.0')
-    parser.add_argument('-u', '--uniform_s',
-                        help='Whether to use a uniform distribution for secret '
-                        'key s. If unset, defaults to using a discrete '
-                        'gaussian distribution.',
-                        action='store_true')
     parser.add_argument('-f', '--fast',
-                        help='Use LWE.Estimate.Rough, for a faster estimate. '
-                        'If unset, defaults to using LWE.Estimate is slower.',
+                        help=
+        'Use LWE.Estimate.Rough, for a faster estimate. '
+        'If unset, defaults to using LWE.Estimate which is slower.',
                         action='store_true')
     parser.add_argument(
         '--output_dir',
@@ -253,8 +279,12 @@ if __name__ == "__main__":
         help='Path to a pickle to load. Overrides any computation',
         default='')
     args = parser.parse_args()
-    log_level = 0
+    n = parse_arg(args.n)
+    q = parse_arg(args.q)
+    sigma_e = parse_arg(args.sigma_e)
+    sigma_s = parse_arg(args.sigma_s)
 
+    log_level = 0
     output_dir = args.output_dir
     if not output_dir:
         output_dir = os.path.dirname(os.path.realpath(__file__))
@@ -265,11 +295,6 @@ if __name__ == "__main__":
     if not args.load_pickle:
         result_dict = multiprocessing.Manager().dict()
         work = []
-        n = parse_arg(args.n)
-        q = parse_arg(args.q)
-        sigma_e = parse_arg(args.sigma_e)
-        sigma_s = parse_arg(args.sigma_s)
-
         for n_ in n:
             for q_ in q:
                 for sigma_e_ in sigma_e:
@@ -280,12 +305,12 @@ if __name__ == "__main__":
         pool = multiprocessing.Pool(processes=min(args.num_proc, len(work)))
         for i in range(len(work)):
             pool.apply_async(PerformCalculation,
-                             (work[i], result_dict, args.uniform_s, log_level))
+                (work[i], result_dict, args.uniform_s, args.fast, log_level))
         pool.close()
         pool.join()
  
-        # Possibly pickle the intermediate computation results
         if args.make_pickle:
+            # Pickle the intermediate computation results
             pickle.dump(dict(result_dict),
                         open(file_name + '_result.pickle', 'wb'))
             Logging.log('sweep', log_level,
@@ -299,5 +324,3 @@ if __name__ == "__main__":
         {'n': n, 'q': q, 'Xe': sigma_e, 'Xs': sigma_s},
         file_name,
         log_level)
-
-    print(result_dict)
