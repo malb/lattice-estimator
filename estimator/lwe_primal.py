@@ -343,12 +343,11 @@ class PrimalHybrid:
             hw = 1
             while hw < min(h, zeta):
                 new_search_space = binomial(zeta, hw) * base**hw
-                if svp_cost.repeat(ssf(search_space + new_search_space))["rop"] < bkz_cost["rop"]:
-                    search_space += new_search_space
-                    probability += prob_drop(params.n, h, zeta, fail=hw)
-                    hw += 1
-                else:
+                if svp_cost.repeat(ssf(search_space + new_search_space))["rop"] >= bkz_cost["rop"]:
                     break
+                search_space += new_search_space
+                probability += prob_drop(params.n, h, zeta, fail=hw)
+                hw += 1
 
             svp_cost = svp_cost.repeat(ssf(search_space))
 

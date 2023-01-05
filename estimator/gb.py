@@ -6,18 +6,19 @@ See :ref:`Arora-GB` for an overview.
 
 """
 from sage.all import (
+    binomial,
+    ceil,
+    exp,
+    floor,
+    log,
+    oo,
+    pi,
     PowerSeriesRing,
+    prod,
     QQ,
     RR,
-    oo,
-    binomial,
-    sqrt,
-    ceil,
-    floor,
-    exp,
-    log,
-    pi,
     RealField,
+    sqrt,
 )
 from .cost import Cost
 from .lwe_parameters import LWEParameters
@@ -48,9 +49,7 @@ def gb_cost(n, D, omega=2, prec=None):
     s = R(1)
     s = s.add_bigoh(prec)
 
-    for d, m in D:
-        s *= (1 - z**d) ** m
-    s /= (1 - z) ** n
+    s = prod(((1 - z**d)**m for d, m in D), s) / (1 - z) ** n
 
     retval = Cost(rop=oo, dreg=oo)
     retval.register_impermanent({"rop": True, "dreg": False, "mem": False})
@@ -73,7 +72,7 @@ class AroraGB:
         """
         RR = RealField(256)
         C = RR(C)
-        return RR(1 - (RR(2) / (C * RR(sqrt(2 * pi))) * exp(-(C**2) / RR(2))))  # noqa
+        return RR(1 - (RR(2) / (C * RR(sqrt(2 * pi))) * exp(-(C**2) / RR(2))))
 
     @classmethod
     def cost_bounded(cls, params, success_probability=0.99, omega=2, log_level=1, **kwds):
@@ -142,7 +141,7 @@ class AroraGB:
             current.register_impermanent(t=False, m=True)
             current = current.reorder("rop", "m", "dreg", "t")
 
-            Logging.log("repeat", log_level + 1, f"{repr(current)}")
+            Logging.log("repeat", log_level + 1, repr(current))
 
             if best is None:
                 best = current
@@ -237,7 +236,7 @@ class AroraGB:
                 omega=omega,
                 log_level=log_level,
             )
-            Logging.log("gb", log_level, f"b: {repr(cost)}")
+            Logging.log("gb", log_level, f"b: {cost!r}")
             best = min(best, cost, key=lambda x: x["dreg"])
 
         if params.Xe.is_Gaussian_like:
@@ -247,7 +246,7 @@ class AroraGB:
                 omega=omega,
                 log_level=log_level,
             )
-            Logging.log("gb", log_level, f"G: {repr(cost)}")
+            Logging.log("gb", log_level, f"G: {cost!r}")
             best = min(best, cost, key=lambda x: x["dreg"])
 
         best["tag"] = "arora-gb"
