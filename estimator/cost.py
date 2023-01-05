@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-from sage.all import round, log, oo
-from dataclasses import dataclass
+from collections import UserDict
+
+from sage.all import log, oo, round
 
 
-@dataclass
-class Cost:
+# UserDict inherits from typing.MutableMapping
+class Cost(UserDict):
     """
     Algorithms costs.
     """
-
-    rop: float = oo
-    tag: str = None
 
     # An entry is "impermanent" if it grows when we run the algorithm again. For example, `δ`
     # would not scale with the number of operations but `rop` would. This check is strict such that
@@ -54,13 +52,10 @@ class Cost:
         "ell_": "ℓ'",
         "repetitions": "↻",
     }
+
     val_map = {"beta": "%8d", "beta_": "%8d", "d": "%8d", "delta": "%8.6f"}
 
-    def __init__(self, **kwds):
-        for k, v in kwds.items():
-            setattr(self, k, v)
-
-    def str(self, keyword_width=0, newline=False, round_bound=2048, compact=False):  # noqa C901
+    def str(self, keyword_width=0, newline=False, round_bound=2048, compact=False):
         """
 
         :param keyword_width:  keys are printed with this width
@@ -82,7 +77,7 @@ class Cost:
             kk = f"{kstr:>{keyword_width}}"
             try:
                 if (1 / round_bound < abs(v) < round_bound) or (not v) or (k in self.val_map):
-                    if abs(v % 1) < 0.0000001:
+                    if abs(v % 1) < 1e-7:
                         vv = self.val_map.get(k, "%8d") % round(v)
                     else:
                         vv = self.val_map.get(k, "%8.3f") % v
@@ -96,7 +91,7 @@ class Cost:
             return f"{kk}: {vv}"
 
         # we store the problem instance in a cost object for reference
-        s = [value_str(k, v) for k, v in self.__dict__.items() if k != "problem"]
+        s = [value_str(k, v) for k, v in self.items() if k != "problem"]
         delimiter = "\n" if newline is True else ", "
         return delimiter.join(s)
 
@@ -117,8 +112,8 @@ class Cost:
             b: 2, c: 3, a: 1
 
         """
-        reord = {k: self.__dict__[k] for k in args if k in self.__dict__}
-        reord.update(self.__dict__)
+        reord = {k: self[k] for k in args if k in self.keys()}
+        reord.update(self)
         return Cost(**reord)
 
     def filter(self, **keys):
@@ -128,7 +123,7 @@ class Cost:
         :param dictionary: input dictionary
         :param keys: keys which should be copied (ordered)
         """
-        r = {k: self.__dict__[k] for k in keys if k in self.__dict__}
+        r = {k: self[k] for k in keys if k in self.keys()}
         return Cost(**r)
 
     def repeat(self, times, select=None):
@@ -160,13 +155,13 @@ class Cost:
             impermanents.update(select)
 
         try:
-            ret = {k: times * v if impermanents[k] else v for k, v in self.__dict__.items()}
+            ret = {k: times * v if impermanents[k] else v for k, v in self.items()}
+            ret["repetitions"] = times * ret.get("repetitions", 1)
+            return Cost(**ret)
         except KeyError as error:
             raise NotImplementedError(
                 f"You found a bug, this function does not know about about a key but should: {error}"
             )
-        ret["repetitions"] = times * ret.get("repetitions", 1)
-        return Cost(**ret)
 
     def __rmul__(self, times):
         return self.repeat(times)
@@ -190,33 +185,15 @@ class Cost:
             c: 3, a: 1, b: 2
 
         """
-        base_dict = {} if base is None else base.__dict__
-        cost = {**base_dict, **self.__dict__, **right.__dict__}
+        base_dict = {} if base is None else base
+        cost = {**base_dict, **self, **right}
         return Cost(**cost)
 
     def __bool__(self):
-        return self.__dict__.get("rop", oo) < oo
+        return self.get("rop", oo) < oo
 
     def __add__(self, other):
         return self.combine(self, other)
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
-
-    def __delitem__(self, key):
-        del self.__dict__[key]
-
-    def get(self, key, default):
-        return self.__dict__.get(key, default)
-
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
-
-    def __iter__(self):
-        return iter(self.__dict__)
-
-    def values(self):
-        return self.__dict__.values()
 
     def __repr__(self):
         return self.str(compact=True)
@@ -241,7 +218,7 @@ class Cost:
         Perform basic checks.
         """
         if self.get("rop", 0) > 2**10000:
-            setattr(self, "rop", oo)
+            self["rop"] = oo
         if self.get("beta", 0) > self.get("d", 0):
             raise RuntimeError(f"β = {self['beta']} > d = {self['d']}")
         if self.get("eta", 0) > self.get("d", 0):

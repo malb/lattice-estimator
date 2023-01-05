@@ -7,22 +7,15 @@ some form of additive composition, i.e. this strategy is rarely the most efficie
 
 """
 
-from sage.all import log, floor, ceil, binomial
-from sage.all import sqrt, pi, exp, RR, ZZ, oo, round, e
+from sage.all import binomial, ceil, e, exp, floor, log, oo, pi, round, RR, sqrt, ZZ
 
 from .conf import mitm_opt
 from .cost import Cost
 from .errors import InsufficientSamplesError, OutOfBoundsError
 from .lwe_parameters import LWEParameters
-from .prob import amplify as prob_amplify
-from .prob import drop as prob_drop
-from .prob import amplify_sigma
-from .util import local_minimum
+from .prob import amplify as prob_amplify, drop as prob_drop, amplify_sigma
+from .util import local_minimum, log2
 from .nd import sigmaf
-
-
-def log2(x):
-    return log(x, 2)
 
 
 class guess_composition:
@@ -94,11 +87,10 @@ class guess_composition:
             probability += prob_drop(n, h, zeta, fail=gamma)
             search_space += binomial(zeta, gamma) * base**gamma
             repeat = prob_amplify(0.99, probability) * g(search_space)
-            if best[0] is None or repeat < best[0]:
-                best = repeat, gamma, search_space, probability
-                gamma += 1
-            else:
+            if best[0] is not None and repeat >= best[0]:
                 break
+            best = repeat, gamma, search_space, probability
+            gamma += 1
         return best
 
     @classmethod
@@ -145,11 +137,8 @@ class guess_composition:
 
         """
         params = LWEParameters.normalize(params)
-
-        if params.Xs.is_sparse:
-            return self.sparse_solve(self.f, params, log_level, **kwds)
-        else:
-            return self.dense_solve(self.f, params, log_level, **kwds)
+        solve = self.sparse_solve if params.Xs.is_sparse else self.dense_solve
+        return solve(self.f, params, log_level, **kwds)
 
 
 class ExhaustiveSearch:
@@ -264,7 +253,7 @@ class MITM:
             success_probability_ = 1.0
             logT = k * log(sd_rng, 2)
 
-        m_ = max(1, round(logT + log(logT, 2)))
+        m_ = max(1, round(logT + log2(logT)))
         if params.m < m_:
             raise InsufficientSamplesError(
                 f"MITM: Need {m_} samples but only {params.m} available."
@@ -361,7 +350,7 @@ class MITM:
 
         params = LWEParameters.normalize(params)
 
-        nd_rng, _ = self.X_range(params.Xe)
+        nd_rng = self.X_range(params.Xe)[0]
         if nd_rng >= params.q:
             # MITM attacks cannot handle an error this large.
             return Cost(rop=oo, mem=oo, m=0, k=0)

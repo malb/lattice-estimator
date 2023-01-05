@@ -6,6 +6,8 @@ Cost estimates for lattice redution.
 from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round, sqrt
 from scipy.optimize import newton
 
+from .cost import Cost
+
 
 class ReductionCost:
     @staticmethod
@@ -53,8 +55,8 @@ class ReductionCost:
 
         """
         small = (
-            (2, 1.02190),  # noqa
-            (5, 1.01862),  # noqa
+            (2, 1.02190),
+            (5, 1.01862),
             (10, 1.01616),
             (15, 1.01485),
             (20, 1.01420),
@@ -504,7 +506,8 @@ class CheNgu12(ReductionCost):
 
             >>> from sage.all import var, find_fit
             >>> dim = [100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250]
-            >>> nodes = [39.0, 44.0, 49.0, 54.0, 60.0, 66.0, 72.0, 78.0, 84.0, 96.0, 99.0, 105.0, 111.0, 120.0, 127.0, 134.0]  # noqa
+            >>> nodes = [39.0, 44.0, 49.0, 54.0, 60.0, 66.0, 72.0, 78.0, 84.0, 96.0, \
+                         99.0, 105.0, 111.0, 120.0, 127.0, 134.0]
             >>> times = [c + log(200,2).n() for c in nodes]
             >>> T = list(zip(dim, nodes))
             >>> var("a,b,c,beta")
@@ -926,8 +929,6 @@ def cost(cost_model, beta, d, B=None, predicate=True, **kwds):
         rop: ≈2^inf, red: ≈2^inf, δ: 1.008435, β: 120, d: 500
 
     """
-    from .cost import Cost
-
     # convenience: instantiate static classes if needed
     if isinstance(cost_model, type):
         cost_model = cost_model()
@@ -942,8 +943,8 @@ def cost(cost_model, beta, d, B=None, predicate=True, **kwds):
     return cost
 
 
-beta = ReductionCost.beta  # noqa
-delta = ReductionCost.delta  # noqa
+beta = ReductionCost.beta
+delta = ReductionCost.delta
 
 
 class RC:

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from sage.all import parent, RR, RealField, sqrt, pi, oo, ceil, binomial, exp, log
+from sage.all import binomial, ceil, exp, log, oo, parent, pi, RealField, RR, sqrt
 
 
 def stddevf(sigma):
@@ -83,7 +83,7 @@ class NoiseDistribution:
     stddev: float
     mean: float = 0
     n: int = None
-    bounds: tuple = None
+    bounds: tuple = (None, None)
     density: float = 1.0  # Hamming weight / dimension.
     tag: str = ""
 
@@ -347,9 +347,7 @@ class NoiseDistribution:
 
         """
         a = -(q // 2)
-        b = q // 2
-        if q % 2 == 0:
-            b -= 1
+        b = -a -1 if q % 2 == 0 else -a
         return NoiseDistribution.Uniform(a, b, n=n)
 
     @staticmethod
