@@ -4,7 +4,7 @@ from collections import UserDict
 from sage.all import log, oo, round
 
 
-# UserDict inherits from typing.Mapping
+# UserDict inherits from typing.MutableMapping
 class Cost(UserDict):
     """
     Algorithms costs.

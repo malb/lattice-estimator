@@ -72,7 +72,7 @@ class CodedBKW:
             ntest = CodedBKW.ntest(params.n, ell, t1, t2, b, params.q)
         sigma_set = sqrt(params.q ** (2 * (1 - ell / ntest)) / 12)
         Ni = [CodedBKW.N(i, sigma_set, b, params.q) for i in range(1, t2 + 1)]
-        t1 = sum(e <= b for e in Ni)
+        t1 = sum(e <= b for e in Ni)  # comp. how many in Ni are <= to b
         # there is no point in having more tables than needed to cover n
         if b * t1 > params.n:
             t1 = params.n // b
