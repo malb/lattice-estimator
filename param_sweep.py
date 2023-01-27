@@ -100,14 +100,16 @@ class ParameterSweep:
         log_level=0,
         make_pickle=False,
         load_pickle=False,
-        directory=None,
         security_cutoff=None,
+        directory=None,
+        file_name=None,
+        extension='.png',
     ):
         if not directory:
             directory = os.path.dirname(os.path.realpath(__file__))
-        file_name = time.strftime('%d-%m-%Y_%H-%M-%S')
+        if not file_name:
+            file_name = time.strftime('%d-%m-%Y_%H-%M-%S')
         file_name = os.path.join(directory, file_name)
-
         assert num_proc >= 1, 'need at least one process to execute'
 
         if not load_pickle:
@@ -130,8 +132,8 @@ class ParameterSweep:
         params = {
             'n': (n, 0),
             'q': (q, 1),
-            Xe_string: (e, 2, 2),
-            Xs_string: (s, 2, 3),
+            Xe_string: (e, 2),
+            Xs_string: (s, 3),
             'm': (m, 4),
         }
 
@@ -140,7 +142,8 @@ class ParameterSweep:
             params,
             file_name,
             security_cutoff,
-            log_level
+            log_level,
+            extension,
         )
 
 
@@ -179,17 +182,20 @@ class ParameterSweep:
         Logging.log('sweep', log_level, f'Parameters = {lwe_params}; security = {security}')
 
 
-    def graph_results(result_dict: dict,
-                    params: dict[str, (list[Union[int, float]], int)],
-                    file_name: str,
-                    security_cutoff: int,
-                    log_level: int):
+    def graph_results(
+        result_dict: dict,
+        params: dict[str, (list[Union[int, float]], int)],
+        file_name: str,
+        security_cutoff: int,
+        log_level=0,
+        extension='.png',
+    ):
         """
         Creates a two graphs: one with a heatmap plot, and one with a security cutoff.
 
         Args:
-            result_dict: a dictionary of results, like {(1, 45, 7, 4, 1): 5.7}. The
-                order of the params is: n, q, Xe, Xs, m.
+            result_dict: a dictionary of results, like {(1, 45, 7, 4, 1): 5.7}. 
+                The order of the params is: n, q, Xe, Xs, m.
             params: a dictionary of the parameters that were passed in,
                 and associated titles, to assist with printing axes and titles for the graph.
 
@@ -229,8 +235,8 @@ class ParameterSweep:
                 plt.title(f'Security with parameters {fixed_vars}')
 
                 Logging.log('sweep', log_level, 'Saved the line plot graph to: %s',
-                            file_name + '_plot.png')
-                fig.savefig(file_name + '_plot.png')
+                            file_name + '_plot' + extension)
+                fig.savefig(file_name + '_plot' + extension)
             case 2:
                 axis_vars = sorted(axis_vars.items(), key=lambda x: params[x[0]][1])
                 x_param = axis_vars[1][0]
@@ -259,9 +265,9 @@ class ParameterSweep:
                 ax.set_xlabel(f'Parameter: {x_param}')
                 ax.set_ylabel(f'Parameter: {y_param}')
 
-                fig.savefig(file_name + '_gradient.png')
+                fig.savefig(file_name + '_gradient' + extension)
                 Logging.log('sweep', log_level, 'Saved the gradient graph to: %s',
-                            file_name + '_gradient.png')
+                            file_name + '_gradient' + extension)
 
                 if security_cutoff:
                     fig2, ax2 = plt.subplots(figsize=(20, 20), dpi=80)
@@ -288,9 +294,9 @@ class ParameterSweep:
                     ax2.set_xlabel(f'Parameter: {x_param}')
                     ax2.set_ylabel(f'Parameter: {y_param}')
 
-                    fig2.savefig(file_name + '_cutoff.png')
+                    fig2.savefig(file_name + '_cutoff' + extension)
                     Logging.log('sweep', log_level, 'Saved the cutoff graph to: %s',
-                                file_name + '_cutoff.png')
+                                file_name + '_cutoff' + extension)
             case _:
                 raise ValueError('Cannot plot more than two variables. '
                                  'Try freezing one or more of them.')
