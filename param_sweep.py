@@ -31,12 +31,12 @@ class ParameterSweep:
     ```
 
     Example of a parameter sweep (without graphing), with:
-    *   `n` from 600 to 1140 incrementing by 20,
-    *   `log_2(Xe)` from 6 to 20 incrementing by 1,
-    *   `Xs` is a uniform binary distribution,
-    *   `q` is 2**32,
-    *   `m`==`n` (the default if `m` is not specified),
-    *   `f` as `LWE.estimate.rough` for faster computation
+    - `n` from 600 to 1140 incrementing by 20,
+    - `log_2(Xe)` from 6 to 20 incrementing by 1,
+    - `Xs` is a uniform binary distribution,
+    - `q` is 2**32,
+    - `m`==`n` (the default if `m` is not specified),
+    - `f` as `LWE.estimate.rough` for faster computation
     From `sage`, run:
     ```
     from estimator import LWE, nd
@@ -44,9 +44,9 @@ class ParameterSweep:
     ```
 
     Example of a parameter sweep to generate a heatmap graph, using:
-    *   the same LWE parameters as the previous example,
-    *   changing the function to LWE.estimate for a more precise estimation,
-    *   pickling the intermediate results
+    - the same LWE parameters as the previous example,
+    - changing the function to LWE.estimate for a more precise estimation,
+    - pickling the intermediate results
     From `sage`, run:
     ```
     from estimator import nd
@@ -78,26 +78,57 @@ class ParameterSweep:
         """
         Performs a sweep over the parameters specified.
 
-        Args:
-        *   n: the dimension of the LWE sample vector (Z/qZ)^n.
-        *   q: the modulus of the space Z/qZ of integers the LWE samples are in.
-        *   e: the input to the distribution function for the error term.
-        *   s: the input to the distribution function for the secret term.
-        Optional args:
-        *   m: the number of LWE samples allowed to an attacker.
-        *   Xe: the distribution function for the error term.
-        *   e_log: whether to plot the error on a logarithmic scale.
-        *   Xs: the distribution function for the secret term.
-        *   s_log: whether to plot the secret on a logarithmic scale.
-        *   tag: a name for the patameter set
-        *   f: the estimation function. For faster results, use LWE.estimate.rough.
-        *   num_proc: the number of parallel processes for computation.
-        *   log_level: the logging level.
-
-        Returns:
-        *   result_dict: a dictionary mapping from a set of parameters, to the
+        :param n: the dimension of the LWE sample vector (Z/qZ)^n.
+        :param q: the modulus of the space Z/qZ of integers for the LWE samples.
+        :param e: the input to the distribution function for the error term.
+        :param s: the input to the distribution function for the secret term.
+        :param m: the number of LWE samples allowed to an attacker.
+        :param Xe: the distribution function for the error term.
+        :param e_log: whether to plot the error on a logarithmic scale.
+        :param Xs: the distribution function for the secret term.
+        :param s_log: whether to plot the secret on a logarithmic scale.
+        :param tag: a name for the patameter set
+        :param f: the estimation function. Use `LWE.estimate.rough` for speed.
+        :param num_proc: the number of parallel processes for computation.
+        :param log_level: the logging level.
+        :returns: a dictionary mapping from a set of parameters, to the
             estimated security level for those parameters. The ordering of
             the parameters in the dict key is: (n, q, e, s, m).
+
+        EXAMPLE ::
+
+            >>> from estimator import LWE, nd
+            >>> from param_sweep import ParameterSweep as PS
+            >>> n_list = [600, 900]
+            >>> e_list = [7, 9]
+            >>> results = PS.parameter_sweep(\
+                    n=n_list,\
+                    q=2**32,\
+                    e=e_list,\
+                    s=2,\
+                    s_log=False,\
+                    Xs=nd.NoiseDistribution.UniformMod,\
+                    f=LWE.estimate.rough,\
+                    tag='test',\
+                    log_level=2,\
+                    num_proc=1,\
+                )
+            usvp                 :: rop: ≈2^45.6, red: ≈2^45.6, δ: 1.007290, β: 156, d: 1120, tag: usvp
+            dual_hybrid          :: rop: ≈2^46.6, mem: ≈2^42.7, m: 579, β: 159, d: 1169, ↻: 1, ζ: 10, tag: dual_hybrid
+            usvp                 :: rop: ≈2^51.7, red: ≈2^51.7, δ: 1.006767, β: 177, d: 1124, tag: usvp
+            dual_hybrid          :: rop: ≈2^52.7, mem: ≈2^48.3, m: 571, β: 180, d: 1160, ↻: 1, ζ: 11, tag: dual_hybrid
+            usvp                 :: rop: ≈2^82.9, red: ≈2^82.9, δ: 1.005021, β: 284, d: 1661, tag: usvp
+            dual_hybrid          :: rop: ≈2^83.0, mem: ≈2^77.8, m: 830, β: 284, d: 1711, ↻: 1, ζ: 19, tag: dual_hybrid
+            usvp                 :: rop: ≈2^92.6, red: ≈2^92.6, δ: 1.004667, β: 317, d: 1650, tag: usvp
+            dual_hybrid          :: rop: ≈2^92.4, mem: ≈2^87.4, m: 816, β: 316, d: 1694, ↻: 1, ζ: 22, tag: dual_hybrid
+            >>> results[(600, 4294967296, 9.0, 2.0, 600, 'test')]
+            51.684000000000005
+            >>> results[(600, 4294967296, 7.0, 2.0, 600, 'test')]
+            45.552
+            >>> results[(900, 4294967296, 7.0, 2.0, 900, 'test')]
+            82.928
+            >>> results[(900, 4294967296, 9.0, 2.0, 900, 'test')]
+            92.36860677483823
         """
         try:
             iter(n)
@@ -132,14 +163,20 @@ class ParameterSweep:
                                 m_ = n_
                             work.append((n_, q_, e_, s_, m_))
 
-        # Parallel process the calculations
-        pool = multiprocessing.Pool(processes=min(num_proc, len(work)))
-        for i in range(len(work)):
-            pool.apply_async(ParameterSweep.security_level,
-                             (work[i], result_dict, Xe, e_log, Xs, s_log, tag,
-                              f, log_level))
-        pool.close()
-        pool.join()
+        if num_proc <= 1:
+            result_dict = {}
+            for i in range(len(work)):
+                ParameterSweep.security_level(work[i], result_dict, Xe, e_log,
+                                              Xs, s_log, tag, f, log_level)
+        else:
+            # Parallel process the calculations
+            pool = multiprocessing.Pool(processes=min(num_proc, len(work)))
+            for i in range(len(work)):
+                pool.apply_async(ParameterSweep.security_level,
+                                 (work[i], result_dict, Xe, e_log, Xs, s_log,
+                                  tag, f, log_level))
+            pool.close()
+            pool.join()
 
         return dict(result_dict)
 
@@ -158,21 +195,17 @@ class ParameterSweep:
         Calls the lattice-estimator for a given set of input
         parameters, and appends the output to the `result_dict` dict.
 
-        Args:
-        *   input_params: a tuple of the parameters to get a security estimate for.
+        :param input_params: a tuple of params to estimate security for.
             Parameter ordering is: (n: int, q: int, e: float, s: float, m: int).
-        *   result_dict: the dictionary to append the output to. The key is the 
-            tuple of parameters from input_params.
-        Optional args:
-        *   Xe: the distribution function for the error term.
-        *   e_log: whether to plot the error on a logarithmic scale.
-        *   Xs: the distribution function for the secret term.
-        *   s_log: whether to plot the secret on a logarithmic scale.
-        *   tag: a name for the patameter set
-        *   f: the estimation function. For faster results, use LWE.estimate.rough.
-        *   log_level: the logging level.
-
-        Returns: None
+        :param result_dict: the dictionary to append the output to. The key is
+            the tuple of parameters from input_params.
+        :param Xe: the distribution function for the error term.
+        :param e_log: whether to plot the error on a logarithmic scale.
+        :param Xs: the distribution function for the secret term.
+        :param s_log: whether to plot the secret on a logarithmic scale.
+        :param tag: a name for the patameter set
+        :param f: the estimation function. Use `LWE.estimate.rough` for speed.
+        :param log_level: the logging level.
         """
         n_ = int(input_params[0])
         q_ = int(input_params[1])
@@ -192,7 +225,9 @@ class ParameterSweep:
         )
         estimator_result = f(lwe_params)
         security = min(
-            [math.log(res_.rop, 2) for res_ in estimator_result.values()])
+            [math.log(res_.get('rop', 0), 2) for res_ in estimator_result.values()])
+        if not security:
+            raise ValueError('ROP for a estimator result was 0, estimator failed')
         result_dict[(n_, q_, float(input_params[2]), float(input_params[3]),
                      m_, tag)] = security
         Logging.log('sweep', log_level,
@@ -220,31 +255,74 @@ class ParameterSweep:
         extension: str = '.png',
     ) -> None:
         """
-        Gets the results of a parameter sweep, and creates graph visualizations of the data.
+        Gets the results of a parameter sweep, and creates graph visualizations
+        of the data. The type of graph depends on the number of variables.
 
-        Args:
-        *   n: the dimension of the LWE sample vector (Z/qZ)^n.
-        *   q: the modulus of the space Z/qZ of integers the LWE samples are in.
-        *   e: the input to the distribution function for the error term.
-        *   s: the input to the distribution function for the secret term.
-        Optional args:
-        *   m: the number of LWE samples allowed to an attacker.
-        *   Xe: the distribution function for the error term.
-        *   e_log: whether to plot the error on a logarithmic scale.
-        *   Xs: the distribution function for the secret term.
-        *   s_log: whether to plot the secret on a logarithmic scale.
-        *   tag: a name for the patameter set
-        *   f: the estimation function. For faster results, use LWE.estimate.rough.
-        *   num_proc: the number of parallel processes for computation.
-        *   log_level: the logging level.
-        *   make_pickle: whether to make a pickle file of intermediate results.
-        *   load_pickle: whether to load a pickle file of intermediate results.
-        *   security_cutoff: makes a separate graph with a visual cutoff at security_cutoff.
-        *   directory: the directory to load files from and/or save files to.
-        *   file_name: the file name to load files from and/or save files to.
-        *   extension: the extension of the resulting graph. Examples: .png, .pdf, .svg.
+        :param n: the dimension of the LWE sample vector (Z/qZ)^n.
+        :param q: the modulus of the space Z/qZ of integers for the LWE samples.
+        :param e: the input to the distribution function for the error term.
+        :param s: the input to the distribution function for the secret term.
+        :param m: the number of LWE samples allowed to an attacker.
+        :param Xe: the distribution function for the error term.
+        :param e_log: whether to plot the error on a logarithmic scale.
+        :param Xs: the distribution function for the secret term.
+        :param s_log: whether to plot the secret on a logarithmic scale.
+        :param tag: a name for the patameter set
+        :param f: the estimation function. Use `LWE.estimate.rough` for speed.
+        :param num_proc: the number of parallel processes for computation.
+        :param log_level: the logging level.
+        :param make_pickle: whether to make a pickle file of the results dict.
+        :param load_pickle: whether to load a pickle file of the results dict.
+        :param security_cutoff: makes a separate graph with a security cutoff.
+        :param directory: the directory to load files from and/or save files to.
+        :param file_name: the file name to load files from and/or save files to.
+        :param extension: the extension of the graph(s). Ex: .png, .pdf, .svg.
 
-        Returns: None
+        EXAMPLE ::
+
+            >>> from estimator import LWE, nd
+            >>> from param_sweep import ParameterSweep as PS
+            >>> import uuid
+            >>> from pathlib import Path
+            >>> e_range = range(7, 10, 2)
+            >>> s_range = range(2, 5, 2)
+            >>> file_name = 'test_file_' + str(uuid.uuid4())
+            >>> _ = PS.graph_parameter_sweep(\
+                    n=700,\
+                    q=2**32,\
+                    e=e_range,\
+                    s=s_range,\
+                    f=LWE.estimate.rough,\
+                    tag='test',\
+                    directory='/tmp',\
+                    make_pickle=True,\
+                    security_cutoff=128,\
+                    file_name=file_name,\
+                    num_proc=1,\
+                )
+            usvp                 :: rop: ≈2^69.2, red: ≈2^69.2, δ: 1.005647, β: 237, d: 1396, tag: usvp
+            dual_hybrid          :: rop: ≈2^78.5, mem: ≈2^75.8, m: 700, β: 267, d: 1392, ↻: 1, ζ: 8, tag: dual_hybrid
+            usvp                 :: rop: ≈2^78.8, red: ≈2^78.8, δ: 1.005191, β: 270, d: 1396, tag: usvp
+            dual_hybrid          :: rop: ≈2^92.5, mem: ≈2^90.3, m: 700, β: 314, d: 1392, ↻: 1, ζ: 8, tag: dual_hybrid
+            usvp                 :: rop: ≈2^78.8, red: ≈2^78.8, δ: 1.005191, β: 270, d: 1391, tag: usvp
+            dual_hybrid          :: rop: ≈2^87.2, mem: ≈2^84.2, m: 700, β: 297, d: 1392, ↻: 1, ζ: 8, tag: dual_hybrid
+            usvp                 :: rop: ≈2^90.5, red: ≈2^90.5, δ: 1.004738, β: 310, d: 1394, tag: usvp
+            dual_hybrid          :: rop: ≈2^102.5, mem: ≈2^100.0, m: 700, β: 349, d: 1392, ↻: 1, ζ: 8, tag: dual_hybrid
+            >>> Path(f'/tmp/{file_name}.pickle').exists()
+            True
+            >>> Path(f'/tmp/{file_name}_gradient.png').exists()
+            True
+            >>> Path(f'/tmp/{file_name}_cutoff.png').exists()
+            True
+            >>> results = pickle.load(open(f'/tmp/{file_name}.pickle', 'rb'))
+            >>> results[(700, 4294967296, 9.0, 2.0, 700, 'test')]
+            78.83999999999999
+            >>> results[(700, 4294967296, 9.0, 4.0, 700, 'test')]
+            90.52000000000001
+            >>> results[(700, 4294967296, 7.0, 4.0, 700, 'test')]
+            78.83999999999999
+            >>> results[(700, 4294967296, 7.0, 2.0, 700, 'test')]
+            69.204
         """
         if not directory:
             directory = os.path.dirname(os.path.realpath(__file__))
@@ -294,28 +372,24 @@ class ParameterSweep:
         extension: str = '.png',
     ):
         """
-        Graph the security estimate results in `result_dict`, using the parameters
-        in `params` for labeling the plot axes and titles.
-        *   For 1 variable: creates a line plot.
-        *   For 2 variables: creates a heatmap plot, and an optional cutoff plot.
+        Graph the security estimate results in `result_dict`, using the
+        parameters in `params` for labeling the plot axes and titles.
+        - For 1 variable: creates a line plot.
+        - For 2 variables: creates a heatmap plot, and an optional cutoff plot.
 
-        Args:
-        *   result_dict: a mapping from a set of parameters, to their security estimate.
-            Parameter ordering for the key: (n: int, q: int, e: float, s: float, m: int).
-        *   params: a mapping from the string representation of the parameter, to a tuple
-            of the parameter and its associated order in the `result_dict` key.
-            Example: {'n': (600, 0), 'q'': (4294967296, 1) ...}
-        *   file_name: the file name to write the output graphs to.
-        Optional args:
-        *   security_cutoff: makes a separate graph with a visual cutoff at security_cutoff.
-        *   log_level: the logging level
-        *   extension: the extension of the resulting graph. Examples: .png, .pdf, .svg.
-
-        Returns: None
+        :param result_dict: a mapping from a set of parameters, to security.
+            Parameter ordering: (n: int, q: int, e: float, s: float, m: int).
+        :param params: a mapping from the string representation of a parameter,
+            to a tuple of the parameter and its associated order in the
+            `result_dict` key. Example: {'n': (600, 0), 'q'': (4294967296, 1)}
+        :param file_name: the file name to write the output graphs to.
+        :param security_cutoff: makes a separate graph with a security cutoff.
+        :param log_level: the logging level
+        :param extension: the extension of the graph(s). Ex: .png, .pdf, .svg.
         """
 
         # Convert parameter iterators to lists.
-        # Also keep track of the axis variables and fixed variables, for labeling.
+        # Also keep track of the axis and fixed variables, for labeling.
         axis_vars = {}
         fixed_vars = {}
         for p in params:
