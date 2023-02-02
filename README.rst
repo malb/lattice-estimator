@@ -88,6 +88,7 @@ Contributions
 At present, this estimator is maintained by Martin Albrecht. Contributors are:
 
 - Benjamin Curtis
+- Cathie Yun
 - Cedric Lefebvre
 - Fernando Virdia
 - Florian Göpfert
