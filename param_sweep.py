@@ -25,39 +25,7 @@ import os
 class ParameterSweep:
     """
     A class that provides utilities for performing and graphing the results
-    from performing parameter sweeps using the lattice estimator. To import in `sage`:
-    ```
-    from param_sweep import ParameterSweep as PS
-    ```
-
-    Example of a parameter sweep (without graphing), with:
-    - `n` from 600 to 1140 incrementing by 20,
-    - `log_2(Xe)` from 6 to 20 incrementing by 1,
-    - `Xs` is a uniform binary distribution,
-    - `q` is 2**32,
-    - `m`==`n` (the default if `m` is not specified),
-    - `f` as `LWE.estimate.rough` for faster computation
-    From `sage`, run:
-    ```
-    from estimator import LWE, nd
-    results = PS.parameter_sweep(n=range(600,1140,20), q=2**32, e=(6,20), s=2, s_log=False, Xs=nd.NoiseDistribution.UniformMod, f=LWE.estimate.rough)
-    ```
-
-    Example of a parameter sweep to generate a heatmap graph, using:
-    - the same LWE parameters as the previous example,
-    - changing the function to LWE.estimate for a more precise estimation,
-    - pickling the intermediate results
-    From `sage`, run:
-    ```
-    from estimator import nd
-    PS.graph_parameter_sweep(n=range(600,1140,20), q=2**32, e=range(6,20), s=2, s_log=False, Xs=nd.NoiseDistribution.UniformMod, make_pickle=True, file_name='demo')
-    ```
-
-    Load the pickled results from the previous run, and additionally generate
-    a security cutoff graph. From `sage`, run:
-    ```
-    PS.graph_parameter_sweep(n=range(600,1140,20), q=2**32, e=range(6,20), s=2, load_pickle=True, file_name='demo', security_cutoff=128)
-    ```
+    from performing parameter sweeps using the lattice estimator.
     """
 
     def parameter_sweep(
@@ -224,10 +192,13 @@ class ParameterSweep:
             tag=tag,
         )
         estimator_result = f(lwe_params)
-        security = min(
-            [math.log(res_.get('rop', 0), 2) for res_ in estimator_result.values()])
+        security = min([
+            math.log(res_.get('rop', 0), 2)
+            for res_ in estimator_result.values()
+        ])
         if not security:
-            raise ValueError('ROP for a estimator result was 0, estimator failed')
+            raise ValueError(
+                'ROP for a estimator result was 0, estimator failed')
         result_dict[(n_, q_, float(input_params[2]), float(input_params[3]),
                      m_, tag)] = security
         Logging.log('sweep', log_level,
