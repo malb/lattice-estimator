@@ -78,9 +78,11 @@ class local_minimum_base:
 
     def __next__(self):
 
-        if (self._next_x is not None
-                and self._next_x not in self._all_x
-                and self._initial_bounds.low <= self._next_x <= self._initial_bounds.high):
+        if (
+            self._next_x is not None
+            and self._next_x not in self._all_x
+            and self._initial_bounds.low <= self._next_x <= self._initial_bounds.high
+        ):
             # we've not been told to abort
             # we're not looping
             # we're in bounds
@@ -90,7 +92,9 @@ class local_minimum_base:
 
         if self._best.low in self._initial_bounds and not self._suppress_bounds_warning:
             # We warn the user if the optimal solution is at the edge and thus possibly not optimal.
-            msg = f'warning: "optimal" solution {self._best.low} matches a bound ∈ {self._initial_bounds}.',
+            msg = (
+                f'warning: "optimal" solution {self._best.low} matches a bound ∈ {self._initial_bounds}.',
+            )
             Logging.log("bins", self._log_level, msg)
 
         raise StopIteration
@@ -294,18 +298,20 @@ class early_abort_range:
         Logging.log("lins", self._log_level, f"({self._last_x}, {repr(res)})")
 
         if self._best.low is None:
-            self._best = self._last_x, res
+            self._best = Bounds(self._last_x, res)
             return
 
         if res is False:
             self._next_x = None
         elif self._smallerf(res, self._best.high):
-            self._best = self._last_x, res
+            self._best = Bounds(self._last_x, res)
         else:
             self._next_x = None
 
 
-def binary_search(f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds):
+def binary_search(
+    f, start, stop, param, step=1, smallerf=lambda x, best: x <= best, log_level=5, *args, **kwds
+):
     """
     Searches for the best value in the interval [start,stop] depending on the given comparison function.
 
