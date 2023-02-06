@@ -298,13 +298,13 @@ class early_abort_range:
         Logging.log("lins", self._log_level, f"({self._last_x}, {repr(res)})")
 
         if self._best.low is None:
-            self._best = self._last_x, res
+            self._best = Bounds(self._last_x, res)
             return
 
         if res is False:
             self._next_x = None
         elif self._smallerf(res, self._best.high):
-            self._best = self._last_x, res
+            self._best = Bounds(self._last_x, res)
         else:
             self._next_x = None
 
