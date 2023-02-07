@@ -224,7 +224,7 @@ class CodedBKW:
         with local_minimum(2, b_max, smallerf=sf) as it_b:
             for b in it_b:
                 # the inner search is over t2, the number of coded steps
-                t2_max = min(params.n // b, ceil(3 * log(params.q, 2)))
+                t2_max = max(3, params.n // b)
                 with local_minimum(2, t2_max, smallerf=sf) as it_t2:
                     for t2 in it_t2:
                         y = cls.cost(b=b, t2=t2, ntest=ntest, params=params)
