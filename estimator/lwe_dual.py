@@ -91,7 +91,7 @@ class DualHybrid:
 
         # Compute new noise as in [INDOCRYPT:EspJouKha20]
         # ~ sigma_ = rho * red_Xs.stddev * delta ** (m_ + red_Xs.n) / c ** (m_ / (m_ + red_Xs.n))
-        sigma_ = rho * red_Xs.stddev * delta ** d / c ** (m_ / d)
+        sigma_ = rho * red_Xs.stddev * delta**d / c ** (m_ / d)
         slv_Xe = NoiseDistribution.DiscreteGaussian(params.q * sigma_)
 
         slv_params = LWEParameters(
@@ -212,7 +212,7 @@ class DualHybrid:
 
         try:
             size = params.Xs.support_size(n=params.n, fraction=probability)
-            size_fft = 2 ** t
+            size_fft = 2**t
         except NotImplementedError:
             # not achieving required probability with search space
             # given our settings that means the search space is huge
@@ -344,7 +344,6 @@ class DualHybrid:
         - ``rop``: Total number of word operations (≈ CPU cycles).
         - ``mem``: Total amount of memory used by solver (in elements mod q).
         - ``red``: Number of word operations in lattice reduction.
-        - ``δ``: Root-Hermite factor targeted by lattice reduction.
         - ``β``: BKZ block size.
         - ``ζ``: Number of guessed coordinates.
         - ``h1``: Number of non-zero components among guessed coordinates (if secret distribution is sparse)
