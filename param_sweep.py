@@ -9,17 +9,22 @@ increment intervals, the more parameter combinations will be computed). For
 faster and rougher results, use the `LWE.estimate.rough` function.
 """
 
-from estimator import LWE
-from estimator.io import Logging
-from estimator.nd import NoiseDistribution as ND
-from matplotlib import pyplot as plt
-from typing import Iterable, Union, Optional, Callable
 import pickle
 import time
 import math
-import multiprocessing
-import numpy as np
+from multiprocessing import Pool
 import os
+import itertools as it
+from functools import partial
+from dataclasses import dataclass, astuple
+from typing import Iterable, Union, Optional, Callable
+
+import numpy as np
+from matplotlib import pyplot as plt
+
+from estimator import LWE
+from estimator.io import Logging
+from estimator.nd import NoiseDistribution as ND
 
 
 class ParameterSweep:
@@ -28,6 +33,7 @@ class ParameterSweep:
     from performing parameter sweeps using the lattice estimator.
     """
 
+    @staticmethod
     def parameter_sweep(
         n: Union[int, Iterable],
         q: Union[int, Iterable],
@@ -98,59 +104,46 @@ class ParameterSweep:
             >>> results[(900, 4294967296, 9.0, 2.0, 900, 'test')]
             92.36860677483823
         """
-        try:
-            iter(n)
-        except TypeError:
-            n = [n]
-        try:
-            iter(q)
-        except TypeError:
-            q = [q]
-        try:
-            iter(m)
-        except TypeError:
-            m = [m]
-        try:
-            iter(e)
-        except TypeError:
-            e = [e]
-        try:
-            iter(s)
-        except TypeError:
-            s = [s]
+        n, q, m, e, s = [
+                    param if hasattr(param, "__iter__") else [param]  
+                    for param in (n, q, m, e, s)
+                ]
+            
 
-        result_dict = multiprocessing.Manager().dict()
-        work = []
+        @dataclass
+        class Params:
+            n: int
+            q: int
+            e: float
+            s: float
+            m: int
 
-        for n_ in n:
-            for q_ in q:
-                for e_ in e:
-                    for s_ in s:
-                        for m_ in m:
-                            if m_ is None:
-                                m_ = n_
-                            work.append((n_, q_, e_, s_, m_))
+            def __post_init__(self):
+                if self.m is None:
+                    self.m = self.n
+                # Check types are same as annotations
+                for name, field_type in self.__annotations__.items():
+                    obj = self.__dict__[name]
+                    if not isinstance(obj, field_type):
+                        # Attempt conversion to correct type
+                        setattr(self, name, field_type(obj))
 
+        tasks = [astuple(Params(*params)) for params in it.product(n, q, e, s, m)]
+
+        fn = partial(ParameterSweep.security_level, Xe=Xe, e_log=e_log,
+                     Xs=Xs, s_log=s_log, tag=tag, f=f, log_level=log_level)
+        
         if num_proc <= 1:
-            result_dict = {}
-            for i in range(len(work)):
-                ParameterSweep.security_level(work[i], result_dict, Xe, e_log,
-                                              Xs, s_log, tag, f, log_level)
-        else:
-            # Parallel process the calculations
-            pool = multiprocessing.Pool(processes=min(num_proc, len(work)))
-            for i in range(len(work)):
-                pool.apply_async(ParameterSweep.security_level,
-                                 (work[i], result_dict, Xe, e_log, Xs, s_log,
-                                  tag, f, log_level))
-            pool.close()
-            pool.join()
+            return { (*task, tag): fn(task) for task in tasks }
+        
+        # Parallel process the calculations
+        with Pool(processes=min(num_proc, len(tasks))) as pool:
+            return {(*task, tag): value for task, value in zip(tasks, pool.map(fn, tasks))}
 
-        return dict(result_dict)
 
+    @staticmethod
     def security_level(
         input_params: tuple[int, float],
-        result_dict: dict,
         Xe: Callable = ND.DiscreteGaussian,
         e_log: bool = True,
         Xs: Callable = ND.DiscreteGaussian,
@@ -158,7 +151,7 @@ class ParameterSweep:
         tag: str = None,
         f: Callable = LWE.estimate,
         log_level: int = 0,
-    ) -> None:
+    ) -> float:
         """
         Calls the lattice-estimator for a given set of input
         parameters, and appends the output to the `result_dict` dict.
@@ -193,17 +186,17 @@ class ParameterSweep:
         )
         estimator_result = f(lwe_params)
         security = min([
-            math.log(res_.get('rop', 0), 2)
-            for res_ in estimator_result.values()
+            math.log(res.get('rop', 0), 2)
+            for res in estimator_result.values()
         ])
         if not security:
             raise ValueError(
                 'ROP for a estimator result was 0, estimator failed')
-        result_dict[(n_, q_, float(input_params[2]), float(input_params[3]),
-                     m_, tag)] = security
         Logging.log('sweep', log_level,
                     f'Parameters = {lwe_params}; security = {security}')
+        return security
 
+    @staticmethod
     def graph_parameter_sweep(
         n: Union[int, Iterable],
         q: Union[int, Iterable],
@@ -295,25 +288,25 @@ class ParameterSweep:
             >>> results[(700, 4294967296, 7.0, 2.0, 700, 'test')]
             69.204
         """
-        if not directory:
+        if directory is None:
             directory = os.path.dirname(os.path.realpath(__file__))
-        if not file_name:
+        if file_name is None:
             file_name = time.strftime('%d-%m-%Y_%H-%M-%S')
         file_name = os.path.join(directory, file_name)
         assert num_proc >= 1, 'need at least one process to execute'
 
-        if not load_pickle:
+        if load_pickle is True:
+            result_dict = pickle.load(open(file_name + '.pickle', 'rb'))
+        else:
             result_dict = ParameterSweep.parameter_sweep(
                 n, q, e, s, m, Xe, e_log, Xs, s_log, tag, f, num_proc,
                 log_level)
-            if make_pickle:
+            if make_pickle is True:
                 # Pickle the intermediate computation results
                 pickle.dump(result_dict, open(file_name + '.pickle', 'wb'))
                 Logging.log('sweep', log_level,
                             'Pickled the intermediate computations to: %s',
                             file_name + '.pickle')
-        else:
-            result_dict = pickle.load(open(file_name + '.pickle', 'rb'))
 
         Xe_string = 'log_2(Xe)' if e_log else 'Xe'
         Xs_string = 'log_2(Xs)' if s_log else 'Xs'
@@ -334,6 +327,7 @@ class ParameterSweep:
             extension,
         )
 
+    @staticmethod
     def graph_results(
         result_dict: dict,
         params: dict[str, (list[Union[int, float]], int)],
