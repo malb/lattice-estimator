@@ -294,19 +294,22 @@ class ParameterSweep:
             file_name = time.strftime('%d-%m-%Y_%H-%M-%S')
         file_name = os.path.join(directory, file_name)
         assert num_proc >= 1, 'need at least one process to execute'
-
+        
+        pickle_filename = f"{file_name}.pickle"
         if load_pickle is True:
-            result_dict = pickle.load(open(file_name + '.pickle', 'rb'))
+            with open(pickle_filename, "rb") as f:
+                result_dict = pickle.load(f)
         else:
             result_dict = ParameterSweep.parameter_sweep(
                 n, q, e, s, m, Xe, e_log, Xs, s_log, tag, f, num_proc,
                 log_level)
             if make_pickle is True:
                 # Pickle the intermediate computation results
-                pickle.dump(result_dict, open(file_name + '.pickle', 'wb'))
+                with open(pickle_filename, 'wb') as f:
+                    pickle.dump(result_dict, f)
                 Logging.log('sweep', log_level,
                             'Pickled the intermediate computations to: %s',
-                            file_name + '.pickle')
+                            pickle_filename)
 
         Xe_string = 'log_2(Xe)' if e_log else 'Xe'
         Xs_string = 'log_2(Xs)' if s_log else 'Xs'
@@ -357,15 +360,15 @@ class ParameterSweep:
         # Also keep track of the axis and fixed variables, for labeling.
         axis_vars = {}
         fixed_vars = {}
-        for p in params:
+        for p, sec in params.items():
             try:
                 # The variable is an axis variable
-                params[p] = (list(params[p][0]), params[p][1])
-                axis_vars[p] = len(params[p][0])
+                params[p] = (list(sec[0]), sec[1])
+                axis_vars[p] = len(sec[0])
             except TypeError:
                 # The variable is a fixed variable
-                fixed_vars[p] = params[p][0]
-                params[p] = ([params[p][0]], params[p][1])
+                params[p] = ([sec[0]], sec[1])
+                fixed_vars[p] = sec[0]
 
         if len(axis_vars) == 0:
             raise ValueError(
@@ -376,18 +379,17 @@ class ParameterSweep:
             x = sorted(params[variable_param][0])
             y = sorted(result_dict.items(),
                        key=lambda x: x[params[variable_param][1]])
-            y = [_ for _ in zip(*y)][1]
+            y = list(zip(*y))[1]
             fig, ax = plt.subplots(figsize=(20, 20), dpi=80)
 
             ax.plot(x, y)
             ax.set_xlabel(f'Parameter: {variable_param}')
             ax.set_ylabel('Security')
-
+            
+            plot_filename = f"{file_name}_plot{extension}"
             plt.title(f'Security with parameters {fixed_vars}')
-
-            Logging.log('sweep', log_level, 'Saved the line plot graph to: %s',
-                        file_name + '_plot' + extension)
-            fig.savefig(file_name + '_plot' + extension)
+            fig.savefig(plot_filename)
+            Logging.log('sweep', log_level, 'Saved the line plot graph to: %s', plot_filename)
         elif len(axis_vars) == 2:
             axis_vars = sorted(axis_vars.items(),
                                key=lambda x: params[x[0]][1])
@@ -396,9 +398,7 @@ class ParameterSweep:
             y_param = axis_vars[1][0]
             y = sorted(params[y_param][0])
 
-            values = [
-                i[1] for i in sorted(result_dict.items(), key=lambda x: x[0])
-            ]
+            values = [v for _, v in sorted(result_dict.items(), key=lambda x: x[0])]
             mat = np.flip(np.array(values).reshape((len(set(x)), len(set(y)))),
                           axis=1).transpose()
 
@@ -407,8 +407,8 @@ class ParameterSweep:
             ax.imshow(mat)
             ax.set_xticks(np.arange(0, len(set(x)), 1))
             ax.set_yticks(np.arange(0, len(set(y)), 1))
-            ax.set_xticklabels(sorted(list(set(x))))
-            ax.set_yticklabels(sorted(list(set(y)), reverse=True))
+            ax.set_xticklabels(sorted(set(x)))
+            ax.set_yticklabels(sorted(set(y), reverse=True))
 
             plt.title(f'Security with fixed parameters {fixed_vars}')
 
@@ -422,10 +422,10 @@ class ParameterSweep:
 
             ax.set_xlabel(f'Parameter: {x_param}')
             ax.set_ylabel(f'Parameter: {y_param}')
-
-            fig.savefig(file_name + '_gradient' + extension)
-            Logging.log('sweep', log_level, 'Saved the gradient graph to: %s',
-                        file_name + '_gradient' + extension)
+            
+            gradient_filename = f"{file_name}_gradient{extension}"
+            fig.savefig(gradient_filename)
+            Logging.log('sweep', log_level, 'Saved the gradient graph to: %s', gradient_filename)
 
             if security_cutoff:
                 fig2, ax2 = plt.subplots(figsize=(20, 20), dpi=80)
@@ -433,8 +433,8 @@ class ParameterSweep:
                 ax2.imshow(binary_mat)
                 ax2.set_xticks(np.arange(0, len(set(x)), 1))
                 ax2.set_yticks(np.arange(0, len(set(y)), 1))
-                ax2.set_xticklabels(sorted(list(set(x))))
-                ax2.set_yticklabels(sorted(list(set(y)), reverse=True))
+                ax2.set_xticklabels(sorted(set(x)))
+                ax2.set_yticklabels(sorted(set(y), reverse=True))
 
                 for (j, i), label in np.ndenumerate(mat):
                     ax2.text(
@@ -445,7 +445,6 @@ class ParameterSweep:
                         va='center',
                         color='white' if label < security_cutoff else 'black')
 
-                for (j, i), label in np.ndenumerate(mat):
                     ax.text(i,
                             j,
                             round(label, 1),
@@ -458,10 +457,9 @@ class ParameterSweep:
                 ax2.set_xlabel(f'Parameter: {x_param}')
                 ax2.set_ylabel(f'Parameter: {y_param}')
 
-                fig2.savefig(file_name + '_cutoff' + extension)
-                Logging.log('sweep', log_level,
-                            'Saved the cutoff graph to: %s',
-                            file_name + '_cutoff' + extension)
+                cutoff_filename = file_name + '_cutoff' + extension
+                fig2.savefig(cutoff_filename)
+                Logging.log('sweep', log_level, 'Saved the cutoff graph to: %s', cutoff_filename)
         else:
             raise ValueError('Cannot plot more than two variables. '
                              'Try freezing one or more of them.')
