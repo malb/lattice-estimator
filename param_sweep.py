@@ -13,8 +13,8 @@ import pickle
 import time
 import math
 import os
-from multiprocessing import Pool
 import itertools as it
+from multiprocessing import Pool
 from functools import partial
 from dataclasses import dataclass, astuple
 from typing import Iterable, Union, Optional, Callable
