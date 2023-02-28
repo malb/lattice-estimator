@@ -12,8 +12,8 @@ faster and rougher results, use the `LWE.estimate.rough` function.
 import pickle
 import time
 import math
-from multiprocessing import Pool
 import os
+from multiprocessing import Pool
 import itertools as it
 from functools import partial
 from dataclasses import dataclass, astuple
@@ -104,11 +104,7 @@ class ParameterSweep:
             >>> results[(900, 4294967296, 9.0, 2.0, 900, 'test')]
             92.36860677483823
         """
-        n, q, m, e, s = [
-                    param if hasattr(param, "__iter__") else [param]  
-                    for param in (n, q, m, e, s)
-                ]
-            
+        n, q, m, e, s = [param if hasattr(param, "__iter__") else [param] for param in (n, q, m, e, s)]
 
         @dataclass
         class Params:
@@ -130,16 +126,16 @@ class ParameterSweep:
 
         tasks = [astuple(Params(*params)) for params in it.product(n, q, e, s, m)]
 
-        fn = partial(ParameterSweep.security_level, Xe=Xe, e_log=e_log,
-                     Xs=Xs, s_log=s_log, tag=tag, f=f, log_level=log_level)
-        
+        fn = partial(
+            ParameterSweep.security_level, Xe=Xe, e_log=e_log, Xs=Xs, s_log=s_log, tag=tag, f=f, log_level=log_level
+        )
+
         if num_proc <= 1:
-            return { (*task, tag): fn(task) for task in tasks }
-        
+            return {(*task, tag): fn(task) for task in tasks}
+
         # Parallel process the calculations
         with Pool(processes=min(num_proc, len(tasks))) as pool:
             return {(*task, tag): value for task, value in zip(tasks, pool.map(fn, tasks))}
-
 
     @staticmethod
     def security_level(
@@ -170,11 +166,10 @@ class ParameterSweep:
         """
         n_ = int(input_params[0])
         q_ = int(input_params[1])
-        e_ = 2**input_params[2] if e_log else input_params[2]
-        s_ = 2**input_params[3] if s_log else input_params[3]
+        e_ = 2 ** input_params[2] if e_log else input_params[2]
+        s_ = 2 ** input_params[3] if s_log else input_params[3]
         # If m = infinity, pass infinity to the estimator (since infinity can't be cast to an int).
-        m_ = float('inf') if input_params[4] == float('inf') else int(
-            input_params[4])
+        m_ = float("inf") if input_params[4] == float("inf") else int(input_params[4])
 
         lwe_params = LWE.Parameters(
             n=n_,
@@ -185,15 +180,10 @@ class ParameterSweep:
             tag=tag,
         )
         estimator_result = f(lwe_params)
-        security = min([
-            math.log(res.get('rop', 0), 2)
-            for res in estimator_result.values()
-        ])
+        security = min([math.log(res.get("rop", 0), 2) for res in estimator_result.values()])
         if not security:
-            raise ValueError(
-                'ROP for a estimator result was 0, estimator failed')
-        Logging.log('sweep', log_level,
-                    f'Parameters = {lwe_params}; security = {security}')
+            raise ValueError("ROP for a estimator result was 0, estimator failed")
+        Logging.log("sweep", log_level, f"Parameters = {lwe_params}; security = {security}")
         return security
 
     @staticmethod
@@ -216,7 +206,7 @@ class ParameterSweep:
         security_cutoff: int = None,
         directory: str = None,
         file_name: str = None,
-        extension: str = '.png',
+        extension: str = ".png",
     ) -> None:
         """
         Gets the results of a parameter sweep, and creates graph visualizations
@@ -291,34 +281,32 @@ class ParameterSweep:
         if directory is None:
             directory = os.path.dirname(os.path.realpath(__file__))
         if file_name is None:
-            file_name = time.strftime('%d-%m-%Y_%H-%M-%S')
+            file_name = time.strftime("%d-%m-%Y_%H-%M-%S")
         file_name = os.path.join(directory, file_name)
-        assert num_proc >= 1, 'need at least one process to execute'
-        
+        assert num_proc >= 1, "need at least one process to execute"
+
         pickle_filename = f"{file_name}.pickle"
         if load_pickle is True:
             with open(pickle_filename, "rb") as f:
                 result_dict = pickle.load(f)
         else:
             result_dict = ParameterSweep.parameter_sweep(
-                n, q, e, s, m, Xe, e_log, Xs, s_log, tag, f, num_proc,
-                log_level)
+                n, q, e, s, m, Xe, e_log, Xs, s_log, tag, f, num_proc, log_level
+            )
             if make_pickle is True:
                 # Pickle the intermediate computation results
-                with open(pickle_filename, 'wb') as f:
+                with open(pickle_filename, "wb") as f:
                     pickle.dump(result_dict, f)
-                Logging.log('sweep', log_level,
-                            'Pickled the intermediate computations to: %s',
-                            pickle_filename)
+                Logging.log("sweep", log_level, "Pickled the intermediate computations to: %s", pickle_filename)
 
-        Xe_string = 'log_2(Xe)' if e_log else 'Xe'
-        Xs_string = 'log_2(Xs)' if s_log else 'Xs'
+        Xe_string = "log_2(Xe)" if e_log else "Xe"
+        Xs_string = "log_2(Xs)" if s_log else "Xs"
         params = {
-            'n': (n, 0),
-            'q': (q, 1),
+            "n": (n, 0),
+            "q": (q, 1),
             Xe_string: (e, 2),
             Xs_string: (s, 3),
-            'm': (m, 4),
+            "m": (m, 4),
         }
 
         ParameterSweep.graph_results(
@@ -337,7 +325,7 @@ class ParameterSweep:
         file_name: str,
         security_cutoff: int = None,
         log_level: int = 0,
-        extension: str = '.png',
+        extension: str = ".png",
     ):
         """
         Graph the security estimate results in `result_dict`, using the
@@ -372,35 +360,32 @@ class ParameterSweep:
 
         if len(axis_vars) == 0:
             raise ValueError(
-                'Cannot plot when there are no variables. '
-                'Call the lattice estimator directly for security.')
+                "Cannot plot when there are no variables. Call the lattice estimator directly for security."
+            )
         elif len(axis_vars) == 1:
             variable_param = list(axis_vars.keys())[0]  # a string like 'Xe'
             x = sorted(params[variable_param][0])
-            y = sorted(result_dict.items(),
-                       key=lambda x: x[params[variable_param][1]])
+            y = sorted(result_dict.items(), key=lambda x: x[params[variable_param][1]])
             y = list(zip(*y))[1]
             fig, ax = plt.subplots(figsize=(20, 20), dpi=80)
 
             ax.plot(x, y)
-            ax.set_xlabel(f'Parameter: {variable_param}')
-            ax.set_ylabel('Security')
-            
+            ax.set_xlabel(f"Parameter: {variable_param}")
+            ax.set_ylabel("Security")
+
             plot_filename = f"{file_name}_plot{extension}"
-            plt.title(f'Security with parameters {fixed_vars}')
+            plt.title(f"Security with parameters {fixed_vars}")
             fig.savefig(plot_filename)
-            Logging.log('sweep', log_level, 'Saved the line plot graph to: %s', plot_filename)
+            Logging.log("sweep", log_level, "Saved the line plot graph to: %s", plot_filename)
         elif len(axis_vars) == 2:
-            axis_vars = sorted(axis_vars.items(),
-                               key=lambda x: params[x[0]][1])
+            axis_vars = sorted(axis_vars.items(), key=lambda x: params[x[0]][1])
             x_param = axis_vars[0][0]
             x = sorted(params[x_param][0])
             y_param = axis_vars[1][0]
             y = sorted(params[y_param][0])
 
             values = [v for _, v in sorted(result_dict.items(), key=lambda x: x[0])]
-            mat = np.flip(np.array(values).reshape((len(set(x)), len(set(y)))),
-                          axis=1).transpose()
+            mat = np.flip(np.array(values).reshape((len(set(x)), len(set(y)))), axis=1).transpose()
 
             fig, ax = plt.subplots(figsize=(20, 20), dpi=80)
 
@@ -410,22 +395,24 @@ class ParameterSweep:
             ax.set_xticklabels(sorted(set(x)))
             ax.set_yticklabels(sorted(set(y), reverse=True))
 
-            plt.title(f'Security with fixed parameters {fixed_vars}')
+            plt.title(f"Security with fixed parameters {fixed_vars}")
 
             for (j, i), label in np.ndenumerate(mat):
-                ax.text(i,
-                        j,
-                        round(label, 1),
-                        ha='center',
-                        va='center',
-                        color='white')
+                ax.text(
+                    i,
+                    j,
+                    round(label, 1),
+                    ha="center",
+                    va="center",
+                    color="white",
+                )
 
-            ax.set_xlabel(f'Parameter: {x_param}')
-            ax.set_ylabel(f'Parameter: {y_param}')
-            
+            ax.set_xlabel(f"Parameter: {x_param}")
+            ax.set_ylabel(f"Parameter: {y_param}")
+
             gradient_filename = f"{file_name}_gradient{extension}"
             fig.savefig(gradient_filename)
-            Logging.log('sweep', log_level, 'Saved the gradient graph to: %s', gradient_filename)
+            Logging.log("sweep", log_level, "Saved the gradient graph to: %s", gradient_filename)
 
             if security_cutoff:
                 fig2, ax2 = plt.subplots(figsize=(20, 20), dpi=80)
@@ -441,25 +428,26 @@ class ParameterSweep:
                         i,
                         j,
                         round(label, 1),
-                        ha='center',
-                        va='center',
-                        color='white' if label < security_cutoff else 'black')
+                        ha="center",
+                        va="center",
+                        color="white" if label < security_cutoff else "black",
+                    )
 
-                    ax.text(i,
-                            j,
-                            round(label, 1),
-                            ha='center',
-                            va='center',
-                            color='white')
-                plt.title(f'Security with fixed parameters {fixed_vars}'
-                          f' and cutoff at {security_cutoff}')
+                    ax.text(
+                        i,
+                        j,
+                        round(label, 1),
+                        ha="center",
+                        va="center",
+                        color="white",
+                    )
+                plt.title(f"Security with fixed parameters {fixed_vars} and cutoff at {security_cutoff}")
 
-                ax2.set_xlabel(f'Parameter: {x_param}')
-                ax2.set_ylabel(f'Parameter: {y_param}')
+                ax2.set_xlabel(f"Parameter: {x_param}")
+                ax2.set_ylabel(f"Parameter: {y_param}")
 
-                cutoff_filename = file_name + '_cutoff' + extension
+                cutoff_filename = f"{file_name}_cutoff{extension}"
                 fig2.savefig(cutoff_filename)
-                Logging.log('sweep', log_level, 'Saved the cutoff graph to: %s', cutoff_filename)
+                Logging.log("sweep", log_level, "Saved the cutoff graph to: %s", cutoff_filename)
         else:
-            raise ValueError('Cannot plot more than two variables. '
-                             'Try freezing one or more of them.')
+            raise ValueError("Cannot plot more than two variables. Try freezing one or more of them.")
