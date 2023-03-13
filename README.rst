@@ -32,11 +32,11 @@ Quick Start
     >>> r = LWE.estimate(schemes.Kyber512)
     bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448, #top: 0, #test: 64, tag: coded-bkw
     usvp                 :: rop: ≈2^143.8, red: ≈2^143.8, δ: 1.003941, β: 406, d: 998, tag: usvp
-    bdd                  :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, d: 1013, tag: bdd
-    bdd_hybrid           :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, ζ: 0, |S|: 1, d: 1016, prob: 1, ↻: 1, tag: hybrid
-    bdd_mitm_hybrid      :: rop: ≈2^260.3, red: ≈2^259.4, svp: ≈2^259.3, β: 405, η: 2, ζ: 102, |S|: ≈2^247.2, d: 923, prob: ≈2^-113.8, ↻: ≈2^116.0, tag: hybrid
+    bdd                  :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.7, β: 391, η: 421, d: 1013, tag: bdd
+    bdd_hybrid           :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.7, β: 391, η: 421, ζ: 0, |S|: 1, d: 1016, prob: 1, ↻: 1, tag: hybrid
+    bdd_mitm_hybrid      :: rop: ≈2^260.5, red: ≈2^259.7, svp: ≈2^259.2, β: 405, η: 2, ζ: 103, |S|: ≈2^246.2, d: 922, prob: ≈2^-114.2, ↻: ≈2^116.4, tag: hybrid
     dual                 :: rop: ≈2^149.9, mem: ≈2^88.0, m: 512, β: 424, d: 1024, ↻: 1, tag: dual
-    dual_hybrid          :: rop: ≈2^145.6, mem: ≈2^140.5, m: 512, β: 408, d: 1004, ↻: 1, ζ: 20, tag: dual_hybrid
+    dual_hybrid          :: rop: ≈2^145.5, mem: ≈2^140.5, m: 512, β: 408, d: 1004, ↻: 1, ζ: 20, tag: dual_hybrid
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.

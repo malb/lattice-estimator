@@ -162,10 +162,10 @@ class PrimalUSVP:
 
             >>> params = LWE.Parameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> LWE.primal_usvp(params, red_shape_model="cn11")
-            rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 388, tag: usvp
+            rop: ≈2^87.5, red: ≈2^87.5, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> LWE.primal_usvp(params, red_shape_model=Simulator.CN11)
-            rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 388, tag: usvp
+            rop: ≈2^87.5, red: ≈2^87.5, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> LWE.primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
             rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 400, tag: usvp
@@ -505,13 +505,13 @@ class PrimalHybrid:
             rop: ≈2^91.5, red: ≈2^90.7, svp: ≈2^90.2, β: 178, η: 21, ζ: 256, |S|: ≈2^56.6, d: 531, ...
 
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
-            rop: ≈2^88.7, red: ≈2^88.0, svp: ≈2^87.2, β: 98, η: 2, ζ: 323, |S|: ≈2^39.7, d: 346, ...
+            rop: ≈2^88.6, red: ≈2^88.0, svp: ≈2^87.2, β: 98, η: 2, ζ: 322, |S|: ≈2^39.7, d: 347, ...
 
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
-            rop: ≈2^74.1, red: ≈2^73.7, svp: ≈2^71.9, β: 104, η: 16, ζ: 320, |S|: ≈2^77.1, d: 359, ...
+            rop: ≈2^73.7, red: ≈2^72.7, svp: ≈2^72.6, β: 108, η: 18, ζ: 316, |S|: ≈2^82.5, d: 370, ...
 
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
-            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, ...
+            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 364, |S|: ≈2^85.0, d: 317, ...
 
         TESTS:
 
@@ -519,7 +519,7 @@ class PrimalHybrid:
 
             >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
             >>> LWE.primal_bdd(params)
-            rop: ≈2^43.7, red: ≈2^43.7, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
+            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
 
         """
 

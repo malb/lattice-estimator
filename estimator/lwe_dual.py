@@ -375,9 +375,9 @@ class DualHybrid:
             >>> LWE.dual(params)
             rop: ≈2^103.4, mem: ≈2^55.4, m: 904, β: 251, d: 1928, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^92.1, mem: ≈2^78.2, m: 716, β: 170, d: 1464, ↻: 1989, ζ: 276, h1: 8, tag: dual_hybrid
+            rop: ≈2^92.1, mem: ≈2^77.9, m: 716, β: 170, d: 1463, ↻: 2^11.0, ζ: 277, h1: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^98.2, mem: ≈2^78.6, m: 728, k: 292, ↻: ≈2^18.7, β: 180, d: 1267, ζ: 485, h1: 17, tag: ...
+            rop: ≈2^98.1, mem: ≈2^78.6, m: 728, k: 292, ↻: ≈2^18.7, β: 180, d: 1267, ζ: 485, h1: 17, tag: ...
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
@@ -389,9 +389,9 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^116.5, mem: ≈2^64.0, m: 1140, β: 298, d: 2164, ↻: 1, tag: dual
+            rop: ≈2^116.6, mem: ≈2^62.0, m: 1142, β: 299, d: 2166, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
-            rop: ≈2^116.2, mem: ≈2^100.4, m: 1137, β: 297, d: 2155, ↻: 1, ζ: 6, tag: dual_hybrid
+            rop: ≈2^116.2, mem: ≈2^105.8, m: 1137, β: 297, d: 2154, ↻: 1, ζ: 7, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^160.7, mem: ≈2^156.8, m: 1473, k: 25, ↻: 1, β: 456, d: 2472, ζ: 25, tag: dual_mitm_hybrid
 
@@ -399,10 +399,10 @@ class DualHybrid:
             rop: ≈2^131.7, mem: ≈2^128.5, m: 436, β: 358, d: 906, ↻: 1, ζ: 38, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
-            rop: ≈2^206.9, mem: ≈2^126.0, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
+            rop: ≈2^206.8, mem: ≈2^126.0, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
 
             >>> LWE.dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21, fft=True)
-            rop: ≈2^149.6, mem: ≈2^145.7, m: 510, β: 399, t: 76, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
+            rop: ≈2^149.6, mem: ≈2^147.2, m: 510, β: 399, t: 73, d: 999, ↻: 1, ζ: 23, tag: dual_hybrid
         """
 
         Cost.register_impermanent(
