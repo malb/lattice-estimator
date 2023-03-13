@@ -25,7 +25,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.Kyber1024
     LWEParameters(n=1024, q=3329, Xs=D(σ=1.00), Xe=D(σ=1.00), m=1024, tag='Kyber 1024')
     >>> LWE.primal_bdd(schemes.Kyber1024)
-    rop: ≈2^270.7, red: ≈2^269.9, svp: ≈2^269.6, β: 855, η: 890, d: 1873, tag: bdd
+    rop: ≈2^270.7, red: ≈2^269.8, svp: ≈2^269.6, β: 855, η: 890, d: 1873, tag: bdd
 
 `Saber <https://www.esat.kuleuven.be/cosic/pqcrypto/saber/files/saberspecround3.pdf>`__
 

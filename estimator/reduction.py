@@ -737,7 +737,6 @@ class Kyber(ReductionCost):
 
         if beta < 20:  # goes haywire
             return CheNgu12()(beta, d, B)
-        
         # C is progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{ai + o(i)}/2^{aβ + o(β)}.
         C = 1.0 / (1.0 - 2 ** (-self.NN_AGPS[self.nn]["a"]))
         # "The cost of progressive BKZ with sieving up to blocksize b is essentially C · (n − b) ≈
