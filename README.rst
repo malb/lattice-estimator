@@ -124,6 +124,12 @@ License
 
 The estimator is licensed under the `LGPLv3+ <https://www.gnu.org/licenses/lgpl-3.0.en.html>`__ license.
 
+
+Third Party Tools Using this Estimator
+--------------------------------------
+
+- Zama's TFHE Compiler: `Concrete <https://github.com/zama-ai/concrete>`__.
+
 Acknowledgements
 ----------------
 
