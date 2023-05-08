@@ -22,7 +22,6 @@ from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
 from .conf import red_simulator as red_simulator_default
-from fpylll.util import gaussian_heuristic
 
 
 class PrimalUSVP:
@@ -84,7 +83,6 @@ class PrimalUSVP:
         red_cost_model=red_cost_model_default,
         log_level=None,
     ):
-
         delta = deltaf(beta)
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
@@ -262,9 +260,21 @@ class PrimalHybrid:
         :param r: squared Gram-Schmidt norms
 
         """
+        from math import lgamma, log, exp, pi
+
+        def ball_log_vol(n):
+            return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
+
+        def gaussian_heuristic_log_input(r):
+            n = len(list(r))
+            log_vol = sum(r)
+            log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
+            return exp(log_gh)
+
         d = len(r)
+        r = [log(x) for x in r]
         for i, _ in enumerate(r):
-            if gaussian_heuristic(r[i:]) < D.stddev**2 * (d - i):
+            if gaussian_heuristic_log_input(r[i:]) < D.stddev**2 * (d - i):
                 return ZZ(d - (i - 1))
         return ZZ(2)
 
