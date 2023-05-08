@@ -40,9 +40,9 @@ def babai(r, norm):
     Babai probability following [EPRINT:Wun16]_.
 
     """
-    R = [RR(sqrt(t) / (2 * norm)) for t in r]
+    denom = float(2 * norm) ** 2
     T = RealDistribution("beta", ((len(r) - 1) / 2, 1.0 / 2))
-    probs = [1 - T.cum_distribution_function(1 - s ** 2) for s in R]
+    probs = [1 - T.cum_distribution_function(1 - r_ / denom) for r_ in r]
     return prod(probs)
 
 
@@ -103,7 +103,7 @@ def amplify(target_success_probability, success_probability, majority=False):
     try:
         if majority:
             eps = success_probability / 2
-            return ceil(2 * log(2 - 2 * target_success_probability) / log(1 - 4 * eps ** 2))
+            return ceil(2 * log(2 - 2 * target_success_probability) / log(1 - 4 * eps**2))
         else:
             # target_success_probability = 1 - (1-success_probability)^trials
             return ceil(log(1 - target_success_probability) / log(1 - success_probability))
@@ -121,7 +121,7 @@ def amplify_sigma(target_advantage, sigma, q):
 
     """
     try:
-        sigma = sum(sigma_ ** 2 for sigma_ in sigma).sqrt()
+        sigma = sum(sigma_**2 for sigma_ in sigma).sqrt()
     except TypeError:
         pass
     advantage = float(exp(-float(pi) * (float(sigma / q) ** 2)))
