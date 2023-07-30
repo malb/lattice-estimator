@@ -7,7 +7,16 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 """
 from functools import partial
 
-from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
+from sage.rings.all import QQ
+from sage.arith.misc import binomial
+from sage.functions.log import log
+from sage.functions.other import ceil
+from sage.misc.cachefunc import cached_function
+from sage.misc.functional import sqrt
+from sage.rings.infinity import infinity as oo
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+
 from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .util import local_minimum

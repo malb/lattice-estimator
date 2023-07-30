@@ -5,21 +5,18 @@ Estimate cost of solving LWE using Gröbner bases.
 See :ref:`Arora-GB` for an overview.
 
 """
-from sage.all import (
-    binomial,
-    ceil,
-    exp,
-    floor,
-    log,
-    oo,
-    pi,
-    PowerSeriesRing,
-    prod,
-    QQ,
-    RR,
-    RealField,
-    sqrt,
-)
+from math import sqrt
+
+from sage.rings.all import QQ
+from sage.arith.misc import binomial
+from sage.functions.log import exp, log
+from sage.functions.other import ceil, floor
+from sage.misc.misc_c import prod
+from sage.rings.infinity import infinity as oo
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.real_mpfr import RR, RealField
+from sage.symbolic.constants import pi
+
 from .cost import Cost
 from .lwe_parameters import LWEParameters
 from .io import Logging
@@ -72,7 +69,7 @@ class AroraGB:
         """
         RR = RealField(256)
         C = RR(C)
-        return RR(1 - (RR(2) / (C * RR(sqrt(2 * pi))) * exp(-(C**2) / RR(2))))
+        return RR(1 - (RR(2) / (C * sqrt(RR(2 * pi))) * exp(-(C**2) / RR(2))))
 
     @classmethod
     def cost_bounded(cls, params, success_probability=0.99, omega=2, log_level=1, **kwds):

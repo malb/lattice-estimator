@@ -1,6 +1,18 @@
 # -*- coding: utf-8 -*-
-from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, pi
-from sage.all import RealDistribution, RR, sqrt, prod, erf
+
+from sage.rings.all import QQ
+from sage.arith.misc import binomial
+from sage.functions.all import exp, log
+from sage.functions.error import erf
+from sage.functions.other import ceil
+from sage.misc.functional import sqrt
+from sage.misc.misc_c import prod
+from sage.probability.probability_distribution import RealDistribution
+from sage.rings.infinity import infinity as oo
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RealField, RR
+from sage.symbolic.constants import pi
+
 from .nd import sigmaf
 
 

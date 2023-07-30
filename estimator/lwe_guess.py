@@ -7,7 +7,15 @@ some form of additive composition, i.e. this strategy is rarely the most efficie
 
 """
 
-from sage.all import binomial, ceil, e, exp, floor, log, oo, pi, round, RR, sqrt, ZZ
+from sage.rings.all import QQ
+from sage.arith.misc import binomial
+from sage.functions.log import exp, log
+from sage.functions.other import ceil, floor
+from sage.misc.functional import sqrt, round
+from sage.rings.infinity import infinity as oo
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+from sage.symbolic.constants import e, pi
 
 from .conf import mitm_opt
 from .cost import Cost
@@ -183,7 +191,7 @@ class ExhaustiveSearch:
             return Cost(rop=oo, mem=oo, m=1)
 
         if quantum is True:
-            size = size.sqrt()
+            size = sqrt(size)
 
         # set m according to [ia.cr/2020/515]
         sigma = params.Xe.stddev / params.q

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from collections import UserDict
 
-from sage.all import log, oo, round
+from sage.functions.log import log
+from sage.misc.functional import round
+from sage.rings.infinity import infinity as oo
 
 
 # UserDict inherits from typing.MutableMapping

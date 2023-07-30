@@ -9,7 +9,15 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.all import oo, ceil, sqrt, log, cached_function, RR, exp, pi
+from sage.rings.all import QQ
+from sage.functions.log import exp
+from sage.functions.log import log
+from sage.functions.other import ceil
+from sage.misc.cachefunc import cached_function
+from sage.misc.functional import sqrt
+from sage.rings.infinity import infinity as oo
+from sage.rings.real_mpfr import RR
+from sage.symbolic.constants import pi
 
 from .reduction import delta as deltaf
 from .util import local_minimum

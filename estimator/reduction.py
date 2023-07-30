@@ -3,7 +3,16 @@
 Cost estimates for lattice redution.
 """
 
-from sage.all import ZZ, RR, pi, e, find_root, ceil, floor, log, oo, round, sqrt
+from sage.rings.all import QQ
+from sage.functions.log import log
+from sage.functions.other import ceil, floor
+from sage.misc.functional import sqrt, round
+from sage.numerical.optimize import find_root
+from sage.rings.infinity import infinity as oo
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+from sage.symbolic.constants import e, pi
+
 from scipy.optimize import newton
 
 from .cost import Cost

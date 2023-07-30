@@ -2,8 +2,15 @@
 
 from dataclasses import dataclass
 
-from sage.all import binomial, ceil, exp, log, oo, parent, pi, RealField, RR, sqrt
-
+from sage.rings.all import QQ
+from sage.arith.misc import binomial
+from sage.functions.log import exp, log
+from sage.functions.other import ceil
+from sage.misc.functional import sqrt
+from sage.rings.infinity import infinity as oo
+from sage.rings.real_mpfr import RealField, RR
+from sage.structure.element import parent
+from sage.symbolic.constants import pi
 
 def stddevf(sigma):
     """

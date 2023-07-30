@@ -4,7 +4,9 @@ from functools import partial
 from dataclasses import dataclass
 from typing import Any, Callable, NamedTuple
 
-from sage.all import ceil, floor, log, oo
+from sage.functions.other import ceil, floor
+from sage.functions.log import log
+from sage.rings.infinity import infinity as oo
 
 from .io import Logging
 from .lwe_parameters import LWEParameters

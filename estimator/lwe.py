@@ -4,7 +4,7 @@ High-level LWE interface
 """
 
 from functools import partial
-from sage.all import oo
+from sage.rings.infinity import infinity as oo
 
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
 from .lwe_bkw import coded_bkw

@@ -2,7 +2,12 @@
 from dataclasses import dataclass
 from copy import copy
 
-from sage.all import oo, binomial, log, sqrt, ceil
+from sage.rings.all import QQ
+from sage.arith.misc import binomial
+from sage.functions.log import log
+from sage.functions.other import ceil
+from sage.misc.functional import sqrt
+from sage.rings.infinity import infinity as oo
 
 from .nd import NoiseDistribution
 from .errors import InsufficientSamplesError
