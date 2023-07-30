@@ -10,8 +10,7 @@ from functools import partial
 from dataclasses import replace
 
 from sage.rings.all import QQ
-from sage.functions.log import exp
-from sage.functions.log import log
+from sage.functions.log import exp, log
 from sage.functions.other import ceil
 from sage.misc.cachefunc import cached_function
 from sage.misc.functional import sqrt
