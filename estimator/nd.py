@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from sage.rings.all import QQ
+from sage.rings.all import QQ  # noqa: F401
 from sage.arith.misc import binomial
 from sage.functions.log import exp, log
 from sage.functions.other import ceil
@@ -11,6 +11,7 @@ from sage.rings.infinity import infinity as oo
 from sage.rings.real_mpfr import RealField, RR
 from sage.structure.element import parent
 from sage.symbolic.constants import pi
+
 
 def stddevf(sigma):
     """

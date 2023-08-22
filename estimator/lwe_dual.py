@@ -9,7 +9,7 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 from functools import partial
 from dataclasses import replace
 
-from sage.rings.all import QQ
+from sage.rings.all import QQ  # noqa: F401
 from sage.functions.log import exp, log
 from sage.functions.other import ceil
 from sage.misc.cachefunc import cached_function

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sage.rings.all import QQ
+from sage.rings.all import QQ  # noqa: F401
 from sage.arith.misc import binomial
 from sage.functions.all import exp, log
 from sage.functions.error import erf

@@ -21,6 +21,7 @@ from sage.functions.log import log
 from sage.plot.line import line
 from sage.rings.real_mpfr import RR
 
+
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
     """
     Reduced lattice shape calling ``f``.

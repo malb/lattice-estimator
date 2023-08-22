@@ -7,7 +7,7 @@ some form of additive composition, i.e. this strategy is rarely the most efficie
 
 """
 
-from sage.rings.all import QQ
+from sage.rings.all import QQ  # noqa: F401
 from sage.arith.misc import binomial
 from sage.functions.log import exp, log
 from sage.functions.other import ceil, floor

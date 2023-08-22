@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from copy import copy
 
-from sage.rings.all import QQ
+from sage.rings.all import QQ  # noqa: F401
 from sage.arith.misc import binomial
 from sage.functions.log import log
 from sage.functions.other import ceil

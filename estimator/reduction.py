@@ -3,7 +3,7 @@
 Cost estimates for lattice redution.
 """
 
-from sage.rings.all import QQ
+from sage.rings.all import QQ  # noqa: F401
 from sage.functions.log import log
 from sage.functions.other import ceil, floor
 from sage.misc.functional import sqrt, round

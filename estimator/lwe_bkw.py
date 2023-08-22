@@ -2,7 +2,7 @@
 """
 See :ref:`Coded-BKW for LWE` for what is available.
 """
-from sage.rings.all import QQ
+from sage.rings.all import QQ  # noqa: F401
 from sage.calculus.var import var
 from sage.functions.all import log
 from sage.functions.error import erf
