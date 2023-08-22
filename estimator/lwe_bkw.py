@@ -3,8 +3,6 @@
 See :ref:`Coded-BKW for LWE` for what is available.
 """
 from sage.rings.all import QQ
-from sage.calculus.var import var
-from sage.functions.all import log
 from sage.functions.error import erf
 from sage.functions.other import floor, ceil
 from sage.misc.cachefunc import cached_function
