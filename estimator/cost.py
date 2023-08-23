@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import UserDict
 
+from sage.rings.all import QQ  # noqa: F401
 from sage.functions.log import log
 from sage.misc.functional import round
 from sage.rings.infinity import infinity as oo

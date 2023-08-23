@@ -3,6 +3,7 @@
 High-level LWE interface
 """
 
+from sage.rings.all import QQ  # noqa: F401
 from functools import partial
 from sage.rings.infinity import infinity as oo
 

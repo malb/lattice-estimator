@@ -4,6 +4,7 @@ from functools import partial
 from dataclasses import dataclass
 from typing import Any, Callable, NamedTuple
 
+from sage.rings.all import QQ  # noqa: F401
 from sage.functions.other import ceil, floor
 from sage.functions.log import log
 from sage.rings.infinity import infinity as oo

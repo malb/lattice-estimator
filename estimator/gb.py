@@ -7,7 +7,7 @@ See :ref:`Arora-GB` for an overview.
 """
 from math import sqrt
 
-from sage.rings.all import QQ
+from sage.rings.all import QQ  # noqa: F401
 from sage.arith.misc import binomial
 from sage.functions.log import exp, log
 from sage.functions.other import ceil, floor
