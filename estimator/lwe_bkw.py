@@ -2,16 +2,7 @@
 """
 See :ref:`Coded-BKW for LWE` for what is available.
 """
-from sage.rings.all import QQ
-from sage.functions.all import log
-from sage.functions.error import erf
-from sage.functions.other import floor, ceil
-from sage.misc.cachefunc import cached_function
-from sage.misc.functional import sqrt
-from sage.numerical.optimize import find_root
-from sage.rings.infinity import infinity as oo
-from sage.rings.integer_ring import ZZ
-from sage.rings.real_mpfr import RR
+from sage.all import ZZ, ceil, log, floor, sqrt, var, find_root, erf, oo, cached_function
 
 from .lwe_parameters import LWEParameters
 from .util import local_minimum
