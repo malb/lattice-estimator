@@ -124,5 +124,8 @@ def amplify_sigma(target_advantage, sigma, q):
         sigma = sum(sigma_**2 for sigma_ in sigma).sqrt()
     except TypeError:
         pass
+    if sigma > 16 * q:
+        return oo
+
     advantage = float(exp(-float(pi) * (float(sigma / q) ** 2)))
     return amplify(target_advantage, advantage, majority=True)
