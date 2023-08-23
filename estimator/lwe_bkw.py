@@ -2,7 +2,7 @@
 """
 See :ref:`Coded-BKW for LWE` for what is available.
 """
-from sage.all import ZZ, ceil, log, floor, sqrt, var, find_root, erf, oo, cached_function
+from sage.all import ZZ, ceil, log, floor, sqrt, find_root, erf, oo, cached_function
 
 from .lwe_parameters import LWEParameters
 from .util import local_minimum
