@@ -23,9 +23,6 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install $DEPS
       - name: Test
         run: |
-          export SAGE_ROOT=`sage -c "import os; print(os.environ['SAGE_ROOT'])" | tail -1`
-          export PATH="$SAGE_ROOT/bin:$PATH"
-          export SAGE_LOCAL="$SAGE_ROOT/local"
           export DOT_SAGE=$HOME/.sage/
           pip install --upgrade pytest traitlets nbmake nbclient sphinxcontrib-jupyter
           # TODO: for some strange reason it hangs otherwise
