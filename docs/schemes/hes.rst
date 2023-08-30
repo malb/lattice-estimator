@@ -17,5 +17,5 @@ Homomorphic Encryption Standard
     >>> HESv111024128ternary
     LWEParameters(n=1024, q=134217728, Xs=D(σ=0.82), Xe=D(σ=3.00), m=1024, tag='HESv11ternary')
     >>> LWE.primal_hybrid(HESv111024128ternary)
-    rop: ≈2^182.5, red: ≈2^181.7, svp: ≈2^181.4, β: 345, η: 2, ζ: 134, |S|: ≈2^212.4, d: 1915, prob: ≈2^-51.2, ↻: ≈2^53.4, tag: hybrid
+    rop: ≈2^182.5, red: ≈2^181.6, svp: ≈2^181.4, β: 345, η: 2, ζ: 134, |S|: ≈2^212.4, d: 1915, prob: ≈2^-51.2, ↻: ≈2^53.4, tag: hybrid
    
