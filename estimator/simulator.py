@@ -17,8 +17,8 @@ where
 The last row is optional.
 """
 
-from sage.all import RR, log, line
-
+from sage.all import RR, log, line, cached_function, pi, exp
+from .conf import gh_constant, small_slope_t8
 
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
     """
@@ -102,6 +102,64 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     return r
 
 
+def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
+    from math import lgamma
+    """
+    Reduced lattice Z-shape following the Geometric Series Assumption as specified in
+    NTRU fatrigue [DucWoe21]
+    :param d: Lattice dimension.
+    :param n: The number of `q` vectors is `d-n`.
+    :param q: Modulus `q`
+    :param beta: Block size β.
+    :param xi: Scaling factor ξ for identity part.
+    :param tau: ignored, as NTRU represents a homogenous system
+    :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
+           applying it to the primal.
+    :returns: Log Gram-Schmidt norms
+    """
+    
+    @cached_function
+    def ball_log_vol(n):
+        return RR((n/2.) * log(pi) - lgamma(n/2. + 1))
+
+
+    def log_gh(d, logvol=0):
+        if d < 49:
+            return RR(gh_constant[d] + logvol/d)
+
+        return RR(1./d * (logvol - ball_log_vol(d)))
+
+
+    def delta(k):
+        assert(k>=60)
+        delta = exp(log_gh(k)/(k-1))
+        return RR(delta)
+
+
+    @cached_function
+    def slope(beta):
+        if beta<=60:
+            return small_slope_t8[beta]
+        if beta<=70:
+            # interpolate between experimental and asymptotics
+            ratio = (70-beta)/10.
+            return ratio*small_slope_t8[60]+(1.-ratio)*2*log(delta(70))
+        else:
+            return 2 * log(delta(beta))
+        
+    logq = RR(log(q))
+    L = (d - n)*[logq] + n * [0]
+    slope_ = slope(beta)
+    diff = slope(beta)/2.
+
+    for i in range(n):
+        if diff > logq/2.: break
+        L[n-i-1] = logq/2. + diff
+        L[n+i  ] = logq/2. - diff
+
+        diff += slope_
+    return L
+
 def normalize(name):
     if str(name).upper() == "CN11":
         return CN11
@@ -109,6 +167,9 @@ def normalize(name):
     if str(name).upper() == "GSA":
         return GSA
 
+    if str(name).upper() == "ZGSA":
+        return ZGSA
+    
     return name
 
 
