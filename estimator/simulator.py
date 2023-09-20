@@ -146,18 +146,27 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
             return ratio*small_slope_t8[60]+(1.-ratio)*2*log(delta(70))
         else:
             return 2 * log(delta(beta))
-        
-    logq = RR(log(q))
-    L = (d - n)*[logq] + n * [0]
+    
+    # Scale down q by xi, instead of scaling Identity part up by xi. 
+    logq = RR(log(q) - log(xi))
+
+    L_log = (d - n)*[logq] + n * [0]
     slope_ = slope(beta)
     diff = slope(beta)/2.
 
     for i in range(n):
         if diff > logq/2.: break
-        L[n-i-1] = logq/2. + diff
-        L[n+i  ] = logq/2. - diff
+        L_log[n-i-1] = logq/2. + diff
+        L_log[n+i  ] = logq/2. - diff
 
-        diff += slope_
+        diff += slope
+    
+    # Scale basis profile_using xi, to induce scaling on Identity part
+    scale_factor = (logq + RR(log(xi)))/logq
+    L_log = [scale_factor*l_ for l_ in L_log]
+
+    # Output basis profile as squared lengths, not ln(length)
+    L = [exp(2 * l_) for l_ in L_log]
     return L
 
 def normalize(name):
