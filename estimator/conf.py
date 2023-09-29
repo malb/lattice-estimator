@@ -3,8 +3,8 @@
 Default values.
 """
 
-from .reduction import RC
 from .simulator import GSA
+from .reduction import RC
 from sage.all import exp
 
 red_cost_model = RC.MATZOV

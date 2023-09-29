@@ -18,6 +18,7 @@ class NTRUParameters(LWEParameters):
     to LWE, but requires different estimation methodology for overstrethed parameters. """
 
     ntru_type: str = "matrix"
+    possibly_overstretched: bool = False
 
     def __post_init__(self, **kwds):
         super().__post_init__()
@@ -26,12 +27,8 @@ class NTRUParameters(LWEParameters):
         # fatigue_point = find_fatigue(self.n, sk_variance=self.Xs.stddev**2, ntru=self.ntru_type)
         if self.q >= ntru_fatigue_lb(self.n):
             self.possibly_overstretched = True
-
             # TODO: Make below print statement use proper logging procedures.
-            print(f"NOTE: NTRU with n = {self.n}, q = {self.q} is potentially overstretched. Primal attack estimation will include fatigue point estimation.", file=stderr)
-
-        else:
-            self.possibly_overstretched = False
+            # print(f"NOTE: NTRU with n = {self.n}, q = {self.q} is potentially overstretched. Primal attack estimation will include fatigue point estimation.", file=stderr)
 
 
 # TODO: Below are LWE specific transformations. Which ones apply to ntru?

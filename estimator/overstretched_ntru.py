@@ -27,10 +27,9 @@
 #       find_fatigue(n, 2/3., ntru="matrix", fixed_tours=8, DSD_ratio=ratio)
 #       for n in primes(90, 500) and ratio in [0.01, 0.5, .99]
 
-from sage.all import cached_function, RealDistribution, exp, floor, log, minimize, gamma, pi
-from sage.all import RealField; RR = RealField(112)
+from sage.all import cached_function, RealDistribution, minimize, log, exp, floor, pi, RR
 from math import lgamma
-from scipy.special import digamma, zeta
+from scipy.special import digamma, zeta, gamma
 import numpy as np
 
 from .conf import ntru_fatigue_lb, ntru_fatigue_ub
@@ -39,14 +38,14 @@ max_n_cache = 10000
 
 @cached_function
 def ball_log_vol(n):
-    return RR((n/2.) * log(pi) - lgamma(n/2. + 1))
+    return RR((n/2.)) * RR(log(pi)) - RR(lgamma(n/2. + 1))
 
 gh_constant = {1:0.00000,2:-0.50511,3:-0.46488,4:-0.39100,5:-0.29759,6:-0.24880,7:-0.21970,8:-0.15748,9:-0.14673,10:-0.07541,11:-0.04870,12:-0.01045,13:0.02298,14:0.04212,15:0.07014,16:0.09205,17:0.12004,18:0.14988,19:0.17351,20:0.18659,21:0.20971,22:0.22728,23:0.24951,24:0.26313,25:0.27662,26:0.29430,27:0.31399,28:0.32494,29:0.34796,30:0.36118,31:0.37531,32:0.39056,33:0.39958,34:0.41473,35:0.42560,36:0.44222,37:0.45396,38:0.46275,39:0.47550,40:0.48889,41:0.50009,42:0.51312,43:0.52463,44:0.52903,45:0.53930,46:0.55289,47:0.56343,48:0.57204,49:0.58184,50:0.58852}
 def log_gh(d, logvol=0):
     if d < 49:
-        return RR(gh_constant[d] + logvol/d)
+        return RR(gh_constant[d]) + RR(logvol)/d
 
-    return RR(1./d * (logvol - ball_log_vol(d)))
+    return RR(1./d) * RR(logvol - ball_log_vol(d))
 
 
 def delta(k):
@@ -59,19 +58,18 @@ small_slope_t8 = {2:0.04473,3:0.04472,4:0.04402,5:0.04407,6:0.04334,7:0.04326,8:
 @cached_function
 def slope(beta):
     if beta<=60:
-        return small_slope_t8[beta]
+        return RR(small_slope_t8[beta])
     if beta<=70:
         # interpolate between experimental and asymptotics
-        ratio = (70-beta)/10.
-        return ratio*small_slope_t8[60]+(1.-ratio)*2*log(delta(70))
+        ratio = RR((70-beta)/10.)
+        return RR(ratio*small_slope_t8[60])+RR(1.-ratio)*2*RR(log(delta(70)))
     else:
-        return 2 * log(delta(beta))
+        return 2 * RR(log(delta(beta)))
 
 def chi2_CDF(n, x):
     if x > 100 * n:
-        return RR(1.)
-    # print(f"n: {n}, x: {x}, type(n): {type(n)}, type(x): {type(x)}")
-    return RR(1. - gamma(RR(n/2.), RR(x/2.))/gamma(RR(n/2.)))
+        return 1.
+    return RR(1.) - RR(gamma(n/2., x/2.))/RR(gamma(n/2.))
 
 chisquared_table = {i: None for i in range(2*max_n_cache+1)}
 for i in range(2*max_n_cache+1):
@@ -136,15 +134,15 @@ def zshape(q, n, beta):
 # log loss of length when projecting out k dimension out of d 
 @cached_function
 def proj_logloss(d, k):
-    return RR(digamma((d-k)/2.)-digamma(d/2.))/2.
+    return (RR(digamma((d-k)/2.))-RR(digamma(d/2.)))/2.
 
 def DSL_logvol_matrix(n,sigmasq):
-    total = n*(log(sigmasq)+log(2.)+digamma(n))/2.
+    total = n*(RR(log(sigmasq))+RR(log(2.))+RR(digamma(n)))/2.
     proj_loss = np.sum([(digamma((2*n-i)/2.)-digamma(n)) for i in range(n)])/2.
     return total+proj_loss
 
 def DSL_logvol_circulant(n,sigmasq):
-    lambda0 = (np.log(2)-np.euler_gamma+np.log(n)+np.log(sigmasq))/2.
+    lambda0 = RR((np.log(2)-np.euler_gamma+np.log(n)+np.log(sigmasq))/2.)
     lambdai = (n-1)*(1-np.euler_gamma+np.log(n)+np.log(sigmasq))/2.
     return lambda0+lambdai
 
@@ -218,23 +216,34 @@ def SKR_attack_prob(beta, q, n, sk_variance=2/3.):
     return RR(1.-prob_all_not), prob_pos
 
 def prob_add(x,y):
-    return 1.-(1.-x)*(1.-y)
+    return RR(1.-(1.-x)*(1.-y))
 
-def DSD_attack_prob(beta, q, n, sk_variance=2/3., ntru="matrix", dsl_logvol=None):    
+def DSD_attack_prob(beta, q, n, sk_variance=2/3., ntru="matrix", dsl_logvol=None, zshapef=None):    
     if dsl_logvol==None:
         dsl_logvol = DSL_logvol(n, sk_variance, ntru=ntru)
-    B_shape = zshape(q, n, beta)
+    
+    # breakpoint()
+    if zshapef is None:
+        B_shape = zshape(q, n, beta)
+
+    else:
+        # zshapef comes from estimator API, need to take the sqrt and log.
+        B_shape = [log(r_)/2 for r_ in zshapef(q=q, n=n, beta=beta)]
+
     dsli_vols = DSLI_vols(dsl_logvol, B_shape)
 
-
-    prob_all_not = 1.
+    prob_all_not = RR(1.)
     prob_pos = np.zeros(2*n, dtype='double')
     for i in range(1, n+1):
         s = n + i
 
         dslv_len = log_gh(i, dsli_vols[s])
         sigma_sq = exp(2*dslv_len)/s
-        if sigma_sq > 10^10:
+        # if beta == 40:
+            # print(sigma_sq)
+
+        # print(sigma_sq)
+        if sigma_sq > 10**10:
             prob_pos[s-beta] = 0.
             continue
 
@@ -247,7 +256,7 @@ def DSD_attack_prob(beta, q, n, sk_variance=2/3., ntru="matrix", dsl_logvol=None
         # account for pulling back probability if beta small
         if beta <= 20:
             for j in range(2, int(s/beta+1)):
-                if proba_one < 10^(-6):
+                if proba_one < 10**(-6):
                     proba_one = 0.
                     break
                 ind = s - j*(beta-1)-1
@@ -270,7 +279,7 @@ def DSD_attack_prob(beta, q, n, sk_variance=2/3., ntru="matrix", dsl_logvol=None
 # For matrix NTRU change to ntru="matrix"
 # To only account for the SKR or DSD event use only="SKR" or only="DSD"
 # To run for a specific sublattice volume supply dsl_logvol=...
-def combined_attack_prob(q, n, sk_variance=2/3., ntru="matrix", fixed_tours=None, only=None, verbose=True, dsl_logvol=None):
+def combined_attack_prob(q, n, sk_variance=2/3., ntru="matrix", fixed_tours=None, only=None, verbose=True, dsl_logvol=None, zshapef=None):
     if n > max_n_cache:
         print("Please increase the hardcoded value of max_n_cache to run the predictor for such large n")
         return
@@ -292,7 +301,8 @@ def combined_attack_prob(q, n, sk_variance=2/3., ntru="matrix", fixed_tours=None
         if only!="DSD":
             SKR_prob, SKR_prob_pos = SKR_attack_prob(beta, q, n, sk_variance)
         if only!="SKR":
-            DSD_prob, DSD_prob_pos = DSD_attack_prob(beta, q, n, sk_variance, ntru, dsl_logvol=dsl_logvol)
+            DSD_prob, DSD_prob_pos = DSD_attack_prob(beta, q, n, sk_variance, ntru, dsl_logvol=dsl_logvol, zshapef=zshapef)
+
         if SKR_prob > 10e-8 or DSD_prob > 10e-8:
             for t in range(tours):
                 for i in range(2*n):
@@ -317,6 +327,7 @@ def combined_attack_prob(q, n, sk_variance=2/3., ntru="matrix", fixed_tours=None
         if remaining_proba < 0.001:
             average_beta += beta * remaining_proba
             break
+
     return average_beta, total_SKR_prob, total_DSD_prob, prob_pos_total
 
 def find_fatigue(n, sk_variance=2/3., ntru="circulant", fixed_tours=None, DSD_ratio=0.5):
