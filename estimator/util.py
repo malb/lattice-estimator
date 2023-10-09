@@ -4,15 +4,23 @@ from functools import partial
 from dataclasses import dataclass
 from typing import Any, Callable, NamedTuple
 
-from sage.all import ceil, floor, log, oo
+from sage.all import ceil, floor, log, oo, cached_function
+from scipy.special import zeta
 
 from .io import Logging
 from .lwe_parameters import LWEParameters
-
+from .conf import max_n_cache
 
 def log2(x):
     return log(x, 2.0)
 
+@cached_function
+def zeta_prime(x):
+    h = 1e-5
+    return (zeta(x+h,1) - zeta(x-h,1))/(2*h)
+
+zeta_precomputed = [zeta(i) for i in range(max_n_cache+1)]
+zeta_prime_precomputed = [zeta_prime(i) for i in range(max_n_cache+1)]
 
 class Bounds(NamedTuple):
     low: Any

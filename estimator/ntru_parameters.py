@@ -9,8 +9,6 @@ from .conf import ntru_fatigue_lb, ntru_fatigue_ub
 from .nd import NoiseDistribution
 from .errors import InsufficientSamplesError
 from .lwe_parameters import LWEParameters
-from .overstretched_ntru import find_fatigue
-
 
 @dataclass
 class NTRUParameters(LWEParameters):
@@ -22,16 +20,12 @@ class NTRUParameters(LWEParameters):
 
     def __post_init__(self, **kwds):
         super().__post_init__()
+        # set m = n
+        self.m = self.n
         
         # Use lower bound on fatigue point to inform user on possible overstretched parameter set
-        # fatigue_point = find_fatigue(self.n, sk_variance=self.Xs.stddev**2, ntru=self.ntru_type)
         if self.q >= ntru_fatigue_lb(self.n):
             self.possibly_overstretched = True
-            # TODO: Make below print statement use proper logging procedures.
-            # print(f"NOTE: NTRU with n = {self.n}, q = {self.q} is potentially overstretched. Primal attack estimation will include fatigue point estimation.", file=stderr)
-
-
-# TODO: Below are LWE specific transformations. Which ones apply to ntru?
 
     def normalize(self):
         """
@@ -67,10 +61,10 @@ class NTRUParameters(LWEParameters):
         EXAMPLE::
 
             >>> from estimator import *
-            >>> schemes.Kyber512
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
-            >>> schemes.Kyber512.updated(m=1337)
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=1337, tag='Kyber 512')
+            >>> schemes.NTRUHPS2048509Enc                                                                                                                                                                
+            NTRUParameters(n=508, q=2048, Xs=D(σ=0.82), Xe=D(σ=0.71), m=508, tag='NTRUHPS2048509Enc', ntru_type='matrix', possibly_overstretched=False)
+            >>> schemes.NTRUHPS2048509Enc.updated(q=16536)                                                                                                                                               
+            NTRUParameters(n=508, q=16536, Xs=D(σ=0.82), Xe=D(σ=0.71), m=508, tag='NTRUHPS2048509Enc', ntru_type='matrix', possibly_overstretched=True)
 
         """
         d = dict(self.__dict__)
@@ -79,23 +73,9 @@ class NTRUParameters(LWEParameters):
 
     def amplify_m(self, m):
         """
-        Return a LWE instance parameters with ``m`` samples produced from the samples in this instance.
+        Return an NTRU instance parameters with ``m`` samples produced from the samples in this instance.
 
         :param m: New number of samples.
-
-        EXAMPLE::
-
-            >>> from sage.all import binomial, log
-            >>> from estimator import *
-            >>> schemes.Kyber512
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
-            >>> schemes.Kyber512.amplify_m(2**100)
-            LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=4.58), m=..., tag='Kyber 512')
-
-        We can produce 2^100 samples by random ± linear combinations of 12 vectors::
-
-            >>> float(sqrt(12.)), float(log(binomial(1024, 12) , 2.0)) + 12
-            (3.46..., 103.07...)
 
         """
         raise NotImplementedError("Rerandomizing NTRU instances is not supported yet.")
@@ -105,35 +85,7 @@ class NTRUParameters(LWEParameters):
         Apply modulus switching and return new instance.
 
         See [JMC:AlbPlaSco15]_ for details.
-
-        EXAMPLE::
-
-            >>> from estimator import *
-            >>> LWE.Parameters(n=128, q=7681, Xs=ND.UniformMod(3), Xe=ND.UniformMod(11)).switch_modulus()
-            LWEParameters(n=128, q=5289, Xs=D(σ=0.82), Xe=D(σ=3.08), m=+Infinity, tag=None)
-
         """
-        # n = self.Xs.density * len(self.Xs)
-
-        # # n uniform in -(0.5,0.5) ± stddev(χ_s)
-        # Xr_stddev = sqrt(n / 12) * self.Xs.stddev  # rounding noise
-        # # χ_r == p/q ⋅ χ_e # we want the rounding noise match the scaled noise
-        # p = ceil(Xr_stddev * self.q / self.Xe.stddev)
-
-        # scale = float(p) / self.q
-
-        # # there is no point in scaling if the improvement is eaten up by rounding noise
-        # if scale > 1 / sqrt(2):
-        #     return self
-
-        # return LWEParameters(
-        #     self.n,
-        #     p,
-        #     Xs=self.Xs,
-        #     Xe=NoiseDistribution.DiscreteGaussian(sqrt(2) * self.Xe.stddev * scale),
-        #     m=self.m,
-        #     tag=f"{self.tag},scaled" if self.tag else None,
-        # )
         raise NotImplementedError("Modulus Switching for NTRU not supported yet.")
 
     def __hash__(self):

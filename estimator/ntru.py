@@ -32,8 +32,7 @@ class Estimate:
 
         - The primal hybrid attack only applies to sparse secrets.
         - The dual hybrid MITM attack only applies to sparse secrets.
-        - Arora-GB only applies to bounded noise with at least `n^2` samples.
-        - BKW is not competitive.
+        - The dense sublattice attack only applies to possibly overstretched parameters
 
         :param params: NTRU parameters.
         :param jobs: Use multiple threads in parallel.
@@ -43,8 +42,7 @@ class Estimate:
 
             >>> from estimator import *
             >>> _ = NTRU.estimate.rough(schemes.NTRUHPS2048509Enc)
-            TODO: Add example numbers
-
+            usvp                 :: rop: ≈2^112.1, red: ≈2^112.1, δ: 1.004096, β: 384, d: 633, tag: usvp
 
         """
         params = params.normalize()
@@ -96,7 +94,7 @@ class Estimate:
         """
         Run all estimates.
 
-        :param params: LWE parameters.
+        :param params: NTRU parameters.
         :param red_cost_model: How to cost lattice reduction.
         :param red_shape_model: How to model the shape of a reduced basis (applies to primal attacks)
         :param deny_list: skip these algorithms
@@ -107,15 +105,19 @@ class Estimate:
         EXAMPLE ::
 
             >>> from estimator import *
-            >>> _ = LWE.estimate(schemes.Kyber512)
-            bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448...
-            usvp                 :: rop: ≈2^143.8, red: ≈2^143.8, δ: 1.003941, β: 406, d: 998, tag: usvp
-            bdd                  :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, d: 1013, tag: bdd
-            bdd_hybrid           :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, ζ: 0, |S|: 1, ...
-            bdd_mitm_hybrid      :: rop: ≈2^260.3, red: ≈2^259.4, svp: ≈2^259.3, β: 405, η: 2, ζ: 102, |S|: ≈2^247.2,...
-            dual                 :: rop: ≈2^149.9, mem: ≈2^88.0, m: 512, β: 424, d: 1024, ↻: 1, tag: dual
-            dual_hybrid          :: rop: ≈2^145.6, mem: ≈2^140.5, m: 512, β: 408, d: 1004, ↻: 1, ζ: 20, tag: dual_hybrid
-
+            >>> _ = NTRU.estimate(schemes.NTRUHPS2048509Enc)                                                                                                                                             
+            usvp                 :: rop: ≈2^134.5, red: ≈2^134.5, δ: 1.004179, β: 373, d: 923, tag: usvp
+            bdd                  :: rop: ≈2^131.1, red: ≈2^130.1, svp: ≈2^130.2, β: 357, η: 390, d: 916, tag: bdd
+            bdd_hybrid           :: rop: ≈2^131.2, red: ≈2^130.2, svp: ≈2^130.2, β: 357, η: 390, ζ: 0, |S|: 1, d: 951, prob: 1, ↻: 1, tag: hybrid
+            bdd_mitm_hybrid      :: rop: ≈2^185.9, red: ≈2^185.1, svp: ≈2^184.7, β: 371, η: 2, ζ: 159, |S|: ≈2^228.0, d: 804, prob: ≈2^-49.2, ↻: ≈2^51.4, tag: hybrid
+            
+            >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))                                                                                                         
+            >>> _ = NTRU.estimate(params)                                                                                                                                                                
+            usvp                 :: rop: ≈2^46.0, red: ≈2^46.0, δ: 1.011516, β: 59, d: 221, tag: usvp
+            dsd                  :: rop: ≈2^37.9, red: ≈2^37.9, δ: 1.013310, β: 31, d: 226, tag: dsd
+            bdd                  :: rop: ≈2^42.8, red: ≈2^41.0, svp: ≈2^42.3, β: 41, η: 72, d: 227, tag: bdd
+            bdd_hybrid           :: rop: ≈2^42.8, red: ≈2^41.0, svp: ≈2^42.3, β: 41, η: 72, ζ: 0, |S|: 1, d: 227, prob: 1, ↻: 1, tag: hybrid
+            bdd_mitm_hybrid      :: rop: ≈2^56.1, red: ≈2^55.2, svp: ≈2^55.0, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, d: 195, prob: ≈2^-12.2, ↻: ≈2^14.4, tag: hybrid
         """
         params = params.normalize()
 
