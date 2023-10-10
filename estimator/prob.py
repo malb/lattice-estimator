@@ -9,6 +9,7 @@ chisquared_table = {i: None for i in range(2*max_n_cache+1)}
 for i in range(2*max_n_cache+1):
     chisquared_table[i] = RealDistribution('chisquared', i)
 
+
 def conditional_chi_squared(d1, d2, lt, l2):
     """
     Probability that a gaussian sample (var=1) of dim d1+d2 has length at most
@@ -39,6 +40,7 @@ def conditional_chi_squared(d1, d2, lt, l2):
         proba += PC2 * PE1
 
     return proba
+
 
 def mitm_babai_probability(r, stddev, q, fast=False):
     """

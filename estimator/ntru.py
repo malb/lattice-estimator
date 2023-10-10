@@ -7,10 +7,9 @@ from functools import partial
 from sage.all import oo
 
 from .ntru_primal import primal_dsd, primal_usvp, primal_bdd, primal_hybrid
-# from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
-from .lwe_bkw import coded_bkw
+from .lwe_bkw import coded_bkw # noqa
 from .lwe_guess import exhaustive_search, mitm, distinguish, guess_composition # noqa
-from .lwe_dual import dual, dual_hybrid
+from .lwe_dual import dual, dual_hybrid # noqa
 from .gb import arora_gb  # noqa
 from .ntru_parameters import NTRUParameters as Parameters  # noqa
 from .conf import (red_cost_model as red_cost_model_default,
@@ -52,7 +51,7 @@ class Estimate:
         # Only primal attacks apply to NTRU
         algorithms["usvp"] = partial(primal_usvp, red_cost_model=RC.ADPS16, red_shape_model="zgsa")
 
-        if params.possibly_overstretched:
+        if params.possibly_overstretched():
             algorithms["dsd"] = partial(
                 primal_dsd, red_cost_model=RC.ADPS16, red_shape_model="zgsa"
             )
@@ -105,19 +104,19 @@ class Estimate:
         EXAMPLE ::
 
             >>> from estimator import *
-            >>> _ = NTRU.estimate(schemes.NTRUHPS2048509Enc)                                                                                                                                             
+            >>> _ = NTRU.estimate(schemes.NTRUHPS2048509Enc)
             usvp                 :: rop: ≈2^134.5, red: ≈2^134.5, δ: 1.004179, β: 373, d: 923, tag: usvp
             bdd                  :: rop: ≈2^131.1, red: ≈2^130.1, svp: ≈2^130.2, β: 357, η: 390, d: 916, tag: bdd
-            bdd_hybrid           :: rop: ≈2^131.2, red: ≈2^130.2, svp: ≈2^130.2, β: 357, η: 390, ζ: 0, |S|: 1, d: 951, prob: 1, ↻: 1, tag: hybrid
-            bdd_mitm_hybrid      :: rop: ≈2^185.9, red: ≈2^185.1, svp: ≈2^184.7, β: 371, η: 2, ζ: 159, |S|: ≈2^228.0, d: 804, prob: ≈2^-49.2, ↻: ≈2^51.4, tag: hybrid
-            
-            >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))                                                                                                         
-            >>> _ = NTRU.estimate(params)                                                                                                                                                                
+            bdd_hybrid           :: rop: ≈2^131.2, red: ≈2^130.2, svp: ≈2^130.2, β: 357, η: 390, ζ: 0, |S|: 1, ...
+            bdd_mitm_hybrid      :: rop: ≈2^185.9, red: ≈2^185.1, svp: ≈2^184.7, β: 371, η: 2, ζ: 159, ...
+
+            >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
+            >>> _ = NTRU.estimate(params)
             usvp                 :: rop: ≈2^46.0, red: ≈2^46.0, δ: 1.011516, β: 59, d: 221, tag: usvp
             dsd                  :: rop: ≈2^37.9, red: ≈2^37.9, δ: 1.013310, β: 31, d: 226, tag: dsd
             bdd                  :: rop: ≈2^42.8, red: ≈2^41.0, svp: ≈2^42.3, β: 41, η: 72, d: 227, tag: bdd
-            bdd_hybrid           :: rop: ≈2^42.8, red: ≈2^41.0, svp: ≈2^42.3, β: 41, η: 72, ζ: 0, |S|: 1, d: 227, prob: 1, ↻: 1, tag: hybrid
-            bdd_mitm_hybrid      :: rop: ≈2^56.1, red: ≈2^55.2, svp: ≈2^55.0, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, d: 195, prob: ≈2^-12.2, ↻: ≈2^14.4, tag: hybrid
+            bdd_hybrid           :: rop: ≈2^42.8, red: ≈2^41.0, svp: ≈2^42.3, β: 41, η: 72, ζ: 0, |S|: 1, d: 227, ...
+            bdd_mitm_hybrid      :: rop: ≈2^56.1, red: ≈2^55.2, svp: ≈2^55.0, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, ...
         """
         params = params.normalize()
 

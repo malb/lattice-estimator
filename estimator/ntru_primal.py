@@ -7,32 +7,28 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 """
 from functools import partial
 
-from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function, exp, pi, floor
+from sage.all import oo, ceil, sqrt, log, RR, cached_function, exp, pi, floor
 from math import lgamma
 from scipy.special import digamma
 import numpy as np
 from .reduction import delta as deltaf
 from .reduction import cost as costf
-from .util import local_minimum, zeta_precomputed, zeta_prime_precomputed
+from .util import local_minimum, zeta_precomputed, zeta_prime_precomputed, gh_constant
 from .cost import Cost
 from .lwe_primal import PrimalUSVP, PrimalHybrid
 from .ntru_parameters import NTRUParameters
-from .errors import NotOverstretchedError
 from .simulator import normalize as simulator_normalize
-from .prob import drop as prob_drop
-from .prob import amplify as prob_amplify
-from .prob import babai as prob_babai
-from .prob import mitm_babai_probability
 from .prob import conditional_chi_squared, chisquared_table
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
 from .conf import red_simulator as red_simulator_default
-from .conf import max_n_cache, gh_constant
+from .conf import max_n_cache
+
 
 class PrimalDSD():
     """
-    Estimate cost of solving (overstretched) NTRU via uSVP reduction
+    Estimate cost of solving (overstretched) NTRU via dense sublattice discovery
     """
     @staticmethod
     @cached_function
@@ -47,38 +43,38 @@ class PrimalDSD():
         return RR(1./d) * RR(logvol - PrimalDSD.ball_log_vol(d))
 
     @staticmethod
-    def DSL_logvol_matrix(n,sigmasq):
+    def DSL_logvol_matrix(n, sigmasq):
         total = n*(RR(log(sigmasq))+RR(log(2.))+RR(digamma(n)))/2.
         proj_loss = np.sum([(digamma((2*n-i)/2.)-digamma(n)) for i in range(n)])/2.
         return total+proj_loss
 
     @staticmethod
-    def DSL_logvol_circulant(n,sigmasq):
+    def DSL_logvol_circulant(n, sigmasq):
         lambda0 = RR((np.log(2)-np.euler_gamma+np.log(n)+np.log(sigmasq))/2.)
         lambdai = (n-1)*(1-np.euler_gamma+np.log(n)+np.log(sigmasq))/2.
         return lambda0+lambdai
 
     @staticmethod
-    def DSL_logvol_circulant_fixed(n,R):
+    def DSL_logvol_circulant_fixed(n, R):
         lambda0 = (-np.euler_gamma+np.log(R))/2.
         lambdai = (n-1)*(1-np.euler_gamma+np.log(R)-np.log(2))/2.
         return lambda0+lambdai
 
     @staticmethod
     @cached_function
-    def DSL_logvol(n,sigmasq,ntru="circulant"):
+    def DSL_logvol(n, sigmasq, ntru="circulant"):
         if ntru=="matrix":
-            return PrimalDSD.DSL_logvol_matrix(n,sigmasq)
+            return PrimalDSD.DSL_logvol_matrix(n, sigmasq)
         if ntru=="circulant":
-            return PrimalDSD.DSL_logvol_circulant(n,sigmasq)
+            return PrimalDSD.DSL_logvol_circulant(n, sigmasq)
         if ntru=="fixed":
-            return PrimalDSD.DSL_logvol_circulant_fixed(n,sigmasq)
+            return PrimalDSD.DSL_logvol_circulant_fixed(n, sigmasq)
         print("non implemented ntru type")
 
     @staticmethod
     @cached_function
     def proj_logloss(d, k):
-    # log loss of length when projecting out k dimension out of d 
+        # log loss of length when projecting out k dimension out of d
         return (RR(digamma((d-k)/2.))-RR(digamma(d/2.)))/2.
 
     @staticmethod
@@ -88,22 +84,22 @@ class PrimalDSD():
 
         dsl_dim = n
         vols[2*n] = dsl_logvol
-        
+
         # Going to a intersection of dimension s
         for s in range(2*n-1, n, -1):
             # Negate cause it's a dual vector really
             x = - FL_shape[s]
-            x += PrimalDSD.proj_logloss(s+1,n)
-            x += zeta_prime_precomputed[dsl_dim]/zeta_precomputed[dsl_dim] # primitivity
+            x += PrimalDSD.proj_logloss(s+1, n)
+            x += zeta_prime_precomputed[dsl_dim]/zeta_precomputed[dsl_dim]  # primitivity
             dsl_logvol += x
             vols[s] = dsl_logvol
             dsl_dim -= 1
 
-        assert(dsl_dim==1)
-        assert(s==n+1)
-        
+        assert dsl_dim == 1
+        assert s == n+1
+
         return vols
-    
+
     @staticmethod
     @cached_function
     def prob_dsd(
@@ -117,14 +113,14 @@ class PrimalDSD():
         red_cost_model=red_cost_model_default,
         log_level=None,
     ):
-        
+
         if d is None:
             d = m
-        
+
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
-        if dsl_logvol==None:
+        if dsl_logvol is None:
             dsl_logvol = PrimalDSD.DSL_logvol(params.n, params.Xs.stddev**2, ntru=params.ntru_type)
-        
+
         B_shape = [log(r_)/2 for r_ in simulator(d, params.n, params.q, beta, xi=xi, tau=tau)]
 
         dsli_vols = PrimalDSD.DSLI_vols(dsl_logvol, B_shape)
@@ -156,7 +152,7 @@ class PrimalDSD():
                     ind = s - j*(beta-1)-1
                     norm_bt = exp(2*B_shape[ind])/sigma_sq
                     norm_b2 = exp(2*B_shape[ind+beta-1])/sigma_sq
-                    proba_one *= conditional_chi_squared(beta-1,s-ind-(beta-1), norm_bt, norm_b2)
+                    proba_one *= conditional_chi_squared(beta-1, s-ind-(beta-1), norm_bt, norm_b2)
 
             prob_pos[s-beta] = proba_one
             prob_all_not *= max(1.-proba_one, 0.)
@@ -164,17 +160,16 @@ class PrimalDSD():
 
         return RR(1.-prob_all_not), prob_pos
 
-
     def __call__(
         self,
         params: NTRUParameters,
         red_cost_model=red_cost_model_default,
         red_shape_model=red_shape_model_default,
         log_level=1,
-        **kwds,      
+        **kwds,
     ):
         """
-        Estimate cost of solving (overstretche) NTRU using the Dense sublattice.
+        Estimate cost of solving (overstretched) NTRU using the Dense sublattice.
         Code is adapted from Léo Ducas and Wessel van Woerden.
         See https://github.com/WvanWoerden/NTRUFatigue for original source
 
@@ -194,33 +189,33 @@ class PrimalDSD():
         EXAMPLE::
 
             >>> from estimator import *
-            >>> NTRU.primal_dsd(schemes.NTRUHPS2048509Enc)                                                                                                                                               
+            >>> NTRU.primal_dsd(schemes.NTRUHPS2048509Enc)
             rop: ≈2^157.1, red: ≈2^157.1, δ: 1.003645, β: 453, d: 1016, tag: dsd
 
             NOTE: Non-overstretched parameters (where the probability of Dense sublattice
             discovery is 0) will return β = d.
 
-            >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))                                                                                                         
-            >>> NTRU.primal_dsd(params, red_shape_model="zgsa")                                                                                                                                          
+            >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
+            >>> NTRU.primal_dsd(params, red_shape_model="zgsa")
             rop: ≈2^41.3, red: ≈2^41.3, δ: 1.012468, β: 42, d: 226, tag: dsd
 
-            >>> NTRU.primal_dsd(params, red_shape_model="cn11")                                                                                                                                          
+            >>> NTRU.primal_dsd(params, red_shape_model="cn11")
             rop: ≈2^41.2, red: ≈2^41.2, δ: 1.012468, β: 41, d: 226, tag: dsd
 
-            >>> NTRU.primal_dsd(params, red_shape_model=Simulator.CN11)                                                                                                                                          
+            >>> NTRU.primal_dsd(params, red_shape_model=Simulator.CN11)
             rop: ≈2^41.2, red: ≈2^41.2, δ: 1.012468, β: 41, d: 226, tag: dsd
- 
+
         The success condition was formulated in [EC:KF17] and further refined in [AC:DvW21]
         """
         params = NTRUParameters.normalize(params)
         # allow for a larger embedding lattice dimension: Bai and Galbraith
         m = params.m + params.n if params.Xs <= params.Xe else params.m
- 
+
         try:
             red_shape_model = simulator_normalize(red_shape_model)
         except ValueError:
             pass
-        
+
         if params.n > max_n_cache:
             raise ValueError("Please increase the hardcoded value of max_n_cache to run the predictor for such large n")
 
@@ -230,10 +225,11 @@ class PrimalDSD():
         DSD_prob = RR(0.)
         prob_pos_total = np.zeros(2*params.n, dtype='double')
 
-        for beta in range(2,params.n):
+        for beta in range(2, params.n):
             tours = floor(params.n**2 / beta**2)+3
 
-            DSD_prob, DSD_prob_pos = self.prob_dsd(beta, params, red_shape_model, m=m, red_cost_model=red_cost_model, log_level=log_level)
+            DSD_prob, DSD_prob_pos = self.prob_dsd(beta, params, red_shape_model, m=m,
+                                                   red_cost_model=red_cost_model, log_level=log_level)
 
             if DSD_prob > 10e-8:
                 for t in range(tours):
@@ -243,7 +239,7 @@ class PrimalDSD():
                         prob_pos_total[i] += remaining_proba * prob_pos
                         total_DSD_prob += remaining_proba * prob_pos
                         remaining_proba *= (1.-prob_pos)
-            
+
                 Logging.log("dsd", log_level+1, "β= %d,\t pr=%.4e, \t rem-pr=%.4e"%(beta, DSD_prob, remaining_proba))
             if remaining_proba < 0.001:
                 average_beta += beta * remaining_proba
@@ -252,8 +248,8 @@ class PrimalDSD():
         if not average_beta:
             average_beta = m
             predicate = False
-        
-        else: 
+
+        else:
             predicate = True
 
         cost = costf(red_cost_model, RR(average_beta), m, predicate=predicate)
@@ -263,10 +259,12 @@ class PrimalDSD():
 
     __name__ = "primal_dsd"
 
+
 primal_dsd = PrimalDSD()
 
+
 class NTRUPrimalUSVP(PrimalUSVP):
-    
+
     @staticmethod
     def _solve_for_d(params, m, beta, tau, xi):
         """
@@ -303,8 +301,8 @@ class NTRUPrimalUSVP(PrimalUSVP):
             return min(m, ceil(d1))
 
         # otherwise, n must be larger than d2 (since an^2+bn+c<0) so no solution
-        return m 
-    
+        return m
+
     @staticmethod
     @cached_function
     def cost_gsa(
@@ -362,7 +360,7 @@ class NTRUPrimalUSVP(PrimalUSVP):
         predicate = r[d - beta] > lhs
 
         return costf(red_cost_model, beta, d, predicate=predicate)
-    
+
     def __call__(
         self,
         params: NTRUParameters,
@@ -374,13 +372,15 @@ class NTRUPrimalUSVP(PrimalUSVP):
     ):
         # breakpoint()
         return super().__call__(params,
-                         red_cost_model=red_cost_model,
-                         red_shape_model=red_shape_model,
-                         optimize_d=optimize_d,
-                         log_level=log_level,
-                         **kwds)
+                                red_cost_model=red_cost_model,
+                                red_shape_model=red_shape_model,
+                                optimize_d=optimize_d,
+                                log_level=log_level,
+                                **kwds)
+
 
 primal_usvp = NTRUPrimalUSVP()
+
 
 class NTRUPrimalHybrid(PrimalHybrid):
 
@@ -450,7 +450,7 @@ class NTRUPrimalHybrid(PrimalHybrid):
         if cost is None:
             return Cost(rop=oo)
         return cost
-        
+
     def __call__(
         self,
         params: NTRUParameters,
@@ -463,15 +463,17 @@ class NTRUPrimalHybrid(PrimalHybrid):
         **kwds,
     ):
         return super().__call__(params,
-                         babai=babai,
-                         zeta=zeta,
-                         mitm=mitm,
-                         red_shape_model=red_shape_model,
-                         red_cost_model=red_cost_model,
-                         log_level=log_level,
-                         **kwds)
-    
+                                babai=babai,
+                                zeta=zeta,
+                                mitm=mitm,
+                                red_shape_model=red_shape_model,
+                                red_cost_model=red_cost_model,
+                                log_level=log_level,
+                                **kwds)
+
+
 primal_hybrid = NTRUPrimalHybrid()
+
 
 def primal_bdd(
     params: NTRUParameters,

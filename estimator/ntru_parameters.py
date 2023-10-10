@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from copy import copy
-from sys import stderr
 
-from sage.all import oo, binomial, log, sqrt, ceil, exp
-
-from .conf import ntru_fatigue_lb, ntru_fatigue_ub
-from .nd import NoiseDistribution
+from .conf import ntru_fatigue_lb
 from .errors import InsufficientSamplesError
 from .lwe_parameters import LWEParameters
+
 
 @dataclass
 class NTRUParameters(LWEParameters):
@@ -16,16 +12,17 @@ class NTRUParameters(LWEParameters):
     to LWE, but requires different estimation methodology for overstrethed parameters. """
 
     ntru_type: str = "matrix"
-    possibly_overstretched: bool = False
 
     def __post_init__(self, **kwds):
         super().__post_init__()
         # set m = n
         self.m = self.n
-        
-        # Use lower bound on fatigue point to inform user on possible overstretched parameter set
+
+    def possibly_overstretched(self):
         if self.q >= ntru_fatigue_lb(self.n):
-            self.possibly_overstretched = True
+            return True
+
+        return False
 
     def normalize(self):
         """
@@ -38,7 +35,7 @@ class NTRUParameters(LWEParameters):
             >>> Xs=ND.DiscreteGaussian(2.0)
             >>> Xe=ND.DiscreteGaussian(1.58)
             >>> NTRU.Parameters(n=512, q=8192, Xs=Xs, Xe=Xe, m=512).normalize()
-            NTRUParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=2.00), m=512, tag=None, ntru_type="matrix")
+            NTRUParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=2.00), m=512, tag=None, ntru_type='matrix')
 
         """
         if self.m < 1:
@@ -47,7 +44,8 @@ class NTRUParameters(LWEParameters):
         # swap secret and noise
         # TODO: this is somewhat arbitrary
         if self.Xe < self.Xs and self.m < 2 * self.n:
-            return NTRUParameters(n=self.n, q=self.q, Xs=self.Xe, Xe=self.Xs, m=self.n, tag=self.tag, ntru_type=self.ntru_type)
+            return NTRUParameters(n=self.n, q=self.q, Xs=self.Xe, Xe=self.Xs, m=self.n,
+                                  tag=self.tag, ntru_type=self.ntru_type)
 
         # nothing to do
         return self
@@ -61,11 +59,15 @@ class NTRUParameters(LWEParameters):
         EXAMPLE::
 
             >>> from estimator import *
-            >>> schemes.NTRUHPS2048509Enc                                                                                                                                                                
-            NTRUParameters(n=508, q=2048, Xs=D(σ=0.82), Xe=D(σ=0.71), m=508, tag='NTRUHPS2048509Enc', ntru_type='matrix', possibly_overstretched=False)
-            >>> schemes.NTRUHPS2048509Enc.updated(q=16536)                                                                                                                                               
-            NTRUParameters(n=508, q=16536, Xs=D(σ=0.82), Xe=D(σ=0.71), m=508, tag='NTRUHPS2048509Enc', ntru_type='matrix', possibly_overstretched=True)
+            >>> schemes.NTRUHPS2048509Enc  #doctest: +ELLIPSIS
+            NTRUParameters(n=508, q=2048, Xs=D(σ=0.82), Xe=D(σ=0.71), m=508, tag='NTRUHPS2048509Enc', ntru_type='ma...
+            >>> schemes.NTRUHPS2048509Enc.possibly_overstretched()
+            False
 
+            >>> schemes.NTRUHPS2048509Enc.updated(q=16536)  #doctest: +ELLIPSIS
+            NTRUParameters(n=508, q=16536, Xs=D(σ=0.82), Xe=D(σ=0.71), ..., tag='NTRUHPS2048509Enc', ntru_type='matrix')
+            >>> schemes.NTRUHPS2048509Enc.updated(q=16536).possibly_overstretched()
+            True
         """
         d = dict(self.__dict__)
         d.update(kwds)

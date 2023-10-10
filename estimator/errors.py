@@ -13,10 +13,3 @@ class InsufficientSamplesError(ValueError):
     """
 
     pass
-
-class NotOverstretchedError(ValueError):
-    """
-    Used to indicate that an NTRU instance is not overstretched.
-    """
-
-    pass

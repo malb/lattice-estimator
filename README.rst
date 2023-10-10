@@ -100,6 +100,7 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Michael Walter
 - Rachel Player
 - Sam Scott
+- Hunter Kippen
 
  See :doc:`Contributing <../contributing>` for details on how to contribute.
 
