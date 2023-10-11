@@ -93,6 +93,7 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Fernando Virdia
 - Florian Göpfert
 - Hamish Hunt
+- Hunter Kippen
 - James Owen
 - Léo Ducas
 - Markus Schmidt
@@ -100,7 +101,6 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Michael Walter
 - Rachel Player
 - Sam Scott
-- Hunter Kippen
 
  See :doc:`Contributing <../contributing>` for details on how to contribute.
 

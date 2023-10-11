@@ -1,10 +1,10 @@
 import itertools as it
 from multiprocessing import Pool
 from functools import partial
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, NamedTuple
 
-from sage.all import ceil, floor, log, oo, cached_function
+from sage.all import ceil, floor, log, oo, RR, cached_function
 from scipy.special import zeta
 
 from .io import Logging
@@ -19,12 +19,10 @@ def log2(x):
 @cached_function
 def zeta_prime(x):
     h = 1e-5
-    return (zeta(x+h, 1) - zeta(x-h, 1))/(2*h)
+    return RR((zeta(x+h) - zeta(x-h)))/(2*h)
 
 
-zeta_precomputed = [zeta(i) for i in range(max_n_cache+1)]
-zeta_prime_precomputed = [zeta_prime(i) for i in range(max_n_cache+1)]
-
+# Low beta Gaussian Heuristic constant for use in NTRU Dense sublattice estimation.
 gh_constant = {1: 0.00000, 2: -0.50511, 3: -0.46488, 4: -0.39100, 5: -0.29759, 6: -0.24880, 7: -0.21970, 8: -0.15748,
                9: -0.14673, 10: -0.07541, 11: -0.04870, 12: -0.01045, 13: 0.02298, 14: 0.04212, 15: 0.07014,
                16: 0.09205, 17: 0.12004, 18: 0.14988, 19: 0.17351, 20: 0.18659, 21: 0.20971, 22: 0.22728, 23: 0.24951,
@@ -33,6 +31,7 @@ gh_constant = {1: 0.00000, 2: -0.50511, 3: -0.46488, 4: -0.39100, 5: -0.29759, 6
                40: 0.48889, 41: 0.50009, 42: 0.51312, 43: 0.52463, 44: 0.52903, 45: 0.53930, 46: 0.55289, 47: 0.56343,
                48: 0.57204, 49: 0.58184, 50: 0.58852}
 
+# Low beta \alpha_\beta quantity as defined in [AC:DucWoe21] for use in NTRU Dense subblattice estimation.
 small_slope_t8 = {2: 0.04473, 3: 0.04472, 4: 0.04402, 5: 0.04407, 6: 0.04334, 7: 0.04326, 8: 0.04218, 9: 0.04237,
                   10: 0.04144, 11: 0.04054, 12: 0.03961, 13: 0.03862, 14: 0.03745, 15: 0.03673, 16: 0.03585,
                   17: 0.03477, 18: 0.03378, 19: 0.03298, 20: 0.03222, 21: 0.03155, 22: 0.03088, 23: 0.03029,
@@ -42,6 +41,23 @@ small_slope_t8 = {2: 0.04473, 3: 0.04472, 4: 0.04402, 5: 0.04407, 6: 0.04334, 7:
                   45: 0.02583, 46: 0.02559, 47: 0.02534, 48: 0.02514, 49: 0.02506, 50: 0.02493, 51: 0.02475,
                   52: 0.02454, 53: 0.02441, 54: 0.02427, 55: 0.02407, 56: 0.02393, 57: 0.02371, 58: 0.02366,
                   59: 0.02341, 60: 0.02332}
+
+
+@dataclass
+class LazyEvaluation:
+    f: Callable
+    max_n_cache: int
+    eval: list = field(default_factory=lambda: [])
+
+    def __getitem__(self, key):
+        if not self.eval:
+            self.eval = [self.f(i) for i in range(self.max_n_cache + 1)]
+
+        return self.eval[key]
+
+
+zeta_precomputed = LazyEvaluation(lambda i: RR(zeta(i)), max_n_cache)
+zeta_prime_precomputed = LazyEvaluation(zeta_prime, max_n_cache)
 
 
 class Bounds(NamedTuple):

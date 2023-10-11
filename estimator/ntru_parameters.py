@@ -9,7 +9,14 @@ from .lwe_parameters import LWEParameters
 @dataclass
 class NTRUParameters(LWEParameters):
     """The parameters for an NTRU problem instance. The estimator treats regular NTRU parameters as similar
-    to LWE, but requires different estimation methodology for overstrethed parameters. """
+    to LWE, but requires different estimation methodology for overstrethed parameters.
+
+    :param ntru_type:
+        Specifies the type of NTRU instance the parameters represent. Currently supported
+        types are, "matrix" for general matrix NTRU, "circulant" for circulant NTRU, "fixed" for circulant
+        NTRU with a fixed geometry.
+
+    """
 
     ntru_type: str = "matrix"
 

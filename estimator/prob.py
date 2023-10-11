@@ -13,7 +13,29 @@ for i in range(2*max_n_cache+1):
 def conditional_chi_squared(d1, d2, lt, l2):
     """
     Probability that a gaussian sample (var=1) of dim d1+d2 has length at most
-    lt knowing that the d2 first cordinates have length at most l2
+    lt knowing that the d2 first coordinates have length at most l2
+
+    :param d1: Dimension of non length-bounded coordinates
+    :param d2: Dimension of length-bounded coordinates
+    :param lt: Length threshold (maximum length of whole vector)
+    :param l2: Length threshold for the first d2 coordinates.
+
+    EXAMPLE::
+        >>> from estimator import prob
+        >>> prob.conditional_chi_squared(100, 5, 105, 1)
+        0.6358492948586715
+
+        >>> prob.conditional_chi_squared(100, 5, 105, 5)
+        0.5764336909205551
+
+        >>> prob.conditional_chi_squared(100, 5, 105, 10)
+        0.5351747076352109
+
+        >>> prob.conditional_chi_squared(100, 5, 50, 10)
+        1.1707597206287592e-06
+
+        >>> prob.conditional_chi_squared(100, 5, 50, .7)
+        5.4021875103989546e-06
     """
     D1 = chisquared_table[d1].cum_distribution_function
     D2 = chisquared_table[d2].cum_distribution_function
