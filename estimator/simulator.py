@@ -115,7 +115,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     :param xi: Scaling factor ξ for identity part.
     :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
            applying it to the primal.
-    :returns: Log Gram-Schmidt norms
+    :returns: Squared Gram-Schmidt norms
     """
 
     @cached_function
