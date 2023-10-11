@@ -126,7 +126,7 @@ class PrimalDSD():
         B_shape = [log(r_)/2 for r_ in simulator(d, params.n, params.q, beta, xi=xi, tau=tau)]
         dsli_vols = PrimalDSD.DSLI_vols(dsl_logvol, B_shape)
         prob_all_not = RR(1.)
-        prob_pos = matrix(1, 2*params.n).numpy(dtype='double')[0]
+        prob_pos = (2*params.n)*[RR(0)]
         for i in range(1, params.n+1):
             s = params.n + i
 
@@ -223,7 +223,7 @@ class PrimalDSD():
         average_beta = RR(0.)
         total_DSD_prob = RR(0.)
         DSD_prob = RR(0.)
-        prob_pos_total = matrix(1, 2*params.n).numpy(dtype='double')[0]
+        prob_pos_total = (2*params.n)*[RR(0.)]
 
         for beta in range(2, params.n):
             tours = floor(params.n**2 / beta**2)+3
