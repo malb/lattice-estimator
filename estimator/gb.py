@@ -220,7 +220,7 @@ class AroraGB:
         ..  [EPRINT:ACFP14] Martin R. Albrecht, Carlos Cid, Jean-Charles Faugère & Ludovic Perret. (2014).
             Algebraic algorithms for LWE. https://eprint.iacr.org/2014/1018
 
-        ..  [ICALP:AroGe11] Sanjeev Aror & Rong Ge. (2011). New algorithms for learning in presence of
+        ..  [ICALP:AroGe11] Sanjeev Arora & Rong Ge. (2011). New algorithms for learning in presence of
             errors.  In L.  Aceto, M.  Henzinger, & J.  Sgall, ICALP 2011, Part I (pp.  403–415).:
             Springer, Heidelberg.
         """

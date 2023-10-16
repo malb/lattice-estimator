@@ -328,7 +328,7 @@ class DualHybrid:
         the cost function for the dual hybrid might only be convex in an approximate
         sense, the parameter ``opt_step`` allows to make the optimization procedure more
         robust against local irregularities (higher value) at the cost of a longer
-        running time. In a nutshell, if the cost of the dual hybrid seems suspiciosly
+        running time. In a nutshell, if the cost of the dual hybrid seems suspiciously
         high, try a larger ``opt_step`` (e.g. 4 or 8).
 
         :param solver: Algorithm for solving the reduced instance

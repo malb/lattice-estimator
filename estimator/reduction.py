@@ -846,7 +846,7 @@ class GJ21(Kyber):
         if sieve_dim is None:
             sieve_dim = beta_
             if beta < d:
-                # set beta_sieve such that complexity of 1 sieve in in dim sieve_dim is approx
+                # set beta_sieve such that complexity of 1 sieve in dim sieve_dim is approx
                 # the same as the BKZ call
                 sieve_dim = min(
                     d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[self.nn]["a"])
