@@ -118,7 +118,6 @@ class DualHybrid:
         t: int = 0,
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
-        use_lll=True,
         log_level=None,
     ):
         """
@@ -132,7 +131,6 @@ class DualHybrid:
         :param h1: Number of non-zero components of the secret of the new LWE instance
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
-        :param use_lll: Use LLL calls to produce more small vectors
 
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
@@ -245,7 +243,6 @@ class DualHybrid:
         h1: int = 0,
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
-        use_lll=True,
         log_level=5,
         opt_step=8,
         fft=False,
@@ -259,7 +256,6 @@ class DualHybrid:
         :param h1: Number of non-zero components of the secret of the new LWE instance
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
-        :param use_lll: Use LLL calls to produce more small vectors
         :param opt_step: control robustness of optimizer
         :param fft: use the FFT distinguisher from [AC:GuoJoh21]_
 
@@ -275,7 +271,6 @@ class DualHybrid:
             h1=h1,
             success_probability=success_probability,
             red_cost_model=red_cost_model,
-            use_lll=use_lll,
             log_level=log_level,
         )
 
@@ -316,7 +311,6 @@ class DualHybrid:
         params: LWEParameters,
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
-        use_lll=True,
         opt_step=8,
         log_level=1,
         fft=False,
@@ -335,7 +329,6 @@ class DualHybrid:
         :param params: LWE parameters
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
-        :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_
         :param opt_step: control robustness of optimizer
         :param fft: use the FFT distinguisher from [AC:GuoJoh21]_. (ignored for sparse secrets)
 
@@ -430,7 +423,6 @@ class DualHybrid:
                 zeta: int = 0,
                 success_probability: float = 0.99,
                 red_cost_model=red_cost_model_default,
-                use_lll=True,
                 log_level=None,
                 fft=False,
             ):
@@ -450,7 +442,6 @@ class DualHybrid:
                             zeta=zeta,
                             success_probability=success_probability,
                             red_cost_model=red_cost_model,
-                            use_lll=use_lll,
                             log_level=log_level + 2,
                         )
                         it.update(cost)
@@ -465,7 +456,6 @@ class DualHybrid:
             params=params,
             success_probability=success_probability,
             red_cost_model=red_cost_model,
-            use_lll=use_lll,
             log_level=log_level + 1,
             fft=fft,
         )
@@ -488,7 +478,6 @@ def dual(
     params: LWEParameters,
     success_probability: float = 0.99,
     red_cost_model=red_cost_model_default,
-    use_lll=True,
 ):
     """
     Dual hybrid attack as in [PQCBook:MicReg09]_.
@@ -496,7 +485,6 @@ def dual(
     :param params: LWE parameters.
     :param success_probability: The success probability to target.
     :param red_cost_model: How to cost lattice reduction.
-    :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_.
 
     The returned cost dictionary has the following entries:
 
@@ -527,7 +515,6 @@ def dual(
         h1=0,
         success_probability=success_probability,
         red_cost_model=red_cost_model,
-        use_lll=use_lll,
         log_level=1,
     )
     del ret["zeta"]
@@ -541,7 +528,6 @@ def dual_hybrid(
     params: LWEParameters,
     success_probability: float = 0.99,
     red_cost_model=red_cost_model_default,
-    use_lll=True,
     mitm_optimization=False,
     opt_step=8,
     fft=False,
@@ -552,7 +538,6 @@ def dual_hybrid(
     :param params: LWE parameters.
     :param success_probability: The success probability to target.
     :param red_cost_model: How to cost lattice reduction.
-    :param use_lll: Use LLL calls to produce more small vectors [EC:Albrecht17]_.
     :param mitm_optimization: One of "analytical" or "numerical". If ``True`` a default from the
            ``conf`` module is picked, ``False`` disables MITM.
     :param opt_step: Control robustness of optimizer.
@@ -586,7 +571,6 @@ def dual_hybrid(
         params=params,
         success_probability=success_probability,
         red_cost_model=red_cost_model,
-        use_lll=use_lll,
         opt_step=opt_step,
         fft=fft,
     )
