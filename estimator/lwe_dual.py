@@ -149,21 +149,34 @@ class DualHybrid:
         Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
 
         if t:
-            cost = DualHybrid.fft_solver(params_slv, success_probability, t)
+            cost, num_enum_targets = DualHybrid.fft_solver(params_slv, success_probability, t)
+            # Add the time to enumerate over all the enumeration targets,
+            # simply multiplied by the number of dual vectors
+            cost["rop"] += solver(params_slv, success_probability)["rop"]
         else:
             cost = solver(params_slv, success_probability)
-
-        Logging.log("dual", log_level + 2, f"solve: {cost!r}")
 
         if cost["rop"] == oo or cost["m"] == oo:
             cost["beta"] = beta
             return cost
 
         d = m_ + params.n - zeta
-        cost_red = red_cost_model.short_vectors(beta, d, cost["m"])[1]
+        _, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d, cost["m"])
         Logging.log("dual", log_level + 2, f"red: {Cost(rop=cost_red)!r}")
 
+        # Add the runtime cost of sieving in dimension `sieve_dim` possibly multiple times.
         cost["rop"] += cost_red
+
+        # Add the cost of updating the FFT tables for all of the enumeration targets.
+        if t:
+            # Use "Efficient Updating of the FFT Input", [MATZOV, §5.4]:
+            cost["rop"] += num_enum_targets * (4 * N)
+
+        # Add the memory cost of storing the `N` dual vectors, using `sieve_dim` many coefficients
+        # (mod q) to represent them. Note that short dual vectors may actually be described by less
+        # bits because its coefficients are generally small, so this is really an upper bound here.
+        cost["mem"] += sieve_dim * N
+
         cost["m"] = m_
         cost["beta"] = beta
         if t:
@@ -193,7 +206,7 @@ class DualHybrid:
         :param success_probability: the targeted success probability
         :param t: the number of secret coordinates to guess mod 2.
             For t=0 this is similar to lwe_guess.ExhaustiveSearch.
-        :return: A cost dictionary
+        :return: A cost dictionary, and number of enumeration targets
 
         The returned cost dictionary has the following entries:
 
@@ -231,9 +244,14 @@ class DualHybrid:
         else:
             m = m_required
 
-        cost = size * (m + t * size_fft)
+        # Running a fast Walsh--Hadamard transform takes time proportional to t 2^t.
+        runtime_cost = size * (t * size_fft)
+        # This is the number of entries the table should have. Note that it should support
+        # (floating point) numbers in the range [-N, N], if ``N`` is the number of dual vectors.
+        # However 32-bit floats are good enough in practice.
+        memory_cost = size_fft
 
-        return Cost(rop=cost, mem=cost, m=m)
+        return Cost(rop=runtime_cost, mem=memory_cost, m=m), size
 
     @staticmethod
     def optimize_blocksize(
@@ -356,7 +374,7 @@ class DualHybrid:
             >>> from estimator import *
             >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^107.0, mem: ≈2^58.0, m: 970, β: 264, d: 1994, ↻: 1, tag: dual
+            rop: ≈2^107.0, mem: ≈2^66.4, m: 970, β: 264, d: 1994, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^103.2, mem: ≈2^97.4, m: 937, β: 250, d: 1919, ↻: 1, ζ: 42, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -366,7 +384,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
-            rop: ≈2^103.4, mem: ≈2^55.4, m: 904, β: 251, d: 1928, ↻: 1, tag: dual
+            rop: ≈2^103.4, mem: ≈2^63.9, m: 904, β: 251, d: 1928, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^92.1, mem: ≈2^78.2, m: 716, β: 170, d: 1464, ↻: 1989, ζ: 276, h1: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -374,7 +392,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
-            rop: ≈2^114.5, mem: ≈2^61.0, m: 1103, β: 291, d: 2127, ↻: 1, tag: dual
+            rop: ≈2^114.5, mem: ≈2^71.8, m: 1103, β: 291, d: 2127, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^113.6, mem: ≈2^103.5, m: 1096, β: 288, d: 2110, ↻: 1, ζ: 10, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -382,7 +400,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^116.5, mem: ≈2^64.0, m: 1140, β: 298, d: 2164, ↻: 1, tag: dual
+            rop: ≈2^116.5, mem: ≈2^73.2, m: 1140, β: 298, d: 2164, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^116.2, mem: ≈2^100.4, m: 1137, β: 297, d: 2155, ↻: 1, ζ: 6, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -392,10 +410,10 @@ class DualHybrid:
             rop: ≈2^131.7, mem: ≈2^128.5, m: 436, β: 358, d: 906, ↻: 1, ζ: 38, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
-            rop: ≈2^206.9, mem: ≈2^126.0, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
+            rop: ≈2^206.9, mem: ≈2^137.5, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
 
             >>> LWE.dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21, fft=True)
-            rop: ≈2^149.6, mem: ≈2^145.7, m: 510, β: 399, t: 76, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
+            rop: ≈2^149.9, mem: ≈2^92.3, m: 511, β: 400, t: 76, d: 1002, ↻: 1, ζ: 21, tag: dual_hybrid
         """
 
         Cost.register_impermanent(
