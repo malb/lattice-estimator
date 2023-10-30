@@ -95,6 +95,7 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Hamish Hunt
 - James Owen
 - Léo Ducas
+- Ludo Pulles
 - Markus Schmidt
 - Martin Albrecht
 - Michael Walter
