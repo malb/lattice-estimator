@@ -116,6 +116,49 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
            applying it to the primal.
     :returns: Squared Gram-Schmidt norms
+
+    EXAMPLES:
+        >>> from estimator.simulator import GSA, ZGSA, CN11
+        >>> n = 128
+        >>> d = 213
+        >>> q = 2048
+        >>> beta = 40
+        >>> xi = 1
+        >>> tau = 1
+        >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
+        >>> len(zgsa_profile)
+        214
+
+    Setting tau to False indicates a homogeneous instance.
+
+        >>> tau = False
+        >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
+        >>> len(zgsa_profile)
+        213
+
+    All three profiles should have the same product (represent the same lattice volume)
+
+        >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
+        >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
+        >>> sum([log(x) for x in cn11_profile]
+        1296.1852276471009
+        >>> sum([log(x) for x in zgsa_profile])
+        1296.18522764710
+        >>> sum([log(x) for x in gsa_profile])
+        1296.18522764710
+
+    Changing xi will change the volume of the lattice
+
+        >>> xi = 2
+        >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
+        >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
+        >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
+        >>> sum([log(x) for x in gsa_profile])
+        1473.63090587044
+        >>> sum([log(x) for x in zgsa_profile])
+        1473.63090587044
+        >>> sum([log(x) for x in cn11_profile])
+        1473.630905870442
     """
 
     @cached_function
@@ -144,34 +187,27 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
         else:
             return 2 * log(delta(beta))
 
-    # Scale down q by xi, instead of scaling Identity part up by xi.
-    logq = RR(log(q) - log(xi))
-
     if not tau:
-        L_log = (d - n)*[logq] + n * [0]
+        L_log = (d - n)*[RR(log(q))] + n * [RR(log(xi))]
     else:
-        L_log = (d - n)*[logq] + n * [0] + [RR(log(tau))]
+        L_log = (d - n)*[RR(log(q))] + n * [RR(log(xi))] + [RR(log(tau))]
 
     slope_ = slope(beta)
     diff = slope(beta)/2.
 
     for i in range(d-n):
-        if diff > logq/2.:
+        if diff > (RR(log(q)) - RR(log(xi)))/2.:
             break
 
         low = (d - n)-i-1
         high = (d - n) + i
         if low >= 0:
-            L_log[low] = logq/2. + diff
+            L_log[low] = (RR(log(q)) + RR(log(xi)))/2. + diff
 
         if high < len(L_log):
-            L_log[high] = logq/2. - diff
+            L_log[high] = (RR(log(q)) + RR(log(xi)))/2. - diff
 
         diff += slope_
-
-    # Scale basis profile_using xi, to induce scaling on Identity part
-    scale_factor = (logq + RR(log(xi)))/logq
-    L_log = [scale_factor*l_ for l_ in L_log]
 
     # Output basis profile as squared lengths, not ln(length)
     L = [exp(2 * l_) for l_ in L_log]
