@@ -167,11 +167,6 @@ class DualHybrid:
         # Add the runtime cost of sieving in dimension `sieve_dim` possibly multiple times.
         cost["rop"] += cost_red
 
-        # Add the cost of updating the FFT tables for all of the enumeration targets.
-        if t:
-            # Use "Efficient Updating of the FFT Input", [MATZOV, §5.4]:
-            cost["rop"] += num_enum_targets * (4 * N)
-
         # Add the memory cost of storing the `N` dual vectors, using `sieve_dim` many coefficients
         # (mod q) to represent them. Note that short dual vectors may actually be described by less
         # bits because its coefficients are generally small, so this is really an upper bound here.
@@ -241,17 +236,19 @@ class DualHybrid:
             raise InsufficientSamplesError(
                 f"Exhaustive search: Need {m_required} samples but only {params.m} available."
             )
-        else:
-            m = m_required
 
         # Running a fast Walsh--Hadamard transform takes time proportional to t 2^t.
         runtime_cost = size * (t * size_fft)
+        # Add the cost of updating the FFT tables for all of the enumeration targets.
+        # Use "Efficient Updating of the FFT Input", [MATZOV, §5.4]:
+        runtime_cost += size * (4 * m_required)
+
         # This is the number of entries the table should have. Note that it should support
         # (floating point) numbers in the range [-N, N], if ``N`` is the number of dual vectors.
         # However 32-bit floats are good enough in practice.
         memory_cost = size_fft
 
-        return Cost(rop=runtime_cost, mem=memory_cost, m=m), size
+        return Cost(rop=runtime_cost, mem=memory_cost, m=m_required), size
 
     @staticmethod
     def optimize_blocksize(
