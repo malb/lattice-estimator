@@ -5,25 +5,18 @@ Estimate cost of solving LWE using primal attacks.
 See :ref:`LWE Primal Attacks` for an introduction what is available.
 
 """
-from sage.all import oo, ceil, sqrt, log, RR, cached_function, exp, pi, floor, matrix, euler_gamma, binomial
+from sage.all import oo, log, RR, cached_function, exp, pi, floor, euler_gamma
 from math import lgamma
 from scipy.special import digamma
-from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .util import zeta_precomputed, zeta_prime_precomputed, gh_constant
-from .cost import Cost
 from .lwe_primal import PrimalUSVP, PrimalHybrid
 from .ntru_parameters import NTRUParameters
 from .simulator import normalize as simulator_normalize
 from .prob import conditional_chi_squared, chisquared_table
-from .prob import drop as prob_drop
-from .prob import amplify as prob_amplify
-from .prob import babai as prob_babai
-from .prob import mitm_babai_probability
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
-from .conf import red_simulator as red_simulator_default
 from .conf import max_n_cache
 
 
@@ -265,108 +258,6 @@ primal_dsd = PrimalDSD()
 
 class NTRUPrimalUSVP(PrimalUSVP):
 
-    @staticmethod
-    def _solve_for_d(params, m, beta, tau, xi):
-        """
-        Find smallest d ∈ [n,m] to satisfy uSVP condition.
-
-        If no such d exists, return the upper bound m.
-        :tau: ignored due to NTRU being homogeneous
-        """
-        # Find the smallest d ∈ [n,m] s.t. a*d^2 + b*d + c >= 0
-
-        delta = deltaf(beta)
-        a = -log(delta)
-        C = log(params.Xe.stddev**2 * (beta - 1)) / 2.0
-        b = log(delta) * (2 * beta - 1) + log(params.q) - C
-        c = params.n * log(xi) - (params.n + 1) * log(params.q)
-        n = params.n
-        if a * n * n + b * n + c >= 0:  # trivial case
-            return n
-
-        # solve for ad^2 + bd + c == 0
-        disc = b * b - 4 * a * c  # the discriminant
-        if disc < 0:  # no solution, return m
-            return m
-
-        # compute the two solutions
-        d1 = (-b + sqrt(disc)) / (2 * a)
-        d2 = (-b - sqrt(disc)) / (2 * a)
-        if a > 0:  # the only possible solution is ceiling(d2)
-            return min(m, ceil(d2))
-
-        # the case a<=0:
-        # if n is to the left of d1 then the first solution is ceil(d1)
-        if n <= d1:
-            return min(m, ceil(d1))
-
-        # otherwise, n must be larger than d2 (since an^2+bn+c<0) so no solution
-        return m
-
-    @staticmethod
-    @cached_function
-    def cost_gsa(
-        beta: int,
-        params: NTRUParameters,
-        m: int = oo,
-        tau=None,
-        d=None,
-        red_cost_model=red_cost_model_default,
-        log_level=None,
-    ):
-        """
-        GSA Cost function modified to operate on a homogeneous (i.e. b=0) instance.
-
-        .. note :: This function is overloaded from LWE.PrimalUSVP to account for the fact that
-           NTRU is homogeneous
-        """
-        delta = deltaf(beta)
-        xi = NTRUPrimalUSVP._xi_factor(params.Xs, params.Xe)
-        m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
-        d = NTRUPrimalUSVP._solve_for_d(params, m, beta, tau, xi) if d is None else d
-        # if d == β we assume one SVP call, otherwise poly calls. This makes the cost curve jump, so
-        # we avoid it here.
-        if d == beta and d < m:
-            d += 1
-        assert d <= m + 1
-
-        lhs = log(sqrt(params.Xe.stddev**2 * (beta - 1)))
-        rhs = RR(
-            log(delta) * (2 * beta - d - 1)
-            + (log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
-        )
-
-        return costf(red_cost_model, beta, d, predicate=lhs <= rhs)
-
-    @staticmethod
-    @cached_function
-    def cost_simulator(
-        beta: int,
-        params: NTRUParameters,
-        simulator,
-        m: int = oo,
-        tau=None,
-        d=None,
-        red_cost_model=red_cost_model_default,
-        log_level=None,
-    ):
-        """
-        cost simulator function modified to operate on a homogeneous (i.e. b=0) instance.
-
-        .. note :: This function is overloaded from LWE.PrimalUSVP to account for the fact that
-           NTRU is homogeneous.
-        """
-        delta = deltaf(beta)
-        if d is None:
-            d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
-        xi = NTRUPrimalUSVP._xi_factor(params.Xs, params.Xe)
-
-        r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
-        lhs = params.Xe.stddev**2 * (beta - 1)
-        predicate = r[d - beta] > lhs
-
-        return costf(red_cost_model, beta, d, predicate=predicate)
-
     def __call__(
         self,
         params: NTRUParameters,
@@ -397,7 +288,7 @@ class NTRUPrimalUSVP(PrimalUSVP):
 
             >>> from estimator import *
             >>> NTRU.primal_usvp(schemes.NTRUHPS2048509Enc)
-            rop: ≈2^134.5, red: ≈2^134.5, δ: 1.004179, β: 373, d: 923, tag: usvp
+            rop: ≈2^134.6, red: ≈2^134.6, δ: 1.004179, β: 373, d: 929, tag: usvp
 
             >>> params = NTRU.Parameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> NTRU.primal_usvp(params, red_shape_model="cn11")
@@ -426,133 +317,6 @@ primal_usvp = NTRUPrimalUSVP()
 
 
 class NTRUPrimalHybrid(PrimalHybrid):
-
-    @staticmethod
-    @cached_function
-    def cost(
-        beta: int,
-        params: NTRUParameters,
-        zeta: int = 0,
-        babai=False,
-        mitm=False,
-        m: int = oo,
-        d: int = None,
-        simulator=red_simulator_default,
-        red_cost_model=red_cost_model_default,
-        log_level=5,
-    ):
-        """
-        Cost of the hybrid attack.
-
-        :param beta: Block size.
-        :param params: LWE parameters.
-        :param zeta: Guessing dimension ζ ≥ 0.
-        :param babai: Insist on Babai's algorithm for finding close vectors.
-        :param mitm: Simulate MITM approach (√ of search space).
-        :param m: We accept the number of samples to consider from the calling function.
-        :param d: We optionally accept the dimension to pick.
-
-        .. note :: This is the lowest level function that runs no optimization, it merely reports
-           costs.
-
-        .. note :: This function is overloaded from LWE.PrimalHybrid to account for the fact that
-           NTRU is homogeneous
-
-        """
-        if d is None:
-            delta = deltaf(beta)
-            d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
-        d -= zeta
-        xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
-
-        # 1. Simulate BKZ-β
-        # tau is None due to homogenous nature of NTRU
-
-        r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=None, dual=True)
-
-        bkz_cost = costf(red_cost_model, beta, d)
-
-        # 2. Required SVP dimension η
-        if babai:
-            eta = 2
-            svp_cost = PrimalHybrid.babai_cost(d)
-        else:
-            # we scaled the lattice so that χ_e is what we want
-            eta = PrimalHybrid.svp_dimension(r, params.Xe)
-            svp_cost = costf(red_cost_model, eta, eta)
-            # when η ≪ β, lifting may be a bigger cost
-            svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
-
-        # 3. Search
-        # We need to do one BDD call at least
-        search_space, probability, hw = 1, 1.0, 0
-
-        # MITM or no MITM
-        # TODO: this is rather clumsy as a model
-        def ssf(x):
-            if mitm:
-                return RR(sqrt(x))
-            else:
-                return x
-
-        # e.g. (-1, 1) -> two non-zero per entry
-        base = params.Xs.bounds[1] - params.Xs.bounds[0]
-
-        if zeta:
-            # the number of non-zero entries
-            h = ceil(len(params.Xs) * params.Xs.density)
-            probability = RR(prob_drop(params.n, h, zeta))
-            hw = 1
-            while hw < min(h, zeta):
-                new_search_space = binomial(zeta, hw) * base**hw
-                if svp_cost.repeat(ssf(search_space + new_search_space))["rop"] >= bkz_cost["rop"]:
-                    break
-                search_space += new_search_space
-                probability += prob_drop(params.n, h, zeta, fail=hw)
-                hw += 1
-
-            svp_cost = svp_cost.repeat(ssf(search_space))
-
-        if mitm and zeta > 0:
-            if babai:
-                probability *= mitm_babai_probability(r, params.Xe.stddev, params.q)
-            else:
-                # TODO: the probability in this case needs to be analysed
-                probability *= 1
-
-        if eta <= 20 and d >= 0:  # NOTE: η: somewhat arbitrary bound, d: we may guess it all
-            probability *= RR(prob_babai(r, sqrt(d) * params.Xe.stddev))
-
-        ret = Cost()
-        ret["rop"] = bkz_cost["rop"] + svp_cost["rop"]
-        ret["red"] = bkz_cost["rop"]
-        ret["svp"] = svp_cost["rop"]
-        ret["beta"] = beta
-        ret["eta"] = eta
-        ret["zeta"] = zeta
-        ret["|S|"] = search_space
-        ret["d"] = d
-        ret["prob"] = probability
-
-        ret.register_impermanent(
-            {"|S|": False},
-            rop=True,
-            red=True,
-            svp=True,
-            eta=False,
-            zeta=False,
-            prob=False,
-        )
-
-        # 4. Repeat whole experiment ~1/prob times
-        if probability and not RR(probability).is_NaN():
-            ret = ret.repeat(
-                prob_amplify(0.99, probability),
-            )
-        else:
-            return Cost(rop=oo)
-
-        return ret
 
     def __call__(
         self,

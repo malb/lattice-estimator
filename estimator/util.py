@@ -4,8 +4,7 @@ from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Callable, NamedTuple
 
-from sage.all import ceil, floor, log, oo, RR, cached_function
-from scipy.special import zeta
+from sage.all import ceil, floor, log, oo, RR, cached_function, zeta
 
 from .io import Logging
 from .lwe_parameters import LWEParameters
@@ -56,7 +55,7 @@ class LazyEvaluation:
         return self.eval[key]
 
 
-zeta_precomputed = LazyEvaluation(lambda i: RR(zeta(i)), max_n_cache)
+zeta_precomputed = LazyEvaluation(lambda i: RR(zeta(i)) if i != 1 else RR(oo), max_n_cache)
 zeta_prime_precomputed = LazyEvaluation(zeta_prime, max_n_cache)
 
 

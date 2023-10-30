@@ -30,6 +30,10 @@ class LWEParameters:
             self.Xe = copy(self.Xe)
             self.Xe.n = self.m
 
+    @property
+    def homogeneous(self):
+        return False
+
     def normalize(self):
         """
         EXAMPLES:

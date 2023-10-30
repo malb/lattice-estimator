@@ -33,7 +33,7 @@ def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
     :param dual: perform reduction on the dual.
 
     """
-    if tau is None:
+    if not tau:
         r = [q**2] * (d - n) + [xi**2] * n
     else:
         r = [q**2] * (d - n - 1) + [xi**2] * n + [tau**2]
@@ -91,7 +91,7 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     """
     from .reduction import delta as deltaf
 
-    if tau is None:
+    if not tau:
         log_vol = RR(log(q, 2) * (d - n) + log(xi, 2) * n)
     else:
         log_vol = RR(log(q, 2) * (d - n - 1) + log(xi, 2) * n + log(tau, 2))
@@ -147,7 +147,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     # Scale down q by xi, instead of scaling Identity part up by xi.
     logq = RR(log(q) - log(xi))
 
-    if tau is None:
+    if not tau:
         L_log = (d - n)*[logq] + n * [0]
     else:
         L_log = (d - n)*[logq] + n * [0] + [RR(log(tau))]

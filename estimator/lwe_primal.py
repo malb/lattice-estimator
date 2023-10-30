@@ -46,9 +46,16 @@ class PrimalUSVP:
         # Find the smallest d ∈ [n,m] s.t. a*d^2 + b*d + c >= 0
         delta = deltaf(beta)
         a = -log(delta)
-        C = log(params.Xe.stddev**2 * (beta - 1) + tau**2) / 2.0
+
+        if not tau:
+            C = log(params.Xe.stddev**2 * (beta - 1)) / 2.0
+            c = params.n * log(xi) - (params.n + 1) * log(params.q)
+
+        else:
+            C = log(params.Xe.stddev**2 * (beta - 1) + tau**2) / 2.0
+            c = log(tau) + params.n * log(xi) - (params.n + 1) * log(params.q)
+
         b = log(delta) * (2 * beta - 1) + log(params.q) - C
-        c = log(tau) + params.n * log(xi) - (params.n + 1) * log(params.q)
         n = params.n
         if a * n * n + b * n + c >= 0:  # trivial case
             return n
@@ -87,6 +94,10 @@ class PrimalUSVP:
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         tau = params.Xe.stddev if tau is None else tau
+        # Account for homogeneous instances
+        if params.homogeneous:
+            tau = False  # Tau false ==> instance is homogeneous
+
         d = PrimalUSVP._solve_for_d(params, m, beta, tau, xi) if d is None else d
         # if d == β we assume one SVP call, otherwise poly calls. This makes the cost curve jump, so
         # we avoid it here.
@@ -94,11 +105,19 @@ class PrimalUSVP:
             d += 1
         assert d <= m + 1
 
-        lhs = log(sqrt(params.Xe.stddev**2 * (beta - 1) + tau**2))
-        rhs = RR(
-            log(delta) * (2 * beta - d - 1)
-            + (log(tau) + log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
-        )
+        if not tau:
+            lhs = log(sqrt(params.Xe.stddev**2 * (beta - 1)))
+            rhs = RR(
+                log(delta) * (2 * beta - d - 1)
+                + (log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
+            )
+
+        else:
+            lhs = log(sqrt(params.Xe.stddev**2 * (beta - 1) + tau**2))
+            rhs = RR(
+                log(delta) * (2 * beta - d - 1)
+                + (log(tau) + log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
+            )
 
         return costf(red_cost_model, beta, d, predicate=lhs <= rhs)
 
@@ -120,8 +139,18 @@ class PrimalUSVP:
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         tau = params.Xe.stddev if tau is None else tau
 
+        if params.homogeneous:
+            tau = False
+            d -= 1  # Remove extra dimension in homogeneous instances
+
         r = simulator(d=d, n=params.n, q=params.q, beta=beta, xi=xi, tau=tau)
-        lhs = params.Xe.stddev**2 * (beta - 1) + tau**2
+
+        if not tau:
+            lhs = params.Xe.stddev**2 * (beta - 1)
+
+        else:
+            lhs = params.Xe.stddev**2 * (beta - 1) + tau**2
+
         predicate = r[d - beta] > lhs
 
         return costf(red_cost_model, beta, d, predicate=predicate)
@@ -309,12 +338,17 @@ class PrimalHybrid:
             delta = deltaf(beta)
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         d -= zeta
+
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
-
+        tau = 1
         # 1. Simulate BKZ-β
-        # TODO: pick τ
+        # TODO: pick τ as non default value
 
-        r = simulator(d, params.n - zeta, params.q, beta, xi=xi, dual=True)
+        if params.homogeneous:
+            tau = False
+            d -= 1
+
+        r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=tau, dual=True)
 
         bkz_cost = costf(red_cost_model, beta, d)
 

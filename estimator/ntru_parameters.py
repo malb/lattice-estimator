@@ -25,11 +25,16 @@ class NTRUParameters(LWEParameters):
         # set m = n
         self.m = self.n
 
+    @property
     def possibly_overstretched(self):
         if self.q >= ntru_fatigue_lb(self.n):
             return True
 
         return False
+
+    @property
+    def homogeneous(self):
+        return True
 
     def normalize(self):
         """
@@ -68,12 +73,12 @@ class NTRUParameters(LWEParameters):
             >>> from estimator import *
             >>> schemes.NTRUHPS2048509Enc  #doctest: +ELLIPSIS
             NTRUParameters(n=508, q=2048, Xs=D(σ=0.82), Xe=D(σ=0.71), m=508, tag='NTRUHPS2048509Enc', ntru_type='ma...
-            >>> schemes.NTRUHPS2048509Enc.possibly_overstretched()
+            >>> schemes.NTRUHPS2048509Enc.possibly_overstretched
             False
 
             >>> schemes.NTRUHPS2048509Enc.updated(q=16536)  #doctest: +ELLIPSIS
             NTRUParameters(n=508, q=16536, Xs=D(σ=0.82), Xe=D(σ=0.71), ..., tag='NTRUHPS2048509Enc', ntru_type='matrix')
-            >>> schemes.NTRUHPS2048509Enc.updated(q=16536).possibly_overstretched()
+            >>> schemes.NTRUHPS2048509Enc.updated(q=16536).possibly_overstretched
             True
         """
         d = dict(self.__dict__)

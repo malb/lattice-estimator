@@ -51,7 +51,7 @@ class Estimate:
         # Only primal attacks apply to NTRU
         algorithms["usvp"] = partial(primal_usvp, red_cost_model=RC.ADPS16, red_shape_model="zgsa")
 
-        if params.possibly_overstretched():
+        if params.possibly_overstretched:
             algorithms["dsd"] = partial(
                 primal_dsd, red_cost_model=RC.ADPS16, red_shape_model="zgsa"
             )
