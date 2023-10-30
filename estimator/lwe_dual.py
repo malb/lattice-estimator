@@ -408,7 +408,8 @@ class DualHybrid:
             rop: ≈2^206.9, mem: ≈2^137.5, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
 
             >>> LWE.dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21, fft=True)
-            rop: ≈2^149.9, mem: ≈2^92.3, m: 511, β: 400, t: 76, d: 1002, ↻: 1, ζ: 21, tag: dual_hybrid
+            rop: ≈2^149.8, mem: ≈2^92.1, m: 510, t: 76, β: 399, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
+
         """
 
         Cost.register_impermanent(

@@ -88,9 +88,9 @@ class ParameterSweep:
                     num_proc=1,\
                 )
             usvp                 :: rop: ≈2^45.6, red: ≈2^45.6, δ: 1.007290, β: 156, d: 1120, tag: usvp
-            dual_hybrid          :: rop: ≈2^46.6, mem: ≈2^42.7, m: 579, β: 159, d: 1169, ↻: 1, ζ: 10, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^46.6, mem: ≈2^42.9, m: 579, β: 159, d: 1169, ↻: 1, ζ: 10, tag: dual_hybrid
             usvp                 :: rop: ≈2^51.7, red: ≈2^51.7, δ: 1.006767, β: 177, d: 1124, tag: usvp
-            dual_hybrid          :: rop: ≈2^52.7, mem: ≈2^48.3, m: 571, β: 180, d: 1160, ↻: 1, ζ: 11, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^52.7, mem: ≈2^48.4, m: 571, β: 180, d: 1160, ↻: 1, ζ: 11, tag: dual_hybrid
             usvp                 :: rop: ≈2^82.9, red: ≈2^82.9, δ: 1.005021, β: 284, d: 1661, tag: usvp
             dual_hybrid          :: rop: ≈2^83.0, mem: ≈2^77.8, m: 830, β: 284, d: 1711, ↻: 1, ζ: 19, tag: dual_hybrid
             usvp                 :: rop: ≈2^92.6, red: ≈2^92.6, δ: 1.004667, β: 317, d: 1650, tag: usvp
