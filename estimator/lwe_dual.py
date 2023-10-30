@@ -149,15 +149,12 @@ class DualHybrid:
         Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
 
         if t:
-            cost, num_enum_targets = DualHybrid.fft_solver(params_slv, success_probability, t)
-            # Add the time to enumerate over all the enumeration targets,
-            # simply multiplied by the number of dual vectors
-            cost["rop"] += solver(params_slv, success_probability)["rop"]
+            cost = DualHybrid.fft_solver(params_slv, success_probability, t)
         else:
             cost = solver(params_slv, success_probability)
+        cost["beta"] = beta
 
         if cost["rop"] == oo or cost["m"] == oo:
-            cost["beta"] = beta
             return cost
 
         d = m_ + params.n - zeta
@@ -171,11 +168,7 @@ class DualHybrid:
         # (mod q) to represent them. Note that short dual vectors may actually be described by less
         # bits because its coefficients are generally small, so this is really an upper bound here.
         cost["mem"] += sieve_dim * N
-
         cost["m"] = m_
-        cost["beta"] = beta
-        if t:
-            cost["t"] = t
 
         if d < params.n - zeta:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
@@ -201,13 +194,14 @@ class DualHybrid:
         :param success_probability: the targeted success probability
         :param t: the number of secret coordinates to guess mod 2.
             For t=0 this is similar to lwe_guess.ExhaustiveSearch.
-        :return: A cost dictionary, and number of enumeration targets
+        :return: A cost dictionary
 
         The returned cost dictionary has the following entries:
 
         - ``rop``: Total number of word operations (≈ CPU cycles).
         - ``mem``: memory requirement in integers mod q.
         - ``m``: Required number of samples to distinguish the correct solution with high probability.
+        - ``t``: the number of secret coordinates to guess mod 2.
 
         .. note :: The parameter t only makes sense in the context of the dual attack,
             which is why this function is here and not in the lwe_guess module.
@@ -226,6 +220,10 @@ class DualHybrid:
             return Cost(rop=oo, mem=oo, m=1)
 
         sigma = params.Xe.stddev / params.q
+
+        # Here, assume the Independence Heuristic, cf. [ia.cr/2023/302].
+        # The minimal number of short dual vectors that is required to distinguish the correct
+        # guess with probability at least `probability`:
         m_required = RR(
             4
             * exp(4 * pi * pi * sigma * sigma)
@@ -248,7 +246,7 @@ class DualHybrid:
         # However 32-bit floats are good enough in practice.
         memory_cost = size_fft
 
-        return Cost(rop=runtime_cost, mem=memory_cost, m=m_required), size
+        return Cost(rop=runtime_cost, mem=memory_cost, m=m_required, t=t)
 
     @staticmethod
     def optimize_blocksize(
