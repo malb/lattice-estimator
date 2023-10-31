@@ -262,7 +262,7 @@ class ReductionCost:
         :param B: Bit-size of entries.
         :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
                If ``False`` we assume the basis is already BKZ-β reduced.
-        :returns: ``(ρ, c, N)``
+        :return: ``(ρ, c, N, β')``
 
         EXAMPLES::
 
@@ -313,7 +313,7 @@ class ReductionCost:
         :param N: Number of vectors requested.
         :param B: Bit-size of entries.
         :param preprocess: This option is ignore.
-        :returns: ``(ρ, c, N)``
+        :return: ``(ρ, c, N, β')``
 
         EXAMPLES::
 
@@ -356,7 +356,7 @@ class ReductionCost:
         :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
                If ``False`` we assume the basis is already BKZ-β reduced.
         :param sieve_dim: Explicit sieving dimension.
-        :returns: ``(ρ, c, N)``
+        :return: ``(ρ, c, N, β')``
 
         EXAMPLES::
 
@@ -767,6 +767,7 @@ class Kyber(ReductionCost):
           vector expected from an SVP oracle by this factor.
         - `c` is the cost of outputting `N` vectors
         - `N` the number of vectors output, which may be larger than the value put in for `N`.
+        - `β'` the cost parameter associated with sampling
 
         This is using an observation insprired by [AC:GuoJoh21]_ that we can run a sieve on the
         first block of the basis with negligible overhead.
@@ -776,30 +777,31 @@ class Kyber(ReductionCost):
         :param N: Number of vectors requested.
         :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
                If ``False`` we assume the basis is already BKZ-β reduced.
+        :return: ``(ρ, c, N, β')``
 
         EXAMPLES::
 
             >>> from estimator.reduction import RC
             >>> RC.Kyber.short_vectors(100, 500, 1)
-            (1.0, 2.7367476128136...19, 100)
+            (1.0, 2.7367476128136...19, 100, 1)
             >>> RC.Kyber.short_vectors(100, 500)
-            (1.1547, 2.7367476128136...19, 176584)
+            (1.1547, 2.7367476128136...19, 176584, 84)
             >>> RC.Kyber.short_vectors(100, 500, 1000)
-            (1.1547, 2.7367476128136...19, 176584)
+            (1.1547, 2.7367476128136...19, 176584, 84)
 
         """
         beta_ = beta - floor(self.d4f(beta))
 
         if N == 1:
             if preprocess:
-                return 1.0, self(beta, d, B=B), beta
+                return 1.0, self(beta, d, B=B), beta, 1
             else:
-                return 1.0, 1, beta
+                return 1.0, 1, beta, 1
         elif N is None:
             N = floor(2 ** (0.2075 * beta_))  # pick something
 
         c = N / floor(2 ** (0.2075 * beta_))
-        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_))
+        return 1.1547, ceil(c) * self(beta, d), ceil(c) * floor(2 ** (0.2075 * beta_)), beta_
 
 
 class GJ21(Kyber):
@@ -830,6 +832,7 @@ class GJ21(Kyber):
         :param B: Bit-size of entries.
         :param C: Progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{0.292 i + o(i)}/2^{0.292 β + o(β)}.
         :param sieve_dim: Explicit sieving dimension.
+        :return: ``(ρ, c, N, β')``
 
         EXAMPLES::
 
@@ -846,7 +849,7 @@ class GJ21(Kyber):
         if sieve_dim is None:
             sieve_dim = beta_
             if beta < d:
-                # set beta_sieve such that complexity of 1 sieve in in dim sieve_dim is approx
+                # set beta_sieve such that complexity of 1 sieve in dim sieve_dim is approx
                 # the same as the BKZ call
                 sieve_dim = min(
                     d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[self.nn]["a"])

@@ -77,7 +77,7 @@ def amplify(target_success_probability, success_probability, majority=False):
 
     :param target_success_probability: targeted success probability < 1
     :param success_probability: targeted success probability < 1
-    :param majority: if `True` amplify a deicsional problem, not a computational one
+    :param majority: if `True` amplify a decisional problem, not a computational one
        if `False` then we assume that we can check solutions, so one success suffices
 
     :returns: number of required trials to amplify
