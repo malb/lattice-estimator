@@ -118,7 +118,6 @@ class DualHybrid:
         t: int = 0,
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
-        use_lll=True,
         log_level=None,
     ):
         """
@@ -132,7 +131,6 @@ class DualHybrid:
         :param h1: Number of non-zero components of the secret of the new LWE instance
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
-        :param use_lll: Use LLL calls to produce more small vectors
 
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
@@ -154,22 +152,23 @@ class DualHybrid:
             cost = DualHybrid.fft_solver(params_slv, success_probability, t)
         else:
             cost = solver(params_slv, success_probability)
-
-        Logging.log("dual", log_level + 2, f"solve: {cost!r}")
+        cost["beta"] = beta
 
         if cost["rop"] == oo or cost["m"] == oo:
-            cost["beta"] = beta
             return cost
 
         d = m_ + params.n - zeta
-        cost_red = red_cost_model.short_vectors(beta, d, cost["m"])[1]
+        _, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d, cost["m"])
         Logging.log("dual", log_level + 2, f"red: {Cost(rop=cost_red)!r}")
 
+        # Add the runtime cost of sieving in dimension `sieve_dim` possibly multiple times.
         cost["rop"] += cost_red
+
+        # Add the memory cost of storing the `N` dual vectors, using `sieve_dim` many coefficients
+        # (mod q) to represent them. Note that short dual vectors may actually be described by less
+        # bits because its coefficients are generally small, so this is really an upper bound here.
+        cost["mem"] += sieve_dim * N
         cost["m"] = m_
-        cost["beta"] = beta
-        if t:
-            cost["t"] = t
 
         if d < params.n - zeta:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
@@ -202,6 +201,7 @@ class DualHybrid:
         - ``rop``: Total number of word operations (≈ CPU cycles).
         - ``mem``: memory requirement in integers mod q.
         - ``m``: Required number of samples to distinguish the correct solution with high probability.
+        - ``t``: the number of secret coordinates to guess mod 2.
 
         .. note :: The parameter t only makes sense in the context of the dual attack,
             which is why this function is here and not in the lwe_guess module.
@@ -220,6 +220,10 @@ class DualHybrid:
             return Cost(rop=oo, mem=oo, m=1)
 
         sigma = params.Xe.stddev / params.q
+
+        # Here, assume the Independence Heuristic, cf. [ia.cr/2023/302].
+        # The minimal number of short dual vectors that is required to distinguish the correct
+        # guess with probability at least `probability`:
         m_required = RR(
             4
             * exp(4 * pi * pi * sigma * sigma)
@@ -230,12 +234,19 @@ class DualHybrid:
             raise InsufficientSamplesError(
                 f"Exhaustive search: Need {m_required} samples but only {params.m} available."
             )
-        else:
-            m = m_required
 
-        cost = size * (m + t * size_fft)
+        # Running a fast Walsh--Hadamard transform takes time proportional to t 2^t.
+        runtime_cost = size * (t * size_fft)
+        # Add the cost of updating the FFT tables for all of the enumeration targets.
+        # Use "Efficient Updating of the FFT Input", [MATZOV, §5.4]:
+        runtime_cost += size * (4 * m_required)
 
-        return Cost(rop=cost, mem=cost, m=m)
+        # This is the number of entries the table should have. Note that it should support
+        # (floating point) numbers in the range [-N, N], if ``N`` is the number of dual vectors.
+        # However 32-bit floats are good enough in practice.
+        memory_cost = size_fft
+
+        return Cost(rop=runtime_cost, mem=memory_cost, m=m_required, t=t)
 
     @staticmethod
     def optimize_blocksize(
@@ -245,7 +256,6 @@ class DualHybrid:
         h1: int = 0,
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
-        use_lll=True,
         log_level=5,
         opt_step=8,
         fft=False,
@@ -259,7 +269,6 @@ class DualHybrid:
         :param h1: Number of non-zero components of the secret of the new LWE instance
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
-        :param use_lll: Use LLL calls to produce more small vectors
         :param opt_step: control robustness of optimizer
         :param fft: use the FFT distinguisher from [AC:GuoJoh21]_
 
@@ -275,7 +284,6 @@ class DualHybrid:
             h1=h1,
             success_probability=success_probability,
             red_cost_model=red_cost_model,
-            use_lll=use_lll,
             log_level=log_level,
         )
 
@@ -316,7 +324,6 @@ class DualHybrid:
         params: LWEParameters,
         success_probability: float = 0.99,
         red_cost_model=red_cost_model_default,
-        use_lll=True,
         opt_step=8,
         log_level=1,
         fft=False,
@@ -328,14 +335,13 @@ class DualHybrid:
         the cost function for the dual hybrid might only be convex in an approximate
         sense, the parameter ``opt_step`` allows to make the optimization procedure more
         robust against local irregularities (higher value) at the cost of a longer
-        running time. In a nutshell, if the cost of the dual hybrid seems suspiciosly
+        running time. In a nutshell, if the cost of the dual hybrid seems suspiciously
         high, try a larger ``opt_step`` (e.g. 4 or 8).
 
         :param solver: Algorithm for solving the reduced instance
         :param params: LWE parameters
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
-        :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_
         :param opt_step: control robustness of optimizer
         :param fft: use the FFT distinguisher from [AC:GuoJoh21]_. (ignored for sparse secrets)
 
@@ -363,7 +369,7 @@ class DualHybrid:
             >>> from estimator import *
             >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^107.0, mem: ≈2^58.0, m: 970, β: 264, d: 1994, ↻: 1, tag: dual
+            rop: ≈2^107.0, mem: ≈2^66.4, m: 970, β: 264, d: 1994, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^103.2, mem: ≈2^97.4, m: 937, β: 250, d: 1919, ↻: 1, ζ: 42, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -373,7 +379,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
             >>> LWE.dual(params)
-            rop: ≈2^103.4, mem: ≈2^55.4, m: 904, β: 251, d: 1928, ↻: 1, tag: dual
+            rop: ≈2^103.4, mem: ≈2^63.9, m: 904, β: 251, d: 1928, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^92.1, mem: ≈2^78.2, m: 716, β: 170, d: 1464, ↻: 1989, ζ: 276, h1: 8, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -381,7 +387,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
-            rop: ≈2^114.5, mem: ≈2^61.0, m: 1103, β: 291, d: 2127, ↻: 1, tag: dual
+            rop: ≈2^114.5, mem: ≈2^71.8, m: 1103, β: 291, d: 2127, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^113.6, mem: ≈2^103.5, m: 1096, β: 288, d: 2110, ↻: 1, ζ: 10, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -389,7 +395,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^116.5, mem: ≈2^64.0, m: 1140, β: 298, d: 2164, ↻: 1, tag: dual
+            rop: ≈2^116.5, mem: ≈2^73.2, m: 1140, β: 298, d: 2164, ↻: 1, tag: dual
             >>> LWE.dual_hybrid(params)
             rop: ≈2^116.2, mem: ≈2^100.4, m: 1137, β: 297, d: 2155, ↻: 1, ζ: 6, tag: dual_hybrid
             >>> LWE.dual_hybrid(params, mitm_optimization=True)
@@ -399,10 +405,11 @@ class DualHybrid:
             rop: ≈2^131.7, mem: ≈2^128.5, m: 436, β: 358, d: 906, ↻: 1, ζ: 38, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
-            rop: ≈2^206.9, mem: ≈2^126.0, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
+            rop: ≈2^206.9, mem: ≈2^137.5, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
 
             >>> LWE.dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21, fft=True)
-            rop: ≈2^149.6, mem: ≈2^145.7, m: 510, β: 399, t: 76, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
+            rop: ≈2^149.8, mem: ≈2^92.1, m: 510, t: 76, β: 399, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
+
         """
 
         Cost.register_impermanent(
@@ -430,7 +437,6 @@ class DualHybrid:
                 zeta: int = 0,
                 success_probability: float = 0.99,
                 red_cost_model=red_cost_model_default,
-                use_lll=True,
                 log_level=None,
                 fft=False,
             ):
@@ -450,7 +456,6 @@ class DualHybrid:
                             zeta=zeta,
                             success_probability=success_probability,
                             red_cost_model=red_cost_model,
-                            use_lll=use_lll,
                             log_level=log_level + 2,
                         )
                         it.update(cost)
@@ -465,7 +470,6 @@ class DualHybrid:
             params=params,
             success_probability=success_probability,
             red_cost_model=red_cost_model,
-            use_lll=use_lll,
             log_level=log_level + 1,
             fft=fft,
         )
@@ -488,7 +492,6 @@ def dual(
     params: LWEParameters,
     success_probability: float = 0.99,
     red_cost_model=red_cost_model_default,
-    use_lll=True,
 ):
     """
     Dual hybrid attack as in [PQCBook:MicReg09]_.
@@ -496,7 +499,6 @@ def dual(
     :param params: LWE parameters.
     :param success_probability: The success probability to target.
     :param red_cost_model: How to cost lattice reduction.
-    :param use_lll: use LLL calls to produce more small vectors [EC:Albrecht17]_.
 
     The returned cost dictionary has the following entries:
 
@@ -527,7 +529,6 @@ def dual(
         h1=0,
         success_probability=success_probability,
         red_cost_model=red_cost_model,
-        use_lll=use_lll,
         log_level=1,
     )
     del ret["zeta"]
@@ -541,7 +542,6 @@ def dual_hybrid(
     params: LWEParameters,
     success_probability: float = 0.99,
     red_cost_model=red_cost_model_default,
-    use_lll=True,
     mitm_optimization=False,
     opt_step=8,
     fft=False,
@@ -552,7 +552,6 @@ def dual_hybrid(
     :param params: LWE parameters.
     :param success_probability: The success probability to target.
     :param red_cost_model: How to cost lattice reduction.
-    :param use_lll: Use LLL calls to produce more small vectors [EC:Albrecht17]_.
     :param mitm_optimization: One of "analytical" or "numerical". If ``True`` a default from the
            ``conf`` module is picked, ``False`` disables MITM.
     :param opt_step: Control robustness of optimizer.
@@ -586,7 +585,6 @@ def dual_hybrid(
         params=params,
         success_probability=success_probability,
         red_cost_model=red_cost_model,
-        use_lll=use_lll,
         opt_step=opt_step,
         fft=fft,
     )
