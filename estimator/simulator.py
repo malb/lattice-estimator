@@ -17,7 +17,7 @@ where
 The last row is optional.
 """
 
-from sage.all import RR, log, line
+from sage.all import RR, log, line, cached_function, pi, exp
 
 
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
@@ -33,7 +33,7 @@ def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
     :param dual: perform reduction on the dual.
 
     """
-    if tau is None:
+    if not tau:
         r = [q**2] * (d - n) + [xi**2] * n
     else:
         r = [q**2] * (d - n - 1) + [xi**2] * n + [tau**2]
@@ -91,7 +91,7 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     """
     from .reduction import delta as deltaf
 
-    if tau is None:
+    if not tau:
         log_vol = RR(log(q, 2) * (d - n) + log(xi, 2) * n)
     else:
         log_vol = RR(log(q, 2) * (d - n - 1) + log(xi, 2) * n + log(tau, 2))
@@ -102,12 +102,127 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     return r
 
 
+def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
+    from math import lgamma
+    from .util import gh_constant, small_slope_t8
+    """
+    Reduced lattice Z-shape following the Geometric Series Assumption as specified in
+    NTRU fatrigue [DucWoe21]
+    :param d: Lattice dimension.
+    :param n: The number of `q` vectors is `d-n`.
+    :param q: Modulus `q`
+    :param beta: Block size β.
+    :param xi: Scaling factor ξ for identity part.
+    :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
+           applying it to the primal.
+    :returns: Squared Gram-Schmidt norms
+
+    EXAMPLES:
+        >>> from estimator.simulator import GSA, ZGSA, CN11
+        >>> n = 128
+        >>> d = 213
+        >>> q = 2048
+        >>> beta = 40
+        >>> xi = 1
+        >>> tau = 1
+        >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
+        >>> len(zgsa_profile)
+        214
+
+    Setting tau to False indicates a homogeneous instance.
+
+        >>> tau = False
+        >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
+        >>> len(zgsa_profile)
+        213
+
+    All three profiles should have the same product (represent the same lattice volume)
+
+        >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
+        >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
+        >>> sum([log(x) for x in cn11_profile]
+        1296.1852276471009
+        >>> sum([log(x) for x in zgsa_profile])
+        1296.18522764710
+        >>> sum([log(x) for x in gsa_profile])
+        1296.18522764710
+
+    Changing xi will change the volume of the lattice
+
+        >>> xi = 2
+        >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
+        >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
+        >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
+        >>> sum([log(x) for x in gsa_profile])
+        1473.63090587044
+        >>> sum([log(x) for x in zgsa_profile])
+        1473.63090587044
+        >>> sum([log(x) for x in cn11_profile])
+        1473.630905870442
+    """
+
+    @cached_function
+    def ball_log_vol(n):
+        return RR((n/2.) * log(pi) - lgamma(n/2. + 1))
+
+    def log_gh(d, logvol=0):
+        if d < 49:
+            return RR(gh_constant[d] + logvol/d)
+
+        return RR(1./d * (logvol - ball_log_vol(d)))
+
+    def delta(k):
+        assert k >= 60
+        delta = exp(log_gh(k)/(k-1))
+        return RR(delta)
+
+    @cached_function
+    def slope(beta):
+        if beta<=60:
+            return small_slope_t8[beta]
+        if beta<=70:
+            # interpolate between experimental and asymptotics
+            ratio = (70-beta)/10.
+            return ratio*small_slope_t8[60]+(1.-ratio)*2*log(delta(70))
+        else:
+            return 2 * log(delta(beta))
+
+    if not tau:
+        L_log = (d - n)*[RR(log(q))] + n * [RR(log(xi))]
+    else:
+        L_log = (d - n)*[RR(log(q))] + n * [RR(log(xi))] + [RR(log(tau))]
+
+    slope_ = slope(beta)
+    diff = slope(beta)/2.
+
+    for i in range(d-n):
+        if diff > (RR(log(q)) - RR(log(xi)))/2.:
+            break
+
+        low = (d - n)-i-1
+        high = (d - n) + i
+        if low >= 0:
+            L_log[low] = (RR(log(q)) + RR(log(xi)))/2. + diff
+
+        if high < len(L_log):
+            L_log[high] = (RR(log(q)) + RR(log(xi)))/2. - diff
+
+        diff += slope_
+
+    # Output basis profile as squared lengths, not ln(length)
+    L = [exp(2 * l_) for l_ in L_log]
+    return L
+
+
 def normalize(name):
     if str(name).upper() == "CN11":
         return CN11
 
     if str(name).upper() == "GSA":
         return GSA
+
+    if str(name).upper() == "ZGSA":
+        return ZGSA
 
     return name
 
