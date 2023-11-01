@@ -33,7 +33,7 @@ class NTRUParameters(LWEParameters):
         return False
 
     @property
-    def homogeneous(self):
+    def _homogeneous(self):
         return True
 
     def normalize(self):

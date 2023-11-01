@@ -31,7 +31,7 @@ class LWEParameters:
             self.Xe.n = self.m
 
     @property
-    def homogeneous(self):
+    def _homogeneous(self):
         return False
 
     def normalize(self):

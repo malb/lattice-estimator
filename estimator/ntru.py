@@ -41,7 +41,7 @@ class Estimate:
 
             >>> from estimator import *
             >>> _ = NTRU.estimate.rough(schemes.NTRUHPS2048509Enc)
-            usvp                 :: rop: ≈2^112.1, red: ≈2^112.1, δ: 1.004096, β: 384, d: 633, tag: usvp
+            usvp                 :: rop: ≈2^109.2, red: ≈2^109.2, δ: 1.004171, β: 374, d: 643, tag: usvp
 
         """
         params = params.normalize()
@@ -106,17 +106,17 @@ class Estimate:
             >>> from estimator import *
             >>> _ = NTRU.estimate(schemes.NTRUHPS2048509Enc)
             usvp                 :: rop: ≈2^134.5, red: ≈2^134.5, δ: 1.004179, β: 373, d: 923, tag: usvp
-            bdd                  :: rop: ≈2^131.1, red: ≈2^130.1, svp: ≈2^130.2, β: 357, η: 390, d: 916, tag: bdd
-            bdd_hybrid           :: rop: ≈2^131.2, red: ≈2^130.2, svp: ≈2^130.2, β: 357, η: 390, ζ: 0, |S|: 1, ...
-            bdd_mitm_hybrid      :: rop: ≈2^185.9, red: ≈2^185.1, svp: ≈2^184.7, β: 371, η: 2, ζ: 159, ...
+            bdd                  :: rop: ≈2^130.9, red: ≈2^129.9, svp: ≈2^129.9, β: 356, η: 389, d: 917, tag: bdd
+            bdd_hybrid           :: rop: ≈2^130.9, red: ≈2^129.9, svp: ≈2^129.9, β: 356, η: 389, ζ: 0, |S|: 1, ...
+            bdd_mitm_hybrid      :: rop: ≈2^185.3, red: ≈2^184.5, svp: ≈2^184.2, β: 371, η: 2, ζ: 159, |S|: ≈2^228.0...
 
             >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> _ = NTRU.estimate(params)
             usvp                 :: rop: ≈2^46.0, red: ≈2^46.0, δ: 1.011516, β: 59, d: 221, tag: usvp
             dsd                  :: rop: ≈2^37.9, red: ≈2^37.9, δ: 1.013310, β: 31, d: 226, tag: dsd
-            bdd                  :: rop: ≈2^42.8, red: ≈2^41.0, svp: ≈2^42.3, β: 41, η: 72, d: 227, tag: bdd
-            bdd_hybrid           :: rop: ≈2^42.8, red: ≈2^41.0, svp: ≈2^42.3, β: 41, η: 72, ζ: 0, |S|: 1, d: 227, ...
-            bdd_mitm_hybrid      :: rop: ≈2^56.1, red: ≈2^55.2, svp: ≈2^55.0, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, ...
+            bdd                  :: rop: ≈2^42.4, red: ≈2^41.0, svp: ≈2^41.8, β: 41, η: 70, d: 225, tag: bdd
+            bdd_hybrid           :: rop: ≈2^42.4, red: ≈2^41.0, svp: ≈2^41.8, β: 41, η: 70, ζ: 0, |S|: 1, d: 226, ...
+            bdd_mitm_hybrid      :: rop: ≈2^55.6, red: ≈2^54.7, svp: ≈2^54.6, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, ...
         """
         params = params.normalize()
 

@@ -95,7 +95,7 @@ class PrimalUSVP:
         m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         tau = params.Xe.stddev if tau is None else tau
         # Account for homogeneous instances
-        if params.homogeneous:
+        if params._homogeneous:
             tau = False  # Tau false ==> instance is homogeneous
 
         d = PrimalUSVP._solve_for_d(params, m, beta, tau, xi) if d is None else d
@@ -139,7 +139,7 @@ class PrimalUSVP:
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         tau = params.Xe.stddev if tau is None else tau
 
-        if params.homogeneous:
+        if params._homogeneous:
             tau = False
             d -= 1  # Remove extra dimension in homogeneous instances
 
@@ -344,7 +344,7 @@ class PrimalHybrid:
         # 1. Simulate BKZ-β
         # TODO: pick τ as non default value
 
-        if params.homogeneous:
+        if params._homogeneous:
             tau = False
             d -= 1
 
