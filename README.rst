@@ -44,12 +44,13 @@ Quick Start
 Status
 ------
 
-We have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-estimator/src/master/>`__:
+We cover:
 
 - ``[x]`` |lwe-primal-binder| :doc:`primal attacks on LWE <../algorithms/lwe-primal>` 
 - ``[X]`` |lwe-dual-binder| :doc:`dual attacks on LWE <../algorithms/lwe-dual>`
 - ``[x]`` |lwe-bkw-binder| :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>` 
 - ``[X]`` |gb-binder| :doc:`Arora-GB attack on LWE <../algorithms/gb>`
+- ``[x]`` attacks on `NTRU <https://en.wikipedia.org/wiki/NTRU>`__ public keys (using overstretched parameters)
 
 .. |lwe-primal-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb
@@ -62,10 +63,9 @@ We have feature parity with the `old estimator <https://bitbucket.org/malb/lwe-e
 
 .. |gb-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fgb.ipynb
-            
-but we are also planning:
 
-- ``[ ]`` attacks on `NTRU <https://en.wikipedia.org/wiki/NTRU>`__ public keys (using overstretched parameters)
+We are planning:
+
 - ``[ ]`` attack on `SIS <https://en.wikipedia.org/wiki/Short_integer_solution_problem>`__ instances
          
 Evolution
