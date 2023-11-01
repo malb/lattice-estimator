@@ -86,4 +86,4 @@ NIST PQC Round 3 Finalists
     >>> schemes.NTRUHRSS701Enc
     NTRUParameters(n=700, q=8192, Xs=D(σ=0.82), Xe=D(σ=0.82), m=700, tag='NTRUHRSS701', ntru_type='matrix')
     >>> NTRU.primal_bdd(schemes.NTRUHRSS701Enc)
-    rop: ≈2^158.9, red: ≈2^157.9, svp: ≈2^158.0, β: 455, η: 490, d: 1294, tag: bdd
+    rop: ≈2^158.7, red: ≈2^157.7, svp: ≈2^157.7, β: 454, η: 489, d: 1306, tag: bdd
