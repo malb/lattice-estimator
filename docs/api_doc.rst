@@ -17,6 +17,9 @@ API Reference
    estimator.lwe_primal
    estimator.lwe_dual
    estimator.lwe
+   estimator.ntru_parameters
+   estimator.ntru_primal
+   estimator.ntru
    estimator.gb
    estimator.nd
    estimator.prob

@@ -1,5 +1,6 @@
 from .nd import NoiseDistribution, stddevf
 from .lwe_parameters import LWEParameters
+from .ntru_parameters import NTRUParameters
 
 # NIST PQC Round 3 Finalists
 
@@ -77,7 +78,7 @@ FireSaber = LWEParameters(
     tag="FireSaber",
 )
 
-NTRUHPS2048509Enc = LWEParameters(
+NTRUHPS2048509Enc = NTRUParameters(
     n=508,
     q=2048,
     Xe=NoiseDistribution.SparseTernary(508, 2048 / 16 - 1),
@@ -86,7 +87,7 @@ NTRUHPS2048509Enc = LWEParameters(
     tag="NTRUHPS2048509Enc",
 )
 
-NTRUHPS2048677Enc = LWEParameters(
+NTRUHPS2048677Enc = NTRUParameters(
     n=676,
     q=2048,
     Xs=NoiseDistribution.UniformMod(3),
@@ -95,7 +96,7 @@ NTRUHPS2048677Enc = LWEParameters(
     tag="NTRUHPS2048677Enc",
 )
 
-NTRUHPS4096821Enc = LWEParameters(
+NTRUHPS4096821Enc = NTRUParameters(
     n=820,
     q=4096,
     Xs=NoiseDistribution.UniformMod(3),
@@ -104,7 +105,7 @@ NTRUHPS4096821Enc = LWEParameters(
     tag="NTRUHPS4096821Enc",
 )
 
-NTRUHRSS701Enc = LWEParameters(
+NTRUHRSS701Enc = NTRUParameters(
     n=700,
     q=8192,
     Xs=NoiseDistribution.UniformMod(3),

@@ -4,6 +4,7 @@ References
 .. [AC:AGPS20] Albrecht, M. R., Gheorghiu, V., Postlethwaite, E. W., & Schanck, J. M. (2020). Estimating quantum speedups for lattice sieves. In S. Moriai, & H. Wang, ASIACRYPT 2020, Part II (pp. 583–613). : Springer, Heidelberg.
 .. [AC:AGVW17] Martin R. Albrecht, Florian Göpfert, Fernando Virdia & Thomas Wunderer. Revisiting the expected cost of solving uSVP and applications to LWE. In T. Takagi, & T. Peyrin, ASIACRYPT 2017, Part I (pp. 297–322). : Springer, Heidelberg.
 .. [AC:CheNgu11] Yuanmi Chen & Phong Q. Nguyen. BKZ 2.0: better lattice security estimates. In D. H. Lee, & X. Wang, ASIACRYPT 2011 (pp. 1–20): Springer, Heidelberg.
+.. [AC:DucWoe21] Ducas, L., van Woerden, W. (2021). NTRU Fatigue: How Stretched is Overstretched?. In: Tibouchi, M., Wang, H. (eds) Advances in Cryptology – ASIACRYPT 2021. ASIACRYPT 2021. Lecture Notes in Computer Science(), vol 13093. Springer, Cham. https://doi.org/10.1007/978-3-030-92068-5_1
 .. [AC:GuoJoh21] Qian Guo, Thomas Johansson. Faster Dual Lattice Attacks for Solving LWE with Applications to CRYSTALS. In International Conference on the Theory and Application of Cryptology and Information Security (pp. 33-62). Springer, Cham.
 .. [ACISP:BaiGal14] Shi Bai & Steven D. Galbraith. Lattice decoding attacks on binary LWE. In W. Susilo, & Y. Mu, ACISP 14 (pp. 322–337). : Springer, Heidelberg.
 .. [C:ABFKSW20] Martin R. Albrecht, Shi Bai, Pierre-Alain Fouque, Paul Kirchner, Damien Stehlé and Weiqiang Wen. Faster Enumeration-based Lattice Reduction: Root Hermite Factor $beta^{1/(2k)}$ in Time $beta^{beta/8 + o(beta)}$. CRYPTO 2020.
@@ -15,6 +16,7 @@ References
 .. [CheNgu12] Yuanmi Chen and Phong Q. Nguyen. BKZ 2.0: Better lattice security estimates (Full Version). 2012. http://www.di.ens.fr/~ychen/research/Full_BKZ.pdf
 .. [EC:Albrecht17]  Albrecht, M. R. (2017). On dual lattice attacks against small-secret LWE and parameter choices in  HElib and SEAL. In J. Coron, & J. B. Nielsen, EUROCRYPT 2017, Part II (pp. 103–129). : Springer, Heidelberg.
 .. [EC:Ducas18] Léo Ducas (2018). Shortest vector from lattice sieving: A few dimensions for free. In J. B. Nielsen, & V. Rijmen, EUROCRYPT 2018, Part I (pp. 125–145). : Springer, Heidelberg.
+.. [EC:KirFou17] Kirchner, P., Fouque, PA. (2017). Revisiting Lattice Attacks on Overstretched NTRU Parameters. In: Coron, JS., Nielsen, J. (eds) Advances in Cryptology – EUROCRYPT 2017. EUROCRYPT 2017. Lecture Notes in Computer Science(), vol 10210. Springer, Cham. https://doi.org/10.1007/978-3-319-56620-7_1 
 .. [EPRINT:CHHS19] Cheon, J.H., Hhan, M., Hong, S. and Son, Y., 2019. A hybrid of dual and meet-in-the-middle attack on sparse and ternary secret LWE. IEEE Access, 7, pp.89497-89506. https://ia.cr/2019/1114pri
 .. [EPRINT:LaaMosPol14] Thijs Laarhoven, Michele Mosca, & Joop van de Pol. Finding shortest lattice vectors faster using quantum search. Cryptology ePrint Archive, Report 2014/907, 2014. https://eprint.iacr.org/2014/907.
 .. [EPRINT:SonChe19] Son, Y. and Cheon, J.H., 2019. Revisiting the Hybrid Attack on sparse abd ternary LWE. Workshop on Applied Homomorphic Cryptography, WAHC2019.
