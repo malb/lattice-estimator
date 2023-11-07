@@ -200,6 +200,10 @@ class PrimalDSD():
         .. note :: Non-overstretched parameters (where the probability of Dense sublattice
            discovery is 0) will return β = d.
         """
+        if params.Xs.stddev != params.Xe.stddev:
+            raise NotImplementedError("""Dense sublattice attack estimation currently unsupported for f and g with
+                                      different variances""")
+
         params = NTRUParameters.normalize(params)
         # allow for a larger embedding lattice dimension: Bai and Galbraith
         m = params.m + params.n if params.Xs <= params.Xe else params.m
