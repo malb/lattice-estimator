@@ -104,14 +104,14 @@ class Estimate:
         EXAMPLE ::
 
             >>> from estimator import *
-            >>> _ = NTRU.estimate(schemes.NTRUHPS2048509Enc)
-            usvp                 :: rop: ≈2^134.5, red: ≈2^134.5, δ: 1.004179, β: 373, d: 923, tag: usvp
-            bdd                  :: rop: ≈2^130.9, red: ≈2^129.9, svp: ≈2^129.9, β: 356, η: 389, d: 917, tag: bdd
-            bdd_hybrid           :: rop: ≈2^130.9, red: ≈2^129.9, svp: ≈2^129.9, β: 356, η: 389, ζ: 0, |S|: 1, ...
-            bdd_mitm_hybrid      :: rop: ≈2^185.3, red: ≈2^184.5, svp: ≈2^184.2, β: 371, η: 2, ζ: 159, |S|: ≈2^228.0...
+            >>> _ = NTRU.estimate(schemes.NTRUHRSS701Enc)
+            usvp                 :: rop: ≈2^162.1, red: ≈2^162.1, δ: 1.003557, β: 470, d: 1317, tag: usvp
+            bdd                  :: rop: ≈2^158.7, red: ≈2^157.7, svp: ≈2^157.7, β: 454, η: 489, d: 1306, tag: bdd
+            bdd_hybrid           :: rop: ≈2^158.7, red: ≈2^157.7, svp: ≈2^157.7, β: 454, η: 489, ζ: 0, |S|: 1, d: ...
+            bdd_mitm_hybrid      :: rop: ≈2^233.0, red: ≈2^232.1, svp: ≈2^232.0, β: 469, η: 2, ζ: 178, |S|: ...
 
             >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
-            >>> _ = NTRU.estimate(params)
+            >>> _ = NTRU.estimate(params, catch_exceptions=False)
             usvp                 :: rop: ≈2^46.0, red: ≈2^46.0, δ: 1.011516, β: 59, d: 221, tag: usvp
             dsd                  :: rop: ≈2^37.9, red: ≈2^37.9, δ: 1.013310, β: 31, d: 226, tag: dsd
             bdd                  :: rop: ≈2^42.4, red: ≈2^41.0, svp: ≈2^41.8, β: 41, η: 70, d: 225, tag: bdd

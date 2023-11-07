@@ -182,8 +182,8 @@ class PrimalDSD():
         EXAMPLE::
 
             >>> from estimator import *
-            >>> NTRU.primal_dsd(schemes.NTRUHPS2048509Enc)
-            rop: ≈2^157.1, red: ≈2^157.1, δ: 1.003645, β: 453, d: 1016, tag: dsd
+            >>> NTRU.primal_dsd(schemes.NTRUHRSS701Enc)
+            rop: ≈2^190.2, red: ≈2^190.2, δ: 1.003095, β: 571, d: 1400, tag: dsd
 
             >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> NTRU.primal_dsd(params, red_shape_model="zgsa")
@@ -200,6 +200,9 @@ class PrimalDSD():
         .. note :: Non-overstretched parameters (where the probability of Dense sublattice
            discovery is 0) will return β = d.
         """
+        if params.Xs.stddev != params.Xe.stddev:
+            raise NotImplementedError("Dense sublattice attack not supported for Xs != Xe")
+
         params = NTRUParameters.normalize(params)
         # allow for a larger embedding lattice dimension: Bai and Galbraith
         m = params.m + params.n if params.Xs <= params.Xe else params.m
