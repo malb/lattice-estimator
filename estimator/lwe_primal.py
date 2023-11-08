@@ -92,7 +92,7 @@ class PrimalUSVP:
     ):
         delta = deltaf(beta)
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
-        m = min(2 * ceil(sqrt(params.n * log(params.q) / log(delta))), m)
+        m = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         tau = params.Xe.stddev if tau is None else tau
         # Account for homogeneous instances
         if params._homogeneous:
