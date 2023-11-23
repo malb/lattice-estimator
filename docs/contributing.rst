@@ -91,3 +91,12 @@ You can produce Jupyter notebooks, run::
 You will need `sphinxcontrib-jupyter <https://github.com/QuantEcon/sphinxcontrib-jupyter>`__ installed for this to work.
 
 Note that `sphinxcontrib-jupyter <https://github.com/QuantEcon/sphinxcontrib-jupyter>`__ currently has a `bug <https://github.com/QuantEcon/sphinxcontrib-jupyter/issues/339>`__ which means ``make html && make jupyter`` will fail. However, ``make html && make clean && make jupyter`` should succeed.
+
+Some Coding-Style Guidelines
+----------------------------
+
+1. Avoid additional dependencies or unnecessary imports. If SageMath has a function already built-in, there needs to be a good reason to favor another library's implementation.
+2. Minimize library import time. Defer calculations of any cached (or cacheable) values to runtime.
+3. When extending existing implementations using inheritance, do not overload methods to obtain differing functionality when the original method may be subject to change (e.g. cost optimizers for LWE, as new papers could change the methodology). This will end up doubling the work of implementing any such changes. Instead, make the original method more general, and obtain new functionality by altering method inputs.
+4. Please consider adding doctests to where they were not before if you are touching that part of the library (leave things nicer than when you found them).
+5. New components must be interoperable with existing functionality. If you add a new basis shape simulation, it should be able to be utilized by all existing consumers of that primitive.
