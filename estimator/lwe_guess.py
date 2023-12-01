@@ -195,15 +195,13 @@ class ExhaustiveSearch:
             raise InsufficientSamplesError(
                 f"Exhaustive search: Need {m_required} samples but only {params.m} available."
             )
-        else:
-            m = m_required
 
         # we can compute A*s for all candidate s in time 2*size*m using
         # (the generalization [ia.cr/2021/152] of) the recursive algorithm
         # from [ia.cr/2020/515]
-        cost = 2 * size * m
+        cost = 2 * size * m_required
 
-        ret = Cost(rop=cost, mem=cost / 2, m=m)
+        ret = Cost(rop=cost, mem=cost / 2, m=m_required)
         return ret.sanity_check()
 
     __name__ = "exhaustive_search"
@@ -253,15 +251,15 @@ class MITM:
             success_probability_ = 1.0
             logT = k * log(sd_rng, 2)
 
-        m_ = max(1, round(logT + log2(logT)))
-        if params.m < m_:
+        m_required = max(1, round(logT + log2(logT)))
+        if params.m < m_required:
             raise InsufficientSamplesError(
-                f"MITM: Need {m_} samples but only {params.m} available."
+                f"MITM: Need {m_required} samples but only {params.m} available."
             )
 
         # since m = logT + loglogT and rop = T*m, we have rop=2^m
-        ret = Cost(rop=RR(2**m_), mem=2**logT * m_, m=m_, k=ZZ(k))
-        repeat = prob_amplify(success_probability, sd_p**n * nd_p**m_ * success_probability_)
+        ret = Cost(rop=RR(2**m_required), mem=2**logT * m_required, m=m_required, k=ZZ(k))
+        repeat = prob_amplify(success_probability, sd_p**n * nd_p**m_required * success_probability_)
         return ret.repeat(times=repeat)
 
     def cost(

@@ -360,11 +360,11 @@ def binary_search(
     """
     Searches for the best value in the interval [start,stop] depending on the given comparison function.
 
-    :param start: start of range to search
-    :param stop: stop of range to search (exclusive)
+    :param start: start of range to search (inclusive)
+    :param stop: stop of range to search (inclusive)
     :param param: the parameter to modify when calling `f`
     :param smallerf: comparison is performed by evaluating ``smallerf(current, best)``
-    :param step: initially only consider every `steps`-th value
+    :param step: initially only consider every `step`-th value
     """
 
     with local_minimum(start, stop + 1, step, smallerf=smallerf, log_level=log_level) as it:
