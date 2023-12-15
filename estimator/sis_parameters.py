@@ -8,11 +8,11 @@ from sage.all import log, ceil
 class SISParameters:
     """The parameters for a Short Integer Solution problem instance."""
 
-    n: int  #: the dimension of each SIS sample vector (Z/qZ)^n.
+    n: int  #: the length of the SIS output.
     q: int  #: the modulus of the space Z/qZ of integers the LWE samples are in.
     length_bound: float  #: The length (in the norm specified below) of an admissable solution.
 
-    #: the number of SIS vectors,
+    #: the length of the SIS preimage.
     #: optionally `sage.all.oo` for allowing infinitely many samples.
     m: int = None
     norm: int = 2  #: The norm to use for measuring length (l-p norm) use oo for infinity norm.
