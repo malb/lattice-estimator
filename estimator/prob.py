@@ -64,6 +64,28 @@ def conditional_chi_squared(d1, d2, lt, l2):
     return proba
 
 
+def build_Gaussian_law(sigma, t):
+    """
+    Compute the pdf of a discrete gaussian of parameter sigma over the range [-t, t]
+
+    :params sigma: the standard deviation of the gaussian random variable
+    :params t: the (symmetric) limit of the range of the discrete gaussian.
+
+    :returns: a dictionary of the pdf of the specified discrete gaussian, where D[i] = pr(X == i)
+    """
+    D = {}
+    for i in range(0, t + 1):
+        D[i] = exp(-i ** 2 / (2 * sigma ** 2))
+        D[-i] = D[i]
+
+    normalization = sum([D[i] for i in D])
+    for i in D:
+        D[i] = D[i] / normalization
+
+    assert abs(sum([D[i] for i in range(-t, t + 1)]) - 1.) <= 10 ** -10
+    return D
+
+
 def mitm_babai_probability(r, stddev, q, fast=False):
     """
     Compute the "e-admissibility" probability associated to the mitm step, according to

@@ -7,6 +7,7 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 """
 from functools import partial
 
+from math import prod
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
 from .reduction import delta as deltaf
 from .reduction import cost as costf
@@ -16,6 +17,7 @@ from .lwe_parameters import LWEParameters
 from .sis_parameters import SISParameters
 from .simulator import normalize as simulator_normalize
 from .prob import drop as prob_drop
+from .prob import build_Gaussian_law
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
 from .prob import mitm_babai_probability
@@ -31,9 +33,8 @@ class PrimalSIS:
     """
     @staticmethod
     def _solve_for_delta_euclidian(params, d):
-        # TODO add params for dimension separately to account for non-euclidian estimates
-        volume = params.q**params.n
-        delta = (params.length_bound / volume**(1/d))**(1/d)
+        root_volume = params.q**(params.n/d)
+        delta = (params.length_bound / root_volume)**(1/(d - 1))
         return delta
 
     @staticmethod
@@ -46,19 +47,112 @@ class PrimalSIS:
     ):
         # Check for triviality
         if params.length_bound >= params.q:
-            raise ValueError("SIS trivially easy. Please set norm bound >= q.")
+            raise ValueError("SIS trivially easy. Please set norm bound < q.")
+
+        if d is None:
+            d = params.m
 
         # First solve for root hermite factor
-        delta = PrimalSIS._solve_for_delta_euclidian(params)
+        delta = PrimalSIS._solve_for_delta_euclidian(params, d)
 
-        # Then derive beta fromt the cost model
+        # Then derive beta from the cost model
         beta = red_cost_model.beta(delta)
         lb = min(RR(sqrt(params.n * log(params.q))), RR(sqrt(d) * params.q**(params.n/d)))
         return costf(red_cost_model, beta, d, predicate=params.length_bound > lb)
 
+    @staticmethod
+    @cached_function
+    def cost_infinity(
+        params: SISParameters,
+        beta: int,
+        simulator,
+        zeta: int = 0,
+        success_probability: float = 0.99,
+        d=None,
+        red_cost_model=red_cost_model_default,
+        log_level=None,
+    ):
+        """
+        Computes the cost of the attack on SIS using an infinity norm bound.
+
+        :param params: SIS parameters
+        :param beta: Block size used to produce short vectors for reduction
+        :param simulator: Basis profile simulator
+        :param zeta: Number of coefficients to set to 0 (ignore)
+        :param success_probability: The success probability to target
+        :param red_cost_model: How to cost lattice reduction
+
+        .. note :: This function assumes that the instance is normalized. It runs no optimization,
+            it merely reports costs.
+
+        """
+        if params.length_bound >= params.q:
+            raise ValueError("SIS trivially easy. Please set norm bound < q.")
+
+        if d is None:
+            d = params.m
+
+        if RR(sqrt(d)) * params.length_bound <= params.q:
+            d_ = d - zeta
+            r = simulator(d=d_, n=params.n - zeta, q=params.q, beta=beta, xi=1, tau=False)
+            probability = 1.0
+
+        else:
+            raise NotImplementedError("Dilithium style analysis not yet complete")
+
+        # Cost the sampling of short vectors.
+        num_short_vectors = ceil(sqrt(4/3)**beta)
+        rho, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d_, num_short_vectors)
+        bkz_cost = costf(red_cost_model, beta, d_)
+
+        # Calculate the length of the short vectors obtained using gaussian heuristic.
+        # First calculate the basis shape for BKZ-beta preprocessing.
+
+        # TODO redo the below calculation by first calculating log volume for numerical stability.
+        # Use basis shape to calculate the volume of the sublattice spanned by the first sieve_dim vectors
+        vol = RR(prod([sqrt(r_) for r_ in r[:sieve_dim]]))
+        gh = deltaf(sieve_dim)**(sieve_dim - 1)
+        vector_length = rho * gh * vol**(1/sieve_dim)
+
+        # Use vector length to determine success probability of the attack. Assume each coordinate is Gaussian
+        sigma = vector_length / sqrt(d_)
+        D = build_Gaussian_law(sigma, params.q//2)
+
+        prob_gaussian = sum([D[i] for i in range(-params.length_bound, params.length_bound + 1)])
+        probability *= prob_gaussian
+
+        ret = Cost()
+        ret["rop"] = cost_red
+        ret["red"] = bkz_cost["rop"]
+        ret["sieve"] = cost_red - bkz_cost["rop"]
+        ret["beta"] = beta
+        ret["eta"] = sieve_dim
+        ret["zeta"] = zeta
+        ret["d"] = d_
+        ret["prob"] = probability
+
+        ret.register_impermanent(
+            {"|S|": False},
+            rop=True,
+            red=True,
+            sieve=True,
+            eta=False,
+            zeta=False,
+            prob=False,
+        )
+
+        # 4. Repeat whole experiment ~1/prob times
+        if probability and not RR(probability).is_NaN():
+            ret = ret.repeat(
+                prob_amplify(success_probability, probability),
+            )
+        else:
+            return Cost(rop=oo)
+
+        return ret
+
 
 # TODO: Remove below LWE scaffolding once full SIS implementation is in place
-
 class PrimalUSVP:
     """
     Estimate cost of solving LWE via uSVP reduction.
