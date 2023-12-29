@@ -43,6 +43,7 @@ class LatticeSIS:
         d=None,
         red_cost_model=red_cost_model_default,
         log_level=None,
+        **kwds,
     ):
         # Check for triviality
         if params.length_bound >= params.q:
@@ -70,6 +71,7 @@ class LatticeSIS:
         d=None,
         red_cost_model=red_cost_model_default,
         log_level=None,
+        **kwds,
     ):
         """
         Computes the cost of the attack on SIS using an infinity norm bound.
@@ -129,7 +131,6 @@ class LatticeSIS:
         ret["prob"] = probability
 
         ret.register_impermanent(
-            {"|S|": False},
             rop=True,
             red=True,
             sieve=True,
@@ -163,20 +164,20 @@ class LatticeSIS:
         This function optimizes costs for a fixed guessing dimension ζ.
         """
 
-        # step 0. establish baseline
-        # TODO Make a reasonable baseline cost estimate. Euclidean worst case?
-        # baseline_cost = primal_usvp(
-        #     params,
-        #     red_shape_model=red_shape_model,
-        #     red_cost_model=red_cost_model,
-        #     optimize_d=False,
-        #     log_level=log_level + 1,
-        #     **kwds,
-        # )
-        Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
+        # step 0. establish baseline cost using worst case euclidian norm estimate
+        params_baseline = params.updated(norm=2)
+        baseline_cost = lattice_sis(
+            params_baseline,
+            red_shape_model=red_shape_model,
+            red_cost_model=red_cost_model,
+            log_level=log_level + 1,
+            **kwds,
+        )
+
+        Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
-            cls.cost,
+            cls.cost_infinity,
             params=params,
             zeta=zeta,
             simulator=red_shape_model,
@@ -195,11 +196,110 @@ class LatticeSIS:
                 it.update(f(beta))
             cost = it.y
 
-        Logging.log("bdd", log_level, f"H1: {cost!r}")
+        Logging.log("sis_infinity", log_level, f"H1: {cost!r}")
 
         if cost is None:
             return Cost(rop=oo)
         return cost
+
+    def __call__(
+        self,
+        params: SISParameters,
+        zeta: int = None,
+        red_shape_model=red_shape_model_default,
+        red_cost_model=red_cost_model_default,
+        log_level=1,
+        **kwds,
+    ):
+        """
+        Estimate the cost of attacking SIS using lattice reduction
+
+        :param params: SIS parameters.
+        :param zeta: Number of coefficients to set to 0 (ignore)
+        :return: A cost dictionary
+
+        The returned cost dictionary has the following entries:
+
+        - ``rop``: Total number of word operations (≈ CPU cycles).
+        - ``red``: Number of word operations in lattice reduction.
+        - ``δ``: Root-Hermite factor targeted by lattice reduction.
+        - ``β``: BKZ block size.
+        - ``η``: Dimension of the final BDD call.
+        - ``ζ``: Number of ignored coordinates.
+        - ``|S|``: Guessing search space.
+        - ``prob``: Probability of success in guessing.
+        - ``repeat``: How often to repeat the attack.
+        - ``d``: Lattice dimension.
+
+        - TODO Put description of different attacks here.
+
+        EXAMPLES::
+
+            >>> from estimator import *
+
+        TESTS:
+
+        We test a trivial instance::
+
+
+        """
+
+        if params.norm == 2:
+            tag = "euclidian"
+        elif params.norm == oo:
+            tag = "infinity"
+        else:
+            raise NotImplementedError("SIS attack estimation currently only supports euclidian and infinity norms")
+
+        if tag == "infinity":
+            red_shape_model = simulator_normalize(red_shape_model)
+
+            f = partial(
+                self.cost_zeta,
+                params=params,
+                red_shape_model=red_shape_model,
+                red_cost_model=red_cost_model,
+                log_level=log_level + 1,
+            )
+
+            if zeta is None:
+                with local_minimum(0, params.n, log_level=log_level) as it:
+                    for zeta in it:
+                        it.update(
+                            f(
+                                zeta=zeta,
+                                **kwds,
+                            )
+                        )
+                # TODO: this should not be required
+                cost = min(it.y, f(0, **kwds))
+            else:
+                cost = f(zeta=zeta)
+
+        else:
+            cost = self.cost_euclidian(
+                params=params,
+                red_cost_model=red_cost_model,
+                log_level=log_level + 1,
+            )
+
+        cost["tag"] = tag
+        cost["problem"] = params
+
+        if tag == "euclidian":
+            for k in ("sieve", "prob", "repetitions", "zeta"):
+                try:
+                    del cost[k]
+                except KeyError:
+                    pass
+
+        return cost.sanity_check()
+
+    __name__ = "lattice_sis"
+
+
+lattice_sis = LatticeSIS
+
 
 # TODO: Remove below LWE scaffolding once full SIS implementation is in place
 class PrimalUSVP:
