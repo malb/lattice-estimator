@@ -7,7 +7,6 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 """
 from functools import partial
 
-from math import prod
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
 from .reduction import delta as deltaf
 from .reduction import cost as costf
@@ -17,7 +16,7 @@ from .lwe_parameters import LWEParameters
 from .sis_parameters import SISParameters
 from .simulator import normalize as simulator_normalize
 from .prob import drop as prob_drop
-from .prob import build_Gaussian_law
+from .prob import gaussian_cdf
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
 from .prob import mitm_babai_probability
@@ -27,7 +26,7 @@ from .conf import red_shape_model as red_shape_model_default
 from .conf import red_simulator as red_simulator_default
 
 
-class PrimalSIS:
+class LatticeSIS:
     """
     Estimate cost of solving SIS via lattice reduction.
     """
@@ -53,7 +52,7 @@ class PrimalSIS:
             d = params.m
 
         # First solve for root hermite factor
-        delta = PrimalSIS._solve_for_delta_euclidian(params, d)
+        delta = LatticeSIS._solve_for_delta_euclidian(params, d)
 
         # Then derive beta from the cost model
         beta = red_cost_model.beta(delta)
@@ -108,17 +107,15 @@ class PrimalSIS:
         # Calculate the length of the short vectors obtained using gaussian heuristic.
         # First calculate the basis shape for BKZ-beta preprocessing.
 
-        # TODO redo the below calculation by first calculating log volume for numerical stability.
         # Use basis shape to calculate the volume of the sublattice spanned by the first sieve_dim vectors
-        vol = RR(prod([sqrt(r_) for r_ in r[:sieve_dim]]))
-        gh = deltaf(sieve_dim)**(sieve_dim - 1)
-        vector_length = rho * gh * vol**(1/sieve_dim)
+        log_vol = RR(sum([log(r_, 2) / 2 for r_ in r[:sieve_dim]]))
+        log_gh = log(deltaf(sieve_dim), 2)*(sieve_dim - 1)
+        vector_length = rho * 2**(log_gh + log_vol*(1/sieve_dim))
 
         # Use vector length to determine success probability of the attack. Assume each coordinate is Gaussian
         sigma = vector_length / sqrt(d_)
-        D = build_Gaussian_law(sigma, params.q//2)
+        prob_gaussian = 1 - 2*gaussian_cdf(0, sigma, -params.q//2)
 
-        prob_gaussian = sum([D[i] for i in range(-params.length_bound, params.length_bound + 1)])
         probability *= prob_gaussian
 
         ret = Cost()
@@ -151,6 +148,58 @@ class PrimalSIS:
 
         return ret
 
+    @classmethod
+    def cost_zeta(
+        cls,
+        zeta: int,
+        params: SISParameters,
+        red_shape_model=red_simulator_default,
+        red_cost_model=red_cost_model_default,
+        d=None,
+        log_level=5,
+        **kwds,
+    ):
+        """
+        This function optimizes costs for a fixed guessing dimension ζ.
+        """
+
+        # step 0. establish baseline
+        # TODO Make a reasonable baseline cost estimate. Euclidean worst case?
+        # baseline_cost = primal_usvp(
+        #     params,
+        #     red_shape_model=red_shape_model,
+        #     red_cost_model=red_cost_model,
+        #     optimize_d=False,
+        #     log_level=log_level + 1,
+        #     **kwds,
+        # )
+        Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
+
+        f = partial(
+            cls.cost,
+            params=params,
+            zeta=zeta,
+            simulator=red_shape_model,
+            red_cost_model=red_cost_model,
+            d=d,
+            **kwds,
+        )
+
+        # step 1. optimize β
+        with local_minimum(
+            40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
+        ) as it:
+            for beta in it:
+                it.update(f(beta))
+            for beta in it.neighborhood:
+                it.update(f(beta))
+            cost = it.y
+
+        Logging.log("bdd", log_level, f"H1: {cost!r}")
+
+        if cost is None:
+            return Cost(rop=oo)
+        return cost
 
 # TODO: Remove below LWE scaffolding once full SIS implementation is in place
 class PrimalUSVP:
