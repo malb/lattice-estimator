@@ -41,3 +41,6 @@ class SISParameters:
         d = dict(self.__dict__)
         d.update(kwds)
         return SISParameters(**d)
+
+    def __hash__(self):
+        return hash((self.n, self.q, self.length_bound, self.norm, self.m, self.tag))

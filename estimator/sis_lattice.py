@@ -9,6 +9,7 @@ from functools import partial
 
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
 from .reduction import delta as deltaf
+from .reduction import beta as betaf
 from .reduction import cost as costf
 from .util import local_minimum
 from .cost import Cost
@@ -26,7 +27,7 @@ from .conf import red_shape_model as red_shape_model_default
 from .conf import red_simulator as red_simulator_default
 
 
-class LatticeSIS:
+class SISLattice:
     """
     Estimate cost of solving SIS via lattice reduction.
     """
@@ -53,18 +54,18 @@ class LatticeSIS:
             d = params.m
 
         # First solve for root hermite factor
-        delta = LatticeSIS._solve_for_delta_euclidian(params, d)
+        delta = SISLattice._solve_for_delta_euclidian(params, d)
 
-        # Then derive beta from the cost model
-        beta = red_cost_model.beta(delta)
+        # Then derive beta from the cost model(s)
+        beta = betaf(delta)
         lb = min(RR(sqrt(params.n * log(params.q))), RR(sqrt(d) * params.q**(params.n/d)))
         return costf(red_cost_model, beta, d, predicate=params.length_bound > lb)
 
     @staticmethod
     @cached_function
     def cost_infinity(
-        params: SISParameters,
         beta: int,
+        params: SISParameters,
         simulator,
         zeta: int = 0,
         success_probability: float = 0.99,
@@ -166,7 +167,7 @@ class LatticeSIS:
 
         # step 0. establish baseline cost using worst case euclidian norm estimate
         params_baseline = params.updated(norm=2)
-        baseline_cost = lattice_sis(
+        baseline_cost = sis_lattice(
             params_baseline,
             red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
@@ -295,10 +296,10 @@ class LatticeSIS:
 
         return cost.sanity_check()
 
-    __name__ = "lattice_sis"
+    __name__ = "sis_lattice"
 
 
-lattice_sis = LatticeSIS
+sis_lattice = SISLattice()
 
 
 # TODO: Remove below LWE scaffolding once full SIS implementation is in place
