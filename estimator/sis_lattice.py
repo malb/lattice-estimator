@@ -94,32 +94,48 @@ class SISLattice:
         if d is None:
             d = params.m
 
-        if RR(sqrt(d)) * params.length_bound <= params.q:
-            d_ = d - zeta
-            r = simulator(d=d_, n=params.n - zeta, q=params.q, beta=beta, xi=1, tau=False)
-            probability = 1.0
-
-        else:
-            raise NotImplementedError("Dilithium style analysis not yet complete")
+        # Calculate the basis shape to aid in both styles of analysis
+        d_ = d - zeta
+        r = simulator(d=d_, n=params.n - zeta, q=params.q, beta=beta, xi=1, tau=False)
 
         # Cost the sampling of short vectors.
-        num_short_vectors = ceil(sqrt(4/3)**beta)
-        rho, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d_, num_short_vectors)
+        rho, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d_, RR(sqrt(4/3)**beta))
         bkz_cost = costf(red_cost_model, beta, d_)
 
+        if RR(sqrt(d)) * params.length_bound <= params.q:  # Non-dilithium style analysis
+            # Calculate expected vector length using approximation factor on the shortest vector from BKZ
+            vector_length = rho * sqrt(r[0])
+            # Find probability that all coordinates meet norm bound
+            sigma = vector_length / sqrt(d_)
+            trial_prob = (1 - 2*gaussian_cdf(0, sigma, -params.length_bound))**d_
+
+        else:  # Dilithium style analysis
+            # Find first non-q-vector in r
+            idx_start = next(i for i, r_ in enumerate(r) if sqrt(r_) < params.q)
+            # Find first 0 length graham-schmidt vector in r (Zone III)
+            idx_end = next((i - 1 for i, r_ in enumerate(r) if sqrt(r_) == 0), d_ - 1)
+
+            vector_length = sqrt(r[idx_start])
+            sigma = vector_length / sqrt(idx_end - idx_start + 1)
+
+            trial_prob = (1 - 2*gaussian_cdf(0, sigma, -params.length_bound))**(idx_end - idx_start + 1)
+            trial_prob *= ((2*params.length_bound + 1)/params.q)**(idx_start)
+            print(idx_start, idx_end)
+
+        probability = RR(1 - (1 - trial_prob)**N)
+        print(f"Trial prob: {trial_prob}, total success: {probability}, N: {N}")
         # Calculate the length of the short vectors obtained using gaussian heuristic.
         # First calculate the basis shape for BKZ-beta preprocessing.
 
         # Use basis shape to calculate the volume of the sublattice spanned by the first sieve_dim vectors
-        log_vol = RR(sum([log(r_, 2) / 2 for r_ in r[:sieve_dim]]))
-        log_gh = log(deltaf(sieve_dim), 2)*(sieve_dim - 1)
-        vector_length = rho * 2**(log_gh + log_vol*(1/sieve_dim))
+        # log_vol = RR(sum([log(r_, 2) / 2 for r_ in r[:sieve_dim]]))
+        # log_gh = log(deltaf(sieve_dim), 2)*(sieve_dim - 1)
+        # vector_length = rho * 2**(log_gh + log_vol*(1/sieve_dim))
 
-        # Use vector length to determine success probability of the attack. Assume each coordinate is Gaussian
-        sigma = vector_length / sqrt(d_)
-        prob_gaussian = 1 - 2*gaussian_cdf(0, sigma, -params.q//2)
-
-        probability *= prob_gaussian
+        # # Use vector length to determine success probability of the attack. Assume each coordinate is Gaussian
+        # sigma = vector_length / sqrt(d_)
+        # prob_gaussian = 1 - (2*gaussian_cdf(0, sigma, -params.q//2))**N
+        # probability *= prob_gaussian
 
         ret = Cost()
         ret["rop"] = cost_red
@@ -175,6 +191,7 @@ class SISLattice:
             **kwds,
         )
 
+        print(repr(baseline_cost))
         Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
@@ -192,13 +209,13 @@ class SISLattice:
             40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
         ) as it:
             for beta in it:
+                print(f"{beta}")
                 it.update(f(beta))
             for beta in it.neighborhood:
                 it.update(f(beta))
             cost = it.y
 
         Logging.log("sis_infinity", log_level, f"H1: {cost!r}")
-
         if cost is None:
             return Cost(rop=oo)
         return cost
