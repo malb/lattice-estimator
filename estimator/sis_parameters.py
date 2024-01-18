@@ -25,7 +25,7 @@ class SISParameters:
 
     @property
     def _homogeneous(self):
-        return False
+        return True
 
     def updated(self, **kwds):  # TODO Add docstrings for SIS scheme parameters based on Dilithium.
         """

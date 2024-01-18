@@ -20,7 +20,7 @@ The last row is optional.
 from sage.all import RR, log, line, cached_function, pi, exp
 
 
-def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
+def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     """
     Reduced lattice shape calling ``f``.
 
@@ -31,12 +31,18 @@ def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
     :param xi: Scaling factor ξ for identity part.
     :param tau: Kannan factor τ.
     :param dual: perform reduction on the dual.
+    :param ignore_qary: Ignore the special q-ary structure (forget q vectors)
 
     """
+    from random import shuffle
+
     if not tau:
         r = [q**2] * (d - n) + [xi**2] * n
     else:
         r = [q**2] * (d - n - 1) + [xi**2] * n + [tau**2]
+
+    if ignore_qary:
+        r = GSA(d, n, q, 2, xi=xi, tau=tau)
 
     if dual:
         # 1. reverse and reflect the basis (go to dual)
@@ -50,7 +56,7 @@ def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False):
         return f(r, beta)
 
 
-def CN11(d, n, q, beta, xi=1, tau=1, dual=False):
+def CN11(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     """
     Reduced lattice shape using simulator from [AC:CheNgu11]_
 
@@ -61,6 +67,7 @@ def CN11(d, n, q, beta, xi=1, tau=1, dual=False):
     :param xi: Scaling factor ξ for identity part.
     :param tau: Kannan factor τ.
     :param dual: perform reduction on the dual.
+    :param ignore_qary: Ignore the special q-ary structure (forget q vectors)
     :returns: squared Gram-Schmidt norms
 
     """
@@ -71,10 +78,10 @@ def CN11(d, n, q, beta, xi=1, tau=1, dual=False):
     def f(r, beta):
         return simulate(r, BKZ.EasyParam(beta))[0]
 
-    return qary_simulator(f=f, d=d, n=n, q=q, beta=beta, xi=xi, tau=tau, dual=dual)
+    return qary_simulator(f=f, d=d, n=n, q=q, beta=beta, xi=xi, tau=tau, dual=dual, ignore_qary=ignore_qary)
 
 
-def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
+def GSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     """
     Reduced lattice shape following the Geometric Series Assumption [Schnorr03]_
 
@@ -86,6 +93,7 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     :param tau: Kannan factor τ.
     :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
            applying it to the primal.
+    :param ignore_qary: ignored, as GSA already disregards qary structure
     :returns: squared Gram-Schmidt norms
 
     """
@@ -102,12 +110,12 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     return r
 
 
-def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
+def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     from math import lgamma
     from .util import gh_constant, small_slope_t8
     """
     Reduced lattice Z-shape following the Geometric Series Assumption as specified in
-    NTRU fatrigue [DucWoe21]
+    NTRU fatrigue [DucWoe21]_
     :param d: Lattice dimension.
     :param n: The number of `q` vectors is `d-n`.
     :param q: Modulus `q`
@@ -115,6 +123,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     :param xi: Scaling factor ξ for identity part.
     :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
            applying it to the primal.
+    :param ignore_qary: Ignore the special q-ary structure (forget q vectors)
     :returns: Squared Gram-Schmidt norms
 
     EXAMPLES:
@@ -189,18 +198,24 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
     if not tau:
         L_log = (d - n)*[RR(log(q))] + n * [RR(log(xi))]
+        num_q_vec = (d - n)
+
     else:
-        L_log = (d - n)*[RR(log(q))] + n * [RR(log(xi))] + [RR(log(tau))]
+        L_log = (d - n - 1)*[RR(log(q))] + n * [RR(log(xi))] + [RR(log(tau))]
+        num_q_vec = (d - n - 1)
+
+    if ignore_qary:
+        raise NotImplementedError("Z-Shape explicitly accounts for q-ary structure.")
 
     slope_ = slope(beta)
     diff = slope(beta)/2.
 
-    for i in range(d-n):
+    for i in range(num_q_vec):
         if diff > (RR(log(q)) - RR(log(xi)))/2.:
             break
 
-        low = (d - n)-i-1
-        high = (d - n) + i
+        low = (num_q_vec)-i-1
+        high = (num_q_vec) + i
         if low >= 0:
             L_log[low] = (RR(log(q)) + RR(log(xi)))/2. + diff
 
@@ -214,6 +229,62 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     return L
 
 
+def LGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
+    """
+    Reduced lattice shape following the Z-shape Geometric Series Assumption with basis
+    rerandomization. Results in BKZ 'forgetting' the q-vectors []_
+
+    :param d: Lattice dimension.
+    :param n: The number of `q` vectors is `d-n-1`.
+    :param q: Modulus `q`
+    :param beta: Block size β.
+    :param xi: Scaling factor ξ for identity part.
+    :param tau: Kannan factor τ.
+    :param dual: ignored, since LGSA is self-dual: applying the GSA to the dual is equivalent to
+           applying it to the primal.
+    :param ignore_qary: ignored, as LGSA already disregards qary structure
+    :returns: squared Gram-Schmidt norms
+
+    """
+    from .reduction import delta as deltaf
+
+    if not tau:
+        log_vol = RR((d - n)*log(q, 2) + n*log(xi, 2))
+        r_log = d*[RR(log(xi, 2))]
+        profile_log_vol = d*RR(log(xi, 2))
+
+    else:
+        log_vol = RR((d - n - 1)*log(q, 2) + n*log(xi, 2) + log(tau, 2))
+        r_log = (d - 1)*[RR(log(xi, 2))] + [RR(log(tau, 2))]
+        profile_log_vol = RR((d - 1)*log(xi, 2) + log(tau, 2))
+
+    slope = -2 * RR(log(deltaf(beta), 2))
+    log_vec_len = 0
+    for i in range(d - 1, -1, -1):
+        log_vec_len -= slope
+        profile_log_vol += log_vec_len
+        r_log[i] += log_vec_len
+
+        if profile_log_vol > log_vol:
+            break
+
+    # Rearrange r to have proper profile shape
+    num_gsa_vec = d - i
+    r_log = sorted(r_log, reverse=True)
+
+    profile_log_vol = sum(r_log)
+    diff = profile_log_vol - log_vol
+
+    for i in range(num_gsa_vec):  # Small shift of the GSA sequence to fix volume
+        r_log[i] -= diff / num_gsa_vec
+
+    profile_log_vol = sum(r_log)
+    assert abs(profile_log_vol/log_vol - 1) < 1e-6  # Sanity check the volume
+
+    r = [2**(2 * r_) for r_ in r_log]
+    return r
+
+
 def normalize(name):
     if str(name).upper() == "CN11":
         return CN11
@@ -223,6 +294,9 @@ def normalize(name):
 
     if str(name).upper() == "ZGSA":
         return ZGSA
+
+    if str(name).upper() == "LGSA":
+        return LGSA
 
     return name
 

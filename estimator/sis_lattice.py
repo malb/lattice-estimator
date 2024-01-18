@@ -33,9 +33,11 @@ class SISLattice:
     """
     @staticmethod
     def _solve_for_delta_euclidian(params, d):
-        root_volume = params.q**(params.n/d)
-        delta = (params.length_bound / root_volume)**(1/(d - 1))
-        return delta
+        # root_volume = params.q**(params.n/d)
+        # delta = (params.length_bound / root_volume)**(1/(d - 1))
+        root_volume = (params.n/d) * log(params.q, 2)
+        log_delta = (1/(d - 1)) * (log(params.length_bound, 2) - root_volume)
+        return RR(2**log_delta)
 
     @staticmethod
     @cached_function
@@ -55,11 +57,17 @@ class SISLattice:
 
         # First solve for root hermite factor
         delta = SISLattice._solve_for_delta_euclidian(params, d)
-
         # Then derive beta from the cost model(s)
-        beta = betaf(delta)
+        if delta >= 1 and betaf(delta) <= d:
+            beta = betaf(delta)
+            reduction_possible = True
+
+        else:
+            beta = d
+            reduction_possible = False
+
         lb = min(RR(sqrt(params.n * log(params.q))), RR(sqrt(d) * params.q**(params.n/d)))
-        return costf(red_cost_model, beta, d, predicate=params.length_bound > lb)
+        return costf(red_cost_model, beta, d, predicate=params.length_bound > lb and reduction_possible)
 
     @staticmethod
     @cached_function
@@ -68,6 +76,7 @@ class SISLattice:
         params: SISParameters,
         simulator,
         zeta: int = 0,
+        ignore_qary: bool = False,
         success_probability: float = 0.99,
         d=None,
         red_cost_model=red_cost_model_default,
@@ -96,34 +105,47 @@ class SISLattice:
 
         # Calculate the basis shape to aid in both styles of analysis
         d_ = d - zeta
-        r = simulator(d=d_, n=params.n - zeta, q=params.q, beta=beta, xi=1, tau=False)
+
+        r = simulator(d=d_, n=d_ - params.n, q=params.q, beta=beta, xi=1, tau=False, ignore_qary=ignore_qary)
 
         # Cost the sampling of short vectors.
-        rho, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d_, RR(sqrt(4/3)**beta))
+        rho, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d_)
         bkz_cost = costf(red_cost_model, beta, d_)
 
-        if RR(sqrt(d)) * params.length_bound <= params.q:  # Non-dilithium style analysis
+        if RR(sqrt(d)) * params.length_bound <= params.q or ignore_qary:  # Non-dilithium style analysis
             # Calculate expected vector length using approximation factor on the shortest vector from BKZ
             vector_length = rho * sqrt(r[0])
             # Find probability that all coordinates meet norm bound
             sigma = vector_length / sqrt(d_)
-            trial_prob = (1 - 2*gaussian_cdf(0, sigma, -params.length_bound))**d_
+            log_trial_prob = RR(d_*log(1 - 2*gaussian_cdf(0, sigma, -params.length_bound), 2))
 
         else:  # Dilithium style analysis
             # Find first non-q-vector in r
-            idx_start = next(i for i, r_ in enumerate(r) if sqrt(r_) < params.q)
-            # Find first 0 length graham-schmidt vector in r (Zone III)
-            idx_end = next((i - 1 for i, r_ in enumerate(r) if sqrt(r_) == 0), d_ - 1)
+            if sqrt(r[0]) - params.q < 1e-8:  # q-vectors exist
+                idx_start = next(i for i, r_ in enumerate(r) if r_ < r[0])
+
+            else:
+                idx_start = 0
+
+            print(RR(sqrt(r[idx_start])), RR(sqrt(r[idx_start - 1])))
+
+            if r[-1] - 1 < 1e-8:  # 1-vectors exist
+                # Find first 1 length graham-schmidt vector in r (Zone III)
+                idx_end = next((i - 1 for i, r_ in enumerate(r) if sqrt(r_) <= 1 + 1e-8), d_ - 1)
+
+            else:
+                idx_end = d_ - 1
 
             vector_length = sqrt(r[idx_start])
-            sigma = vector_length / sqrt(idx_end - idx_start + 1)
+            gaussian_coords = max(idx_end - idx_start + 1, sieve_dim)
+            sigma = vector_length / sqrt(gaussian_coords)
 
-            trial_prob = (1 - 2*gaussian_cdf(0, sigma, -params.length_bound))**(idx_end - idx_start + 1)
-            trial_prob *= ((2*params.length_bound + 1)/params.q)**(idx_start)
+            log_trial_prob = RR(log(1 - 2*gaussian_cdf(0, sigma, -params.length_bound), 2)*(gaussian_coords))
+            log_trial_prob += RR(log((2*params.length_bound + 1)/params.q, 2)*(idx_start))
             print(idx_start, idx_end)
 
-        probability = RR(1 - (1 - trial_prob)**N)
-        print(f"Trial prob: {trial_prob}, total success: {probability}, N: {N}")
+        probability = 2**min(0, log_trial_prob + RR(log(N, 2)))  # expected success probability
+        print(f"Trial prob: {2**log_trial_prob}, total success: {probability}, N: {N}")
         # Calculate the length of the short vectors obtained using gaussian heuristic.
         # First calculate the basis shape for BKZ-beta preprocessing.
 
@@ -171,6 +193,7 @@ class SISLattice:
         cls,
         zeta: int,
         params: SISParameters,
+        ignore_qary: bool = False,
         red_shape_model=red_simulator_default,
         red_cost_model=red_cost_model_default,
         d=None,
@@ -180,24 +203,24 @@ class SISLattice:
         """
         This function optimizes costs for a fixed guessing dimension ζ.
         """
-
         # step 0. establish baseline cost using worst case euclidian norm estimate
         params_baseline = params.updated(norm=2)
         baseline_cost = sis_lattice(
             params_baseline,
+            ignore_qary=ignore_qary,
             red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
             log_level=log_level + 1,
             **kwds,
         )
 
-        print(repr(baseline_cost))
         Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
             cls.cost_infinity,
             params=params,
             zeta=zeta,
+            ignore_qary=ignore_qary,
             simulator=red_shape_model,
             red_cost_model=red_cost_model,
             d=d,
@@ -209,7 +232,6 @@ class SISLattice:
             40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
         ) as it:
             for beta in it:
-                print(f"{beta}")
                 it.update(f(beta))
             for beta in it.neighborhood:
                 it.update(f(beta))
@@ -224,6 +246,7 @@ class SISLattice:
         self,
         params: SISParameters,
         zeta: int = None,
+        ignore_qary: bool = False,
         red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         log_level=1,
@@ -275,6 +298,7 @@ class SISLattice:
             f = partial(
                 self.cost_zeta,
                 params=params,
+                ignore_qary=ignore_qary,
                 red_shape_model=red_shape_model,
                 red_cost_model=red_cost_model,
                 log_level=log_level + 1,
