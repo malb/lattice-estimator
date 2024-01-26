@@ -140,4 +140,4 @@ Acknowledgements
 
 This project was supported through the European Union PROMETHEUS project (Horizon 2020 Research and
 Innovation Program, grant 780701), EPSRC grant EP/P009417/1 and EPSRC grant EP/S020330/1, by 
-`Zama <https://zama.ai/>`__ and by `SandboxAQ <https://sandboxaq.com`__.
+`Zama <https://zama.ai/>`__ and by `SandboxAQ <https://sandboxaq.com>`__.
