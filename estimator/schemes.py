@@ -1,6 +1,7 @@
 from .nd import NoiseDistribution, stddevf
 from .lwe_parameters import LWEParameters
 from .ntru_parameters import NTRUParameters
+from .sis_parameters import SISParameters
 
 # NIST PQC Round 3 Finalists
 
@@ -78,6 +79,11 @@ FireSaber = LWEParameters(
     tag="FireSaber",
 )
 
+#
+# NTRU
+#
+#
+
 NTRUHPS2048509Enc = NTRUParameters(
     n=508,
     q=2048,
@@ -112,6 +118,67 @@ NTRUHRSS701Enc = NTRUParameters(
     Xe=NoiseDistribution.UniformMod(3),
     m=700,
     tag="NTRUHRSS701",
+)
+
+#
+# Dilithium
+#
+#
+# https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf
+# Table 1, Page 8
+
+Dilithium2_MSIS_WkUnf = SISParameters(
+    n=256*4,
+    q=8380417,
+    length_bound=350209,
+    m=256*9,
+    norm="linf",
+    tag="Dilithium2_MSIS_WkUnf"
+)
+
+Dilithium2_MSIS_StrUnf = SISParameters(
+    n=256*4,
+    q=8380417,
+    length_bound=380929,
+    m=256*9,
+    norm="linf",
+    tag="Dilithium2_MSIS_StrUnf"
+)
+
+Dilithium3_MSIS_WkUnf = SISParameters(
+    n=256*6,
+    q=8380417,
+    length_bound=724481,
+    m=256*6*2,
+    norm="linf",
+    tag="Dilithium3_MSIS_WkUnf"
+)
+
+Dilithium3_MSIS_StrUnf = SISParameters(
+    n=256*6,
+    q=8380417,
+    length_bound=1048576,
+    m=256*6*2,
+    norm="linf",
+    tag="Dilithium3_MSIS_StrUnf"
+)
+
+Dilithium5_MSIS_WkUnf = SISParameters(
+    n=256*8,
+    q=8380417,
+    length_bound=769537,
+    m=256*8*2,
+    norm="linf",
+    tag="Dilithium5_MSIS_WkUnf"
+)
+
+Dilithium5_MSIS_StrUnf = SISParameters(
+    n=256*8,
+    q=8380417,
+    length_bound=1048576,
+    m=256*8*2,
+    norm="linf",
+    tag="Dilithium5_MSIS_StrUnf"
 )
 
 NISTPQC_R3 = (

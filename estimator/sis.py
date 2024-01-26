@@ -20,30 +20,27 @@ class Estimate:
         """
         This function makes the following somewhat routine assumptions:
 
-        - The ZGSA holds.
+        - The LGSA holds.
         - The Core-SVP model holds.
 
         This function furthermore assumes the following heuristics:
+        - None at the moment. May change as more algorithms are added.
 
-        - The primal hybrid attack only applies to sparse secrets.
-        - The dual hybrid MITM attack only applies to sparse secrets.
-        - The dense sublattice attack only applies to possibly overstretched parameters
-
-        :param params: NTRU parameters.
+        :param params: SIS parameters.
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
 
         EXAMPLE ::
 
             >>> from estimator import *
-            >>> _ = NTRU.estimate.rough(schemes.NTRUHPS2048509Enc)
-            usvp                 :: rop: ≈2^109.2, red: ≈2^109.2, δ: 1.004171, β: 374, d: 643, tag: usvp
+            >>> _ = SIS.estimate.rough(schemes.Dilithium2_MSIS_WkUnf)
+            lattice              :: rop: ≈2^123.5, red: ≈2^123.5, sieve: ≈2^-332.2, β: 423, η: 423, ζ: 1, d: 2303, ...
 
         """
         algorithms = {}
 
         # Only lattice attacks are supported on SIS for now
-        algorithms["lattice"] = partial(sis_lattice, red_cost_model=RC.ADPS16, red_shape_model="zgsa")
+        algorithms["lattice"] = partial(sis_lattice, red_cost_model=RC.ADPS16, red_shape_model="lgsa")
 
         res_raw = batch_estimate(
             params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
@@ -77,7 +74,7 @@ class Estimate:
         """
         Run all estimates.
 
-        :param params: NTRU parameters.
+        :param params: SIS parameters.
         :param red_cost_model: How to cost lattice reduction.
         :param red_shape_model: How to model the shape of a reduced basis (applies to primal attacks)
         :param deny_list: skip these algorithms
@@ -86,21 +83,17 @@ class Estimate:
         :param catch_exceptions: When an estimate fails, just print a warning.
 
         EXAMPLE ::
-
             >>> from estimator import *
-            >>> _ = NTRU.estimate(schemes.NTRUHRSS701Enc)
-            usvp                 :: rop: ≈2^162.1, red: ≈2^162.1, δ: 1.003557, β: 470, d: 1317, tag: usvp
-            bdd                  :: rop: ≈2^158.7, red: ≈2^157.7, svp: ≈2^157.7, β: 454, η: 489, d: 1306, tag: bdd
-            bdd_hybrid           :: rop: ≈2^158.7, red: ≈2^157.7, svp: ≈2^157.7, β: 454, η: 489, ζ: 0, |S|: 1, d: ...
-            bdd_mitm_hybrid      :: rop: ≈2^233.0, red: ≈2^232.1, svp: ≈2^232.0, β: 469, η: 2, ζ: 178, |S|: ...
+            >>> _ = SIS.estimate(schemes.Dilithium2_MSIS_StrUnf)
+            lattice              :: rop: ≈2^150.8, red: ≈2^149.6, sieve: ≈2^149.9, β: 421, η: 429, ζ: 0, d: 2304, ...
 
-            >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
-            >>> _ = NTRU.estimate(params, catch_exceptions=False)
-            usvp                 :: rop: ≈2^46.0, red: ≈2^46.0, δ: 1.011516, β: 59, d: 221, tag: usvp
-            dsd                  :: rop: ≈2^37.9, red: ≈2^37.9, δ: 1.013310, β: 31, d: 226, tag: dsd
-            bdd                  :: rop: ≈2^42.4, red: ≈2^41.0, svp: ≈2^41.8, β: 41, η: 70, d: 225, tag: bdd
-            bdd_hybrid           :: rop: ≈2^42.4, red: ≈2^41.0, svp: ≈2^41.8, β: 41, η: 70, ζ: 0, |S|: 1, d: 226, ...
-            bdd_mitm_hybrid      :: rop: ≈2^55.6, red: ≈2^54.7, svp: ≈2^54.6, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, ...
+            >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm="l2")
+            >>> _ = SIS.estimate(params)
+            lattice              :: rop: ≈2^89.7, red: ≈2^89.7, δ: 1.006095, β: 210, d: 862, tag: euclidian
+
+            >>> _ = SIS.estimate(params.updated(norm="linf"))
+            lattice              :: rop: ≈2^55.7, red: ≈2^54.8, sieve: ≈2^54.5, β: 83, η: 107, ζ: 112, d: 750, ...
+
         """
 
         algorithms = {}

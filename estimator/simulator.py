@@ -18,6 +18,7 @@ The last row is optional.
 """
 
 from sage.all import RR, log, line, cached_function, pi, exp
+from functools import partial
 
 
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
@@ -34,7 +35,6 @@ def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False)
     :param ignore_qary: Ignore the special q-ary structure (forget q vectors)
 
     """
-    from random import shuffle
 
     if not tau:
         r = [q**2] * (d - n) + [xi**2] * n
@@ -81,7 +81,7 @@ def CN11(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     return qary_simulator(f=f, d=d, n=n, q=q, beta=beta, xi=xi, tau=tau, dual=dual, ignore_qary=ignore_qary)
 
 
-def GSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
+def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     """
     Reduced lattice shape following the Geometric Series Assumption [Schnorr03]_
 
@@ -93,7 +93,6 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     :param tau: Kannan factor τ.
     :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
            applying it to the primal.
-    :param ignore_qary: ignored, as GSA already disregards qary structure
     :returns: squared Gram-Schmidt norms
 
     """
@@ -110,7 +109,7 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     return r
 
 
-def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
+def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     from math import lgamma
     from .util import gh_constant, small_slope_t8
     """
@@ -123,7 +122,6 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     :param xi: Scaling factor ξ for identity part.
     :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
            applying it to the primal.
-    :param ignore_qary: Ignore the special q-ary structure (forget q vectors)
     :returns: Squared Gram-Schmidt norms
 
     EXAMPLES:
@@ -204,9 +202,6 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
         L_log = (d - n - 1)*[RR(log(q))] + n * [RR(log(xi))] + [RR(log(tau))]
         num_q_vec = (d - n - 1)
 
-    if ignore_qary:
-        raise NotImplementedError("Z-Shape explicitly accounts for q-ary structure.")
-
     slope_ = slope(beta)
     diff = slope(beta)/2.
 
@@ -225,11 +220,11 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
         diff += slope_
 
     # Output basis profile as squared lengths, not ln(length)
-    L = [exp(2 * l_) for l_ in L_log]
+    L = [exp(2 * l_) for l_ in sorted(L_log, reverse=True)]
     return L
 
 
-def LGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
+def LGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     """
     Reduced lattice shape following the Z-shape Geometric Series Assumption with basis
     rerandomization. Results in BKZ 'forgetting' the q-vectors []_
@@ -242,7 +237,6 @@ def LGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     :param tau: Kannan factor τ.
     :param dual: ignored, since LGSA is self-dual: applying the GSA to the dual is equivalent to
            applying it to the primal.
-    :param ignore_qary: ignored, as LGSA already disregards qary structure
     :returns: squared Gram-Schmidt norms
 
     """
@@ -288,6 +282,9 @@ def LGSA(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
 def normalize(name):
     if str(name).upper() == "CN11":
         return CN11
+
+    if str(name).upper() == "CN11_GSA":
+        return partial(CN11, ignore_qary=True)
 
     if str(name).upper() == "GSA":
         return GSA

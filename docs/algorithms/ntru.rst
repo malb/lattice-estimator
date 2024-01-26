@@ -36,7 +36,7 @@ In addition to the primal secret key recovery attack, this module supports the d
 
 Of course we can also use the CN11 simulator for this attack as well::
 
-    NTRU.primal_dsd(params, red_dhape_model=Simulator.CN11)
+    NTRU.primal_dsd(params, red_shape_model=Simulator.CN11)
 
 **Note:** Currently, dense sublattice attack estimation is only supported if the distributions of ``f`` and ``g`` are equal. ``NTRU.primal_dsd()`` will return a ``NotImplementedError`` if this is not the case.
                         

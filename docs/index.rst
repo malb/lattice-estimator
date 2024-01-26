@@ -16,6 +16,7 @@ Lattice Estimator
    algorithms/lwe-bkw
    algorithms/gb
    algorithms/ntru
+   algorithms/sis-lattice
 
    contributing
 

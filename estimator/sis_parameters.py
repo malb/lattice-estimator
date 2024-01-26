@@ -12,10 +12,8 @@ class SISParameters:
     q: int  #: the modulus of the space Z/qZ of integers the LWE samples are in.
     length_bound: float  #: The length (in the norm specified below) of an admissable solution.
 
-    #: the length of the SIS preimage.
-    #: optionally `sage.all.oo` for allowing infinitely many samples.
-    m: int = None
-    norm: int = 2  #: The norm to use for measuring length (l-p norm) use oo for infinity norm.
+    m: int = None  #: The length of the SIS input. Set automatically if None
+    norm: str = "l2"  #: The norm to use for measuring length (l-p norm) use 'linf' for infinity norm.
 
     tag: str = None  #: a name for the patameter set
 
@@ -36,6 +34,10 @@ class SISParameters:
         EXAMPLE::
 
             >>> from estimator import *
+            >>> schemes.Dilithium3_MSIS_WkUnf
+            SISParameters(n=1536, q=8380417, length_bound=724481, m=3072, norm='linf', tag='Dilithium3_MSIS_WkUnf')
+            >>> schemes.Dilithium3_MSIS_WkUnf.updated(m=4096)
+            SISParameters(n=1536, q=8380417, length_bound=724481, m=4096, norm='linf', tag='Dilithium3_MSIS_WkUnf')
 
         """
         d = dict(self.__dict__)
