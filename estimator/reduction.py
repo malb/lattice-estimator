@@ -397,7 +397,6 @@ class ReductionCost:
 
 
 class BDGL16(ReductionCost):
-
     __name__ = "BDGL16"
     short_vectors = ReductionCost._short_vectors_sieve
 
@@ -464,7 +463,6 @@ class BDGL16(ReductionCost):
 
 
 class LaaMosPol14(ReductionCost):
-
     __name__ = "LaaMosPol14"
     short_vectors = ReductionCost._short_vectors_sieve
 
@@ -490,7 +488,6 @@ class LaaMosPol14(ReductionCost):
 
 
 class CheNgu12(ReductionCost):
-
     __name__ = "CheNgu12"
 
     def __call__(self, beta, d, B=None):
@@ -540,7 +537,6 @@ class CheNgu12(ReductionCost):
 
 
 class ABFKSW20(ReductionCost):
-
     __name__ = "ABFKSW20"
 
     def __call__(self, beta, d, B=None):
@@ -570,7 +566,6 @@ class ABFKSW20(ReductionCost):
 
 
 class ABLR21(ReductionCost):
-
     __name__ = "ABLR21"
 
     def __call__(self, beta, d, B=None):
@@ -600,7 +595,6 @@ class ABLR21(ReductionCost):
 
 
 class ADPS16(ReductionCost):
-
     __name__ = "ADPS16"
     short_vectors = ReductionCost._short_vectors_sieve
 
@@ -643,7 +637,6 @@ class ADPS16(ReductionCost):
 
 
 class Kyber(ReductionCost):
-
     __name__ = "Kyber"
 
     # These are not asymptotic expressions but compress the data in [AC:AGPS20]_ which covers up to
@@ -805,7 +798,6 @@ class Kyber(ReductionCost):
 
 
 class GJ21(Kyber):
-
     __name__ = "GJ21"
 
     def short_vectors(self, beta, d, N=None, preprocess=True, B=None, C=5.46, sieve_dim=None):
@@ -855,7 +847,19 @@ class GJ21(Kyber):
                     d, floor(beta_ + log((d - beta) * C, 2) / self.NN_AGPS[self.nn]["a"])
                 )
 
-        # MATZOV, p.18
+        # MATZOV, p.18 (they call the slope δ_β, we call it α_β)
+        # gh(β) ≈ √(β/2πe)
+        # α_β ≈ (β/2πe)^(1/(β-1))
+        # λ_1' = gh(sieve_dim) ⋅ α_β^{(d-sieve_dim)/2} ⋅ vol(Λ)^{1/d}
+        #      = α_{sieve_dim}^((sieve_dim-1)/2)  ⋅ α_β^{(d-sieve_dim)/2} ⋅ vol(Λ)^{1/d}
+        # shortest vector in BKZ-β reduced basis
+        # λ_1 =  α_β^{(d-1)/2} ⋅ vol(Λ)^{1/d}
+        #      = α_β^((sieve_dim-1)/2)  ⋅ α_β^{(d-sieve_dim)/2} ⋅ vol(Λ)^{1/d}
+        # λ_1'/λ_1  = α_{sieve_dim}^((sieve_dim-1)/2)  ⋅ α_β^{(d-sieve_dim)/2} ⋅ vol(Λ)^{1/d}
+        #           / α_{β}^((sieve_dim-1)/2)          ⋅ α_β^{(d-sieve_dim)/2} ⋅ vol(Λ)^{1/d}
+        #           = α_{sieve_dim}^((sieve_dim-1)/2) / α_{β}^((sieve_dim-1)/2)
+        #           ≈ δ_{sieve_dim}^(sieve_dim-1) / δ_{β}^(sieve_dim-1)
+
         rho = sqrt(4 / 3.0) * RR(
             self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim)
         )
