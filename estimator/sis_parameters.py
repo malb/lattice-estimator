@@ -35,9 +35,9 @@ class SISParameters:
 
             >>> from estimator import *
             >>> schemes.Dilithium3_MSIS_WkUnf
-            SISParameters(n=1536, q=8380417, length_bound=724481, m=3072, norm='linf', tag='Dilithium3_MSIS_WkUnf')
+            SISParameters(n=1536, q=8380417, length_bound=724481, m=3072, norm=+Infinity, tag='Dilithium3_MSIS_WkUnf')
             >>> schemes.Dilithium3_MSIS_WkUnf.updated(m=4096)
-            SISParameters(n=1536, q=8380417, length_bound=724481, m=4096, norm='linf', tag='Dilithium3_MSIS_WkUnf')
+            SISParameters(n=1536, q=8380417, length_bound=724481, m=4096, norm=+Infinity, tag='Dilithium3_MSIS_WkUnf')
 
         """
         d = dict(self.__dict__)

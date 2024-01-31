@@ -271,7 +271,7 @@ def LGSA(d, n, q, beta, xi=1, tau=1, dual=False):
         >>> print(["{0:0.2f}".format(RR(log(r_ , 2))) for r_ in LGSA(d, n, q, beta, xi, tau)])
         ['4.82', '4.69', '4.57', '4.44', '4.32', '4.19', '4.07', '3.94', '3.82', '3.69', '3.57', '3.44']
 
-    The CN11 simulator is supposed to be the most accurate shape estimator, comming from [ChenNgu12]_.
+    The CN11 simulator is supposed to be the most accurate shape estimator, comming from [CheNgu12]_.
         >>> print(["{0:0.2f}".format(RR(log(r_ , 2))) for r_ in CN11(d, n, q, beta, xi, tau)])
         ['4.94', '4.79', '4.62', '4.45', '4.27', '4.10', '3.95', '3.83', '3.73', '3.66', '3.61', '3.60']
 
