@@ -1,3 +1,4 @@
+from sage.all import oo
 from .nd import NoiseDistribution, stddevf
 from .lwe_parameters import LWEParameters
 from .ntru_parameters import NTRUParameters
@@ -132,7 +133,7 @@ Dilithium2_MSIS_WkUnf = SISParameters(
     q=8380417,
     length_bound=350209,
     m=256*9,
-    norm="linf",
+    norm=oo,
     tag="Dilithium2_MSIS_WkUnf"
 )
 
@@ -141,7 +142,7 @@ Dilithium2_MSIS_StrUnf = SISParameters(
     q=8380417,
     length_bound=380929,
     m=256*9,
-    norm="linf",
+    norm=oo,
     tag="Dilithium2_MSIS_StrUnf"
 )
 
@@ -150,7 +151,7 @@ Dilithium3_MSIS_WkUnf = SISParameters(
     q=8380417,
     length_bound=724481,
     m=256*6*2,
-    norm="linf",
+    norm=oo,
     tag="Dilithium3_MSIS_WkUnf"
 )
 
@@ -159,7 +160,7 @@ Dilithium3_MSIS_StrUnf = SISParameters(
     q=8380417,
     length_bound=1048576,
     m=256*6*2,
-    norm="linf",
+    norm=oo,
     tag="Dilithium3_MSIS_StrUnf"
 )
 
@@ -168,7 +169,7 @@ Dilithium5_MSIS_WkUnf = SISParameters(
     q=8380417,
     length_bound=769537,
     m=256*8*2,
-    norm="linf",
+    norm=oo,
     tag="Dilithium5_MSIS_WkUnf"
 )
 
@@ -177,7 +178,7 @@ Dilithium5_MSIS_StrUnf = SISParameters(
     q=8380417,
     length_bound=1048576,
     m=256*8*2,
-    norm="linf",
+    norm=oo,
     tag="Dilithium5_MSIS_StrUnf"
 )
 

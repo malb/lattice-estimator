@@ -180,8 +180,8 @@ class SISLattice:
         This function optimizes costs for a fixed guessing dimension ζ.
         """
         # step 0. establish baseline cost using worst case euclidian norm estimate
-        params_baseline = params.updated(norm="l2")
-        baseline_cost = sis_lattice(
+        params_baseline = params.updated(norm=2)
+        baseline_cost = lattice(
             params_baseline,
             ignore_qary=ignore_qary,
             red_shape_model=red_shape_model,
@@ -250,21 +250,21 @@ class SISLattice:
         EXAMPLES::
 
             >>> from estimator import *
-            >>> SIS.sis_lattice(schemes.Dilithium2_MSIS_WkUnf)
+            >>> SIS.lattice(schemes.Dilithium2_MSIS_WkUnf)
             rop: ≈2^152.2, red: ≈2^151.3, sieve: ≈2^151.1, β: 427, η: 433, ζ: 0, d: 2304, prob: 1, ↻: 1, tag: infinity
 
-            >>> SIS.sis_lattice(schemes.Dilithium2_MSIS_WkUnf, red_shape_model="lgsa")
+            >>> SIS.lattice(schemes.Dilithium2_MSIS_WkUnf, red_shape_model="lgsa")
             rop: ≈2^151.3, red: ≈2^150.2, sieve: ≈2^150.5, β: 423, η: 431, ζ: 0, d: 2304, prob: 1, ↻: 1, tag: infinity
 
-            >>> params = SIS.Parameters(n=512, q=13767, length_bound=5000, norm="l2")
-            >>> SIS.sis_lattice(params)
-            rop: ≈2^436.6, red: ≈2^436.6, δ: 1.001542, β: 1443, d: 4880, tag: euclidian
+            >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm=2)
+            >>> SIS.lattice(params)
+            rop: ≈2^89.7, red: ≈2^89.7, δ: 1.006095, β: 210, d: 862, tag: euclidian
 
-            >>> SIS.sis_lattice(params.updated(norm="linf"), red_shape_model="lgsa")
-            rop: ≈2^89.0, red: ≈2^88.0, sieve: ≈2^88.0, β: 194, η: 220, ζ: 511, d: 4369, prob: 1, ↻: 1, tag: infinity
+            >>> SIS.lattice(params.updated(norm=oo), red_shape_model="lgsa")
+            rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, prob: 1, ↻: 1, tag: infinity
 
-            >>> SIS.sis_lattice(params.updated(norm="linf"), red_shape_model="cn11")
-            rop: ≈2^101.5, red: ≈2^100.6, sieve: ≈2^100.4, β: 240, η: 262, ζ: 511, d: 4369, prob: 1, ↻: 1, tag: infinity
+            >>> SIS.lattice(params.updated(norm=oo), red_shape_model="cn11")
+            rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, prob: 1, ↻: 1, tag: infinity
 
         The success condition for euclidean norm bound is derived by determining the root hermite factor required for
         BKZ to produce the required output. For infinity norm bounds, the success conditions are derived using a
@@ -274,9 +274,9 @@ class SISLattice:
          β = d, and rop: inf
 
         """
-        if params.norm == "l2":
+        if params.norm == 2:
             tag = "euclidian"
-        elif params.norm == "linf":
+        elif params.norm == oo:
             tag = "infinity"
         else:
             raise NotImplementedError("SIS attack estimation currently only supports euclidian and infinity norms")
@@ -325,7 +325,7 @@ class SISLattice:
 
         return cost.sanity_check()
 
-    __name__ = "sis_lattice"
+    __name__ = "lattice"
 
 
-sis_lattice = SISLattice()
+lattice = SISLattice()

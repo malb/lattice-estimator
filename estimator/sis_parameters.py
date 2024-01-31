@@ -13,7 +13,7 @@ class SISParameters:
     length_bound: float  #: The length (in the norm specified below) of an admissable solution.
 
     m: int = None  #: The length of the SIS input. Set automatically if None
-    norm: str = "l2"  #: The norm to use for measuring length (l-p norm) use 'linf' for infinity norm.
+    norm: int = 2  #: The norm to use for measuring length (l-p norm) use 'oo' for infinity norm.
 
     tag: str = None  #: a name for the patameter set
 

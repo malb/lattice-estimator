@@ -81,6 +81,9 @@ def CN11(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     return qary_simulator(f=f, d=d, n=n, q=q, beta=beta, xi=xi, tau=tau, dual=dual, ignore_qary=ignore_qary)
 
 
+CN11_NQ = partial(CN11, ignore_qary=True)
+
+
 def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     """
     Reduced lattice shape following the Geometric Series Assumption [Schnorr03]_
@@ -125,6 +128,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     :returns: Squared Gram-Schmidt norms
 
     EXAMPLES:
+
         >>> from estimator.simulator import GSA, ZGSA, CN11
         >>> n = 128
         >>> d = 213
@@ -227,7 +231,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
 def LGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     """
     Reduced lattice shape following the Z-shape Geometric Series Assumption with basis
-    rerandomization. Results in BKZ 'forgetting' the q-vectors []_
+    rerandomization. Results in BKZ 'forgetting' the q-vectors [Dilithium21]_
 
     :param d: Lattice dimension.
     :param n: The number of `q` vectors is `d-n-1`.
@@ -239,6 +243,44 @@ def LGSA(d, n, q, beta, xi=1, tau=1, dual=False):
            applying it to the primal.
     :returns: squared Gram-Schmidt norms
 
+    EXAMPLES:
+
+        >>> from estimator.simulator import GSA, CN11, CN11_NQ, ZGSA, LGSA
+        >>> n = 6
+        >>> d = 12
+        >>> q = 31
+        >>> beta = 3
+        >>> xi = 1
+        >>> tau = 1
+
+    Let's check out some toy basis shapes for clarity.
+    First the GSA. Assumes that the (log) basis profile follows a line
+
+        >>> print(["{0:0.2f}".format(RR(log(r_ , 2))) for r_ in GSA(d, n, q, beta, xi, tau)])
+        ['4.82', '4.69', '4.57', '4.44', '4.32', '4.19', '4.07', '3.94', '3.82', '3.69', '3.57', '3.44']
+
+    Next, the ZGSA. Assumes the (log) basis profile follows a Z-shape. Here, only Zone III (length 1 vectors)
+    is present. The dimension is too small to exhibit the q-vectors at the beginning of the profile.
+
+        >>> print(["{0:0.2f}".format(RR(log(r_ , 2))) for r_ in ZGSA(d, n, q, beta, xi, tau)])
+        ['5.53', '5.41', '5.28', '5.15', '5.02', '4.89', '4.76', '4.63', '4.50', '4.37', '0.00', '0.00']
+
+    The LGSA. Assumes the (log) basis profile follows an L-shape. The dimension is too small and thus it
+    follows the regular GSA.
+
+        >>> print(["{0:0.2f}".format(RR(log(r_ , 2))) for r_ in LGSA(d, n, q, beta, xi, tau)])
+        ['4.82', '4.69', '4.57', '4.44', '4.32', '4.19', '4.07', '3.94', '3.82', '3.69', '3.57', '3.44']
+
+    The CN11 simulator is supposed to be the most accurate shape estimator, comming from [ChenNgu12]_.
+        >>> print(["{0:0.2f}".format(RR(log(r_ , 2))) for r_ in CN11(d, n, q, beta, xi, tau)])
+        ['4.94', '4.79', '4.62', '4.45', '4.27', '4.10', '3.95', '3.83', '3.73', '3.66', '3.61', '3.60']
+
+    If we want to ignore the q-ary structure of the lattice, but still use the CN11 simulator, use CN11_NQ. It first
+    processes the basis with LLL (using the GSA, beta=2), then running CN11 on the preprocessed basis.
+
+        >>> print(["{0:0.2f}".format(RR(log(r_ , 2))) for r_ in CN11_NQ(d, n, q, beta, xi, tau)])
+        ['4.37', '4.32', '4.28', '4.23', '4.19', '4.14', '4.10', '4.06', '4.01', '3.98', '3.94', '3.93']
+        >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
     """
     from .reduction import delta as deltaf
 
@@ -283,8 +325,8 @@ def normalize(name):
     if str(name).upper() == "CN11":
         return CN11
 
-    if str(name).upper() == "CN11_GSA":
-        return partial(CN11, ignore_qary=True)
+    if str(name).upper() == "CN11_NQ":
+        return CN11_NQ
 
     if str(name).upper() == "GSA":
         return GSA

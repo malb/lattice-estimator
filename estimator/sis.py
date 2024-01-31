@@ -6,7 +6,7 @@ High-level NTRU interface
 from functools import partial
 from sage.all import oo
 
-from .sis_lattice import sis_lattice
+from .sis_lattice import lattice
 from .sis_parameters import SISParameters as Parameters  # noqa
 from .conf import (red_cost_model as red_cost_model_default,
                    red_shape_model as red_shape_model_default)
@@ -40,7 +40,7 @@ class Estimate:
         algorithms = {}
 
         # Only lattice attacks are supported on SIS for now
-        algorithms["lattice"] = partial(sis_lattice, red_cost_model=RC.ADPS16, red_shape_model="lgsa")
+        algorithms["lattice"] = partial(lattice, red_cost_model=RC.ADPS16, red_shape_model="lgsa")
 
         res_raw = batch_estimate(
             params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
@@ -87,11 +87,11 @@ class Estimate:
             >>> _ = SIS.estimate(schemes.Dilithium2_MSIS_StrUnf)
             lattice              :: rop: ≈2^150.8, red: ≈2^149.6, sieve: ≈2^149.9, β: 421, η: 429, ζ: 0, d: 2304, ...
 
-            >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm="l2")
+            >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm=2)
             >>> _ = SIS.estimate(params)
             lattice              :: rop: ≈2^89.7, red: ≈2^89.7, δ: 1.006095, β: 210, d: 862, tag: euclidian
 
-            >>> _ = SIS.estimate(params.updated(norm="linf"))
+            >>> _ = SIS.estimate(params.updated(norm=oo))
             lattice              :: rop: ≈2^55.7, red: ≈2^54.8, sieve: ≈2^54.5, β: 83, η: 107, ζ: 112, d: 750, ...
 
         """
@@ -99,7 +99,7 @@ class Estimate:
         algorithms = {}
 
         algorithms["lattice"] = partial(
-            sis_lattice, red_cost_model=red_cost_model, red_shape_model=red_shape_model
+            lattice, red_cost_model=red_cost_model, red_shape_model=red_shape_model
         )
 
         algorithms = {k: v for k, v in algorithms.items() if k not in deny_list}
