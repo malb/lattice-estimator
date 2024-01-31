@@ -195,6 +195,48 @@ NISTPQC_R3 = (
     NTRUHRSS701Enc,
 )
 
+#
+# Falcon
+#
+#
+# https://falcon-sign.info/falcon.pdf
+# Table 3.3 (P. 51)
+
+Falcon512_Unf = SISParameters(
+    n=512,
+    q=12289,
+    length_bound=5833.9072,
+    m=1024,
+    norm=2,
+    tag="Falcon512_Unf"
+)
+
+Falcon512_SKR = NTRUParameters(
+    n=512,
+    q=12289,
+    Xs=NoiseDistribution.DiscreteGaussian(4.0532),
+    Xe=NoiseDistribution.DiscreteGaussian(4.0532),
+    m=512,
+    tag="Falcon512_SKR"
+)
+
+Falcon1024_Unf = SISParameters(
+    n=1024,
+    q=12289,
+    length_bound=8382.4081,
+    m=2048,
+    norm=2,
+    tag="Falcon1024_Unf"
+)
+
+Falcon1024_SKR = NTRUParameters(
+    n=1024,
+    q=12289,
+    Xs=NoiseDistribution.DiscreteGaussian(2.866),
+    Xe=NoiseDistribution.DiscreteGaussian(2.866),
+    m=1024,
+    tag="Falcon1024_SKR"
+)
 
 # FrodoKEM
 # https://frodokem.org/files/FrodoKEM-specification-20210604.pdf#page=24
