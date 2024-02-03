@@ -38,6 +38,45 @@ Quick Start
     dual                 :: rop: ≈2^149.9, mem: ≈2^97.1, m: 512, β: 424, d: 1024, ↻: 1, tag: dual
     dual_hybrid          :: rop: ≈2^145.6, mem: ≈2^140.5, m: 512, β: 408, d: 1004, ↻: 1, ζ: 20, tag: dual_hybrid
 
+    >>> schemes.Dilithium2_MSIS_WkUnf
+    SISParameters(n=1024, q=8380417, length_bound=350209, m=2304, norm=+Infinity, tag='Dilithium2_MSIS_WkUnf')
+   
+    >>> SIS.lattice(schemes.Dilithium2_MSIS_WkUnf)
+    rop: ≈2^152.2, red: ≈2^151.3, sieve: ≈2^151.1, β: 427, η: 433, ζ: 0, d: 2304, prob: 1, ↻: 1, tag: infinity
+   
+    >>> r = SIS.estimate.rough(schemes.Dilithium2_MSIS_WkUnf)
+    lattice              :: rop: ≈2^123.5, red: ≈2^123.5, sieve: ≈2^-332.2, β: 423, η: 423, ζ: 1, d: 2303, prob: 1, ↻: 1, tag: infinity
+   
+    >>> r = SIS.estimate(schemes.Dilithium2_MSIS_WkUnf)
+    lattice              :: rop: ≈2^152.2, red: ≈2^151.3, sieve: ≈2^151.1, β: 427, η: 433, ζ: 0, d: 2304, prob: 1, ↻: 1, tag: infinity
+
+    >>> schemes.Falcon512_SKR
+    NTRUParameters(n=512, q=12289, Xs=D(σ=4.05), Xe=D(σ=4.05), m=512, tag='Falcon512_SKR', ntru_type='circulant')
+   
+    >>> NTRU.primal_usvp(schemes.Falcon512_SKR)
+    rop: ≈2^165.1, red: ≈2^165.1, δ: 1.003489, β: 483, d: 1020, tag: usvp
+   
+    >>> r = NTRU.estimate.rough(schemes.Falcon512_SKR)
+    usvp                 :: rop: ≈2^140.5, red: ≈2^140.5, δ: 1.003499, β: 481, d: 544, tag: usvp
+   
+    >>> r = NTRU.estimate(schemes.Falcon512_SKR)
+    usvp                 :: rop: ≈2^165.1, red: ≈2^165.1, δ: 1.003489, β: 483, d: 1020, tag: usvp
+    bdd                  :: rop: ≈2^160.6, red: ≈2^159.6, svp: ≈2^159.6, β: 463, η: 496, d: 1022, tag: bdd
+    bdd_hybrid           :: rop: ≈2^160.6, red: ≈2^159.6, svp: ≈2^159.6, β: 463, η: 496, ζ: 0, |S|: 1, d: 1024, prob: 1, ↻: 1, tag: hybrid
+    bdd_mitm_hybrid      :: rop: ≈2^349.3, red: ≈2^349.3, svp: ≈2^204.8, β: 481, η: 2, ζ: 0, |S|: 1, d: 1024, prob: ≈2^-182.6, ↻: ≈2^184.8, tag: hybrid
+
+    >>> schemes.Falcon512_Unf
+    SISParameters(n=512, q=12289, length_bound=5833.9072, m=1024, norm=2, tag='Falcon512_Unf')
+   
+    >>> SIS.lattice(schemes.Falcon512_Unf)
+    rop: ≈2^146.4, red: ≈2^146.4, δ: 1.003882, β: 415, d: 1024, tag: euclidian
+   
+    >>> r = SIS.estimate.rough(schemes.Falcon512_Unf)
+    lattice              :: rop: ≈2^121.2, red: ≈2^121.2, δ: 1.003882, β: 415, d: 1024, tag: euclidian
+   
+    >>> r = SIS.estimate(schemes.Falcon512_Unf)
+    lattice              :: rop: ≈2^146.4, red: ≈2^146.4, δ: 1.003882, β: 415, d: 1024, tag: euclidian
+
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.
   

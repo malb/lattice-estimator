@@ -1,6 +1,8 @@
+from sage.all import oo
 from .nd import NoiseDistribution, stddevf
 from .lwe_parameters import LWEParameters
 from .ntru_parameters import NTRUParameters
+from .sis_parameters import SISParameters
 
 # NIST PQC Round 3 Finalists
 
@@ -78,6 +80,11 @@ FireSaber = LWEParameters(
     tag="FireSaber",
 )
 
+#
+# NTRU
+#
+#
+
 NTRUHPS2048509Enc = NTRUParameters(
     n=508,
     q=2048,
@@ -114,6 +121,67 @@ NTRUHRSS701Enc = NTRUParameters(
     tag="NTRUHRSS701",
 )
 
+#
+# Dilithium
+#
+#
+# https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf
+# Table 1, Page 8
+
+Dilithium2_MSIS_WkUnf = SISParameters(
+    n=256*4,
+    q=8380417,
+    length_bound=350209,
+    m=256*9,
+    norm=oo,
+    tag="Dilithium2_MSIS_WkUnf"
+)
+
+Dilithium2_MSIS_StrUnf = SISParameters(
+    n=256*4,
+    q=8380417,
+    length_bound=380929,
+    m=256*9,
+    norm=oo,
+    tag="Dilithium2_MSIS_StrUnf"
+)
+
+Dilithium3_MSIS_WkUnf = SISParameters(
+    n=256*6,
+    q=8380417,
+    length_bound=724481,
+    m=256*6*2,
+    norm=oo,
+    tag="Dilithium3_MSIS_WkUnf"
+)
+
+Dilithium3_MSIS_StrUnf = SISParameters(
+    n=256*6,
+    q=8380417,
+    length_bound=1048576,
+    m=256*6*2,
+    norm=oo,
+    tag="Dilithium3_MSIS_StrUnf"
+)
+
+Dilithium5_MSIS_WkUnf = SISParameters(
+    n=256*8,
+    q=8380417,
+    length_bound=769537,
+    m=256*8*2,
+    norm=oo,
+    tag="Dilithium5_MSIS_WkUnf"
+)
+
+Dilithium5_MSIS_StrUnf = SISParameters(
+    n=256*8,
+    q=8380417,
+    length_bound=1048576,
+    m=256*8*2,
+    norm=oo,
+    tag="Dilithium5_MSIS_StrUnf"
+)
+
 NISTPQC_R3 = (
     Kyber512,
     Kyber768,
@@ -127,6 +195,50 @@ NISTPQC_R3 = (
     NTRUHRSS701Enc,
 )
 
+#
+# Falcon
+#
+#
+# https://falcon-sign.info/falcon.pdf
+# Table 3.3 (P. 51)
+
+Falcon512_Unf = SISParameters(
+    n=512,
+    q=12289,
+    length_bound=5833.9072,
+    m=1024,
+    norm=2,
+    tag="Falcon512_Unf"
+)
+
+Falcon512_SKR = NTRUParameters(
+    n=512,
+    q=12289,
+    Xs=NoiseDistribution.DiscreteGaussian(4.0532),
+    Xe=NoiseDistribution.DiscreteGaussian(4.0532),
+    m=512,
+    ntru_type='circulant',
+    tag="Falcon512_SKR"
+)
+
+Falcon1024_Unf = SISParameters(
+    n=1024,
+    q=12289,
+    length_bound=8382.4081,
+    m=2048,
+    norm=2,
+    tag="Falcon1024_Unf"
+)
+
+Falcon1024_SKR = NTRUParameters(
+    n=1024,
+    q=12289,
+    Xs=NoiseDistribution.DiscreteGaussian(2.866),
+    Xe=NoiseDistribution.DiscreteGaussian(2.866),
+    m=1024,
+    ntru_type='circulant',
+    tag="Falcon1024_SKR"
+)
 
 # FrodoKEM
 # https://frodokem.org/files/FrodoKEM-specification-20210604.pdf#page=24
