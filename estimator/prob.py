@@ -64,6 +64,20 @@ def conditional_chi_squared(d1, d2, lt, l2):
     return proba
 
 
+def gaussian_cdf(mu, sigma, t):
+    """
+    Compute the cdf of a continuous gaussian random variable with mean mu and standard deviation
+    sigma (i.e. computes Pr(X <= t), where X is a gaussian random variable).
+
+    :params mu: the mean of the gaussian random variable.
+    :params sigma: the standard deviation of the gaussian random variable.
+    :params t: the limit at which to calculate the cdf.
+
+    :returns: the evaluation of the cdf at t.
+    """
+    return RR((1/2)*(1 + erf((t - mu)/(sqrt(2)*sigma))))
+
+
 def mitm_babai_probability(r, stddev, q, fast=False):
     """
     Compute the "e-admissibility" probability associated to the mitm step, according to
