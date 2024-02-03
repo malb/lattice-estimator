@@ -75,7 +75,7 @@ Quick Start
     lattice              :: rop: ≈2^121.2, red: ≈2^121.2, δ: 1.003882, β: 415, d: 1024, tag: euclidian
    
     >>> r = SIS.estimate(schemes.Falcon512_Unf)
-    lattice              :: rop: ≈2^146.4, red: ≈2^146.4, δ: 1.003882, β: 415, d: 1024, tag: euclidian   
+    lattice              :: rop: ≈2^146.4, red: ≈2^146.4, δ: 1.003882, β: 415, d: 1024, tag: euclidian
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.
