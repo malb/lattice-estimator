@@ -38,6 +38,9 @@ Quick Start
     dual                 :: rop: ≈2^149.9, mem: ≈2^97.1, m: 512, β: 424, d: 1024, ↻: 1, tag: dual
     dual_hybrid          :: rop: ≈2^145.6, mem: ≈2^140.5, m: 512, β: 408, d: 1004, ↻: 1, ζ: 20, tag: dual_hybrid
 
+  .. code-block:: python
+
+    >>> from estimator import *
     >>> schemes.Dilithium2_MSIS_WkUnf
     SISParameters(n=1024, q=8380417, length_bound=350209, m=2304, norm=+Infinity, tag='Dilithium2_MSIS_WkUnf')
    
@@ -50,6 +53,9 @@ Quick Start
     >>> r = SIS.estimate(schemes.Dilithium2_MSIS_WkUnf)
     lattice              :: rop: ≈2^152.2, red: ≈2^151.3, sieve: ≈2^151.1, β: 427, η: 433, ζ: 0, d: 2304, prob: 1, ↻: 1, tag: infinity
 
+  .. code-block:: python
+
+    >>> from estimator import *
     >>> schemes.Falcon512_SKR
     NTRUParameters(n=512, q=12289, Xs=D(σ=4.05), Xe=D(σ=4.05), m=512, tag='Falcon512_SKR', ntru_type='circulant')
    
