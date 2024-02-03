@@ -217,6 +217,7 @@ Falcon512_SKR = NTRUParameters(
     Xs=NoiseDistribution.DiscreteGaussian(4.0532),
     Xe=NoiseDistribution.DiscreteGaussian(4.0532),
     m=512,
+    ntru_type='circulant',
     tag="Falcon512_SKR"
 )
 
@@ -235,6 +236,7 @@ Falcon1024_SKR = NTRUParameters(
     Xs=NoiseDistribution.DiscreteGaussian(2.866),
     Xe=NoiseDistribution.DiscreteGaussian(2.866),
     m=1024,
+    ntru_type='circulant',
     tag="Falcon1024_SKR"
 )
 

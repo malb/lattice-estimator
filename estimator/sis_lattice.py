@@ -177,7 +177,9 @@ class SISLattice:
         **kwds,
     ):
         """
-        This function optimizes costs for a fixed guessing dimension ζ.
+        This function optimizes costs for a fixed number of coordinates to 'ignore', denoted ζ.
+        Ignored coordinates are set to 0 in the final SIS solution, so the dimension of the
+        instance is treated as d-ζ.
         """
         # step 0. establish baseline cost using worst case euclidian norm estimate
         params_baseline = params.updated(norm=2)
