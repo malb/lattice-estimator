@@ -300,10 +300,20 @@ class PrimalHybrid:
 
         d = len(r)
         r = [log(x) for x in r]
-        for i, _ in enumerate(r):
-            if gaussian_heuristic_log_input(r[i:]) < D.stddev**2 * (d - i):
-                return ZZ(d - (i - 1))
-        return ZZ(2)
+
+        if d > 4096:
+            for i, _ in enumerate(r):
+                # chosen arbitrarily
+                j = d - 1024 + i
+                if gaussian_heuristic_log_input(r[j:]) < D.stddev**2 * (d - j):
+                    return ZZ(d - (j - 1))
+            return ZZ(2)
+
+        else:
+            for i, _ in enumerate(r):
+                if gaussian_heuristic_log_input(r[i:]) < D.stddev**2 * (d - i):
+                    return ZZ(d - (i - 1))
+            return ZZ(2)
 
     @staticmethod
     @cached_function
@@ -588,8 +598,19 @@ class PrimalHybrid:
             log_level=log_level + 1,
         )
 
+        def find_zeta_max(params, red_cost_model):
+            usvp_cost = primal_usvp(params, red_cost_model=red_cost_model)["rop"]
+            zeta_max = 1
+            while zeta_max < params.n:
+                if params.Xs.support_size(zeta_max) > usvp_cost:
+                    # double it for mitm
+                    return 2 * zeta_max
+                zeta_max +=1
+            return params.n
+
         if zeta is None:
-            with local_minimum(0, params.n, log_level=log_level) as it:
+            zeta_max = find_zeta_max(params, red_cost_model)
+            with local_minimum(0, zeta_max, log_level=log_level) as it:
                 for zeta in it:
                     it.update(
                         f(
