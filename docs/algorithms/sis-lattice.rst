@@ -9,13 +9,13 @@ We construct an (easy) example SIS instance::
     params = SIS.Parameters(n=113, q=2048, length_bound=512, norm=2) 
     params
 
-The simplest (and quickest to estimate) model is solving for the SIS instance with a euclidian norm length bound and assuming the Gaussian heuristic.Then, we can solve for the required root hermite factor [EC:GamNgu08]_ that will guarantee BKZ outputs a short enough vector::
+The simplest (and quickest to estimate) model is solving for the SIS instance with a euclidean norm length bound and assuming the Gaussian heuristic.Then, we can solve for the required root hermite factor [EC:GamNgu08]_ that will guarantee BKZ outputs a short enough vector::
 
     SIS.lattice(params)
 
-The exact reduction shape model does not matter when using euclidian norm bounds, as the required block size is calculated directly from the length bound. 
+The exact reduction shape model does not matter when using euclidean norm bounds, as the required block size is calculated directly from the length bound. 
 
-For infinity norm length bounds, we have two separate analyses. Both follow the same basic strategy. We use the worst case euclidian norm bound as a lower bound on the hardness. Then, we analyze the probability of obtaining a short vector where every coordinate meets the infinity norm constraint. When sqrt(m)*length_bound is less than the modulus q, we follow the analysis of the MATZOV report ([MATZOV22]_ P.18). We simulate the cost of generating *many* short vectors and treat each coordinate of the vector as an i.i.d Gaussian random variable with standard deviation equal to the length(s) of these short vectors divided by the square root of the dimension.::
+For infinity norm length bounds, we have two separate analyses. Both follow the same basic strategy. We use the worst case euclidean norm bound as a lower bound on the hardness. Then, we analyze the probability of obtaining a short vector where every coordinate meets the infinity norm constraint. When sqrt(m)*length_bound is less than the modulus q, we follow the analysis of the MATZOV report ([MATZOV22]_ P.18). We simulate the cost of generating *many* short vectors and treat each coordinate of the vector as an i.i.d Gaussian random variable with standard deviation equal to the length(s) of these short vectors divided by the square root of the dimension.::
 
     params = SIS.Parameters(n=113, q=2048, length_bound=50, norm=oo)
     SIS.lattice(params)
@@ -32,5 +32,5 @@ Another option is to simulate a rerandomization of the basis, such that the q-ve
 
     SIS.lattice(params.updated(length_bound=70), red_shape_model=Simulator.LGSA)
 
-**Note:** Currently, lattice attack estimation is only avalailable for euclidian (``2``) and infinity (``oo``) norms. ``SIS.lattice()`` will return a ``NotImplementedError`` if one of these two norms are not selected.
+**Note:** Currently, lattice attack estimation is only avalailable for euclidean (``2``) and infinity (``oo``) norms. ``SIS.lattice()`` will return a ``NotImplementedError`` if one of these two norms are not selected.
                         
