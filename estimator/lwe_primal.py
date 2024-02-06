@@ -602,10 +602,14 @@ class PrimalHybrid:
             usvp_cost = primal_usvp(params, red_cost_model=red_cost_model)["rop"]
             zeta_max = 1
             while zeta_max < params.n:
-                if params.Xs.support_size(zeta_max) > usvp_cost:
-                    # double it for mitm
-                    return 2 * zeta_max
-                zeta_max +=1
+                # TODO: once support_size() is supported for NTRU, remove the below try/except
+                try:
+                    if params.Xs.support_size(zeta_max) > usvp_cost:
+                        # double it for mitm
+                        return 2 * zeta_max
+                    zeta_max +=1
+                except ValueError:
+                    pass
             return params.n
 
         if zeta is None:
