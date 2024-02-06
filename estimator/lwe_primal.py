@@ -608,8 +608,8 @@ class PrimalHybrid:
                         # double it for mitm
                         return 2 * zeta_max
                     zeta_max +=1
-                except ValueError:
-                    pass
+                except NotImplementedError:
+                    return params.n
             return params.n
 
         if zeta is None:
