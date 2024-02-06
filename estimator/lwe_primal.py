@@ -610,7 +610,7 @@ class PrimalHybrid:
 
         if zeta is None:
             zeta_max = find_zeta_max(params, red_cost_model)
-            with local_minimum(0, zeta_max, log_level=log_level) as it:
+            with local_minimum(0, min(zeta_max, params.n), log_level=log_level) as it:
                 for zeta in it:
                     it.update(
                         f(
