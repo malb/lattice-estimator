@@ -317,7 +317,7 @@ class SISLattice:
             )
 
             if zeta is None:
-                with local_minimum(0, params.n, log_level=log_level) as it:
+                with local_minimum(0, params.m, log_level=log_level) as it:
                     for zeta in it:
                         it.update(
                             f(
