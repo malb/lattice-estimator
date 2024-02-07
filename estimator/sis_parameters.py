@@ -21,9 +21,9 @@ class SISParameters:
         if not self.m:
             #: Set m to be the minimum required for a solution to exist.
             if self.norm == oo:
-                self.m = ceil(self.n * log(self.q, (2 * self.length_bound + 1)))
+                self.m = 2 * ceil(self.n * log(self.q, (2 * self.length_bound + 1)))
             else:
-                self.m = ceil(self.n * log(self.q, 2))
+                self.m = 2 * ceil(self.n * log(self.q, 2))
 
     @property
     def _homogeneous(self):
