@@ -8,14 +8,15 @@ from sage.all import oo
 
 from .sis_lattice import lattice
 from .sis_parameters import SISParameters as Parameters  # noqa
-from .conf import (red_cost_model as red_cost_model_default,
-                   red_shape_model as red_shape_model_default)
+from .conf import (
+    red_cost_model as red_cost_model_default,
+    red_shape_model as red_shape_model_default,
+)
 from .util import batch_estimate, f_name
 from .reduction import RC
 
 
 class Estimate:
-
     def rough(self, params, jobs=1, catch_exceptions=True):
         """
         This function makes the following somewhat routine assumptions:
@@ -47,7 +48,8 @@ class Estimate:
         )
         res_raw = res_raw[params]
         res = {
-            algorithm: v for algorithm, attack in algorithms.items()
+            algorithm: v
+            for algorithm, attack in algorithms.items()
             for k, v in res_raw.items()
             if f_name(attack) == k
         }
@@ -91,8 +93,8 @@ class Estimate:
             >>> _ = SIS.estimate(params)
             lattice              :: rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
-            >>> _ = SIS.estimate(params.updated(norm=oo), red_shape_model="cn11")
-            lattice              :: rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, ...
+            >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo), red_shape_model="cn11")
+            lattice              :: rop: ≈2^65.9, red: ≈2^64.9, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, ...
         """
 
         algorithms = {}
