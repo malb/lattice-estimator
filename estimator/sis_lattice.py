@@ -282,11 +282,11 @@ class SISLattice:
             >>> SIS.lattice(params)
             rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
-            >>> SIS.lattice(params.updated(norm=oo), red_shape_model="lgsa")
-            rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, prob: 1, ↻: 1, tag: infinity
+            >>> SIS.lattice(params.updated(norm=oo, length_bound=16), red_shape_model="lgsa")
+            rop: ≈2^61.0, red: ≈2^59.9, sieve: ≈2^60.1, β: 95, η: 126, ζ: 0, d: 2486, prob: 1, ↻: 1, tag: infinity
 
-            >>> SIS.lattice(params.updated(norm=oo), red_shape_model="cn11")
-            rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, prob: 1, ↻: 1, tag: infinity
+            >>> SIS.lattice(params.updated(norm=oo, length_bound=16), red_shape_model="cn11")
+            rop: ≈2^65.9, red: ≈2^64.9, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, prob: 1, ↻: 1, tag: infinity
 
         The success condition for euclidean norm bound is derived by determining the root hermite factor required for
         BKZ to produce the required output. For infinity norm bounds, the success conditions are derived using a
