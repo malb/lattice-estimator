@@ -202,19 +202,17 @@ class SISLattice:
         instance is treated as d-ζ.
         """
         # step 0. establish baseline cost using worst case euclidean norm estimate
-        # params_baseline = params.updated(
-        #     norm=2, length_bound=2 * sqrt(params.m) * params.length_bound
-        # )
-        # baseline_cost = lattice(
-        #     params_baseline,
-        #     ignore_qary=ignore_qary,
-        #     red_shape_model=red_shape_model,
-        #     red_cost_model=red_cost_model,
-        #     log_level=log_level + 1,
-        #     **kwds,
-        # )
+        params_baseline = params.updated(norm=2)
+        baseline_cost = lattice(
+            params_baseline,
+            ignore_qary=ignore_qary,
+            red_shape_model=red_shape_model,
+            red_cost_model=red_cost_model,
+            log_level=log_level + 1,
+            **kwds,
+        )
 
-        # Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
+        Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
             cls.cost_infinity,
@@ -228,7 +226,9 @@ class SISLattice:
         )
 
         # step 1. optimize β
-        with local_minimum(40, 1000 + 1, precision=2, log_level=log_level + 1) as it:
+        with local_minimum(
+            40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
+        ) as it:
             for beta in it:
                 it.update(f(beta))
             for beta in it.neighborhood:
