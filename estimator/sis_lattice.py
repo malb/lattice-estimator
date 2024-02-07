@@ -113,6 +113,9 @@ class SISLattice:
         # Calculate the basis shape to aid in both styles of analysis
         d_ = d - zeta
 
+        if d_ < beta:
+            return Cost(rop=oo, mem=oo)
+
         r = simulator(d=d_, n=d_ - params.n, q=params.q, beta=beta, xi=1, tau=False)
 
         # Cost the sampling of short vectors.
