@@ -89,11 +89,10 @@ class Estimate:
 
             >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm=2)
             >>> _ = SIS.estimate(params)
-            lattice              :: rop: ≈2^89.7, red: ≈2^89.7, δ: 1.006095, β: 210, d: 862, tag: euclidian
+            lattice              :: rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
-            >>> _ = SIS.estimate(params.updated(norm=oo))
-            lattice              :: rop: ≈2^55.7, red: ≈2^54.8, sieve: ≈2^54.5, β: 83, η: 107, ζ: 112, d: 750, ...
-
+            >>> _ = SIS.estimate(params.updated(norm=oo), red_shape_model="cn11")
+            lattice              :: rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, ...
         """
 
         algorithms = {}
