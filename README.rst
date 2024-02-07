@@ -45,10 +45,10 @@ Quick Start
     SISParameters(n=1024, q=8380417, length_bound=350209, m=2304, norm=+Infinity, tag='Dilithium2_MSIS_WkUnf')
 
     >>> r = SIS.estimate.rough(schemes.Dilithium2_MSIS_WkUnf)
-    lattice              :: rop: ≈2^123.5, red: ≈2^123.5, sieve: ≈2^-332.2, β: 423, η: 423, ζ: 1, d: 2303, prob: 1, ↻: 1, tag: infinity
+    lattice  :: rop: ≈2^123.5, red: ≈2^123.5, sieve: ≈2^-332.2, β: 423, η: 423, ζ: 1, d: 2303, prob: 1, ↻: 1, tag: infinity
 
     >>> r = SIS.estimate(schemes.Dilithium2_MSIS_WkUnf)
-    lattice              :: rop: ≈2^152.2, red: ≈2^151.3, sieve: ≈2^151.1, β: 427, η: 433, ζ: 0, d: 2304, prob: 1, ↻: 1, tag: infinity
+    lattice  :: rop: ≈2^152.2, red: ≈2^151.3, sieve: ≈2^151.1, β: 427, η: 433, ζ: 0, d: 2304, prob: 1, ↻: 1, tag: infinity
 
   .. code-block:: python
 
@@ -69,10 +69,10 @@ Quick Start
     SISParameters(n=512, q=12289, length_bound=5833.9072, m=1024, norm=2, tag='Falcon512_Unf')
    
     >>> r = SIS.estimate.rough(schemes.Falcon512_Unf)
-    lattice              :: rop: ≈2^121.2, red: ≈2^121.2, δ: 1.003882, β: 415, d: 1024, tag: euclidean
+    lattice  :: rop: ≈2^121.2, red: ≈2^121.2, δ: 1.003882, β: 415, d: 1024, tag: euclidean
    
     >>> r = SIS.estimate(schemes.Falcon512_Unf)
-    lattice              :: rop: ≈2^146.4, red: ≈2^146.4, δ: 1.003882, β: 415, d: 1024, tag: euclidean
+    lattice  :: rop: ≈2^146.4, red: ≈2^146.4, δ: 1.003882, β: 415, d: 1024, tag: euclidean
 
 - `Try it in your browser <https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fprompt.ipynb>`__.
 - `Read the documentation <https://lattice-estimator.readthedocs.io/en/latest/>`__.

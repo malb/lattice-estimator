@@ -35,7 +35,7 @@ class Estimate:
 
             >>> from estimator import *
             >>> _ = SIS.estimate.rough(schemes.Dilithium2_MSIS_WkUnf)
-            lattice              :: rop: ≈2^123.5, red: ≈2^123.5, sieve: ≈2^-332.2, β: 423, η: 423, ζ: 1, d: 2303, ...
+            lattice  :: rop: ≈2^123.5, red: ≈2^123.5, sieve: ≈2^-332.2, β: 423, η: 423, ζ: 1, d: 2303, ...
 
         """
         algorithms = {}
@@ -59,7 +59,7 @@ class Estimate:
                 continue
             result = res[algorithm]
             if result["rop"] != oo:
-                print(f"{algorithm:20s} :: {result!r}")
+                print(f"{algorithm:8s} :: {result!r}")
 
         return res
 
@@ -87,14 +87,14 @@ class Estimate:
         EXAMPLE ::
             >>> from estimator import *
             >>> _ = SIS.estimate(schemes.Dilithium2_MSIS_StrUnf)
-            lattice              :: rop: ≈2^150.8, red: ≈2^149.6, sieve: ≈2^149.9, β: 421, η: 429, ζ: 0, d: 2304, ...
+            lattice  :: rop: ≈2^150.8, red: ≈2^149.6, sieve: ≈2^149.9, β: 421, η: 429, ζ: 0, d: 2304, ...
 
             >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm=2)
             >>> _ = SIS.estimate(params)
-            lattice              :: rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
+            lattice  :: rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
             >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo), red_shape_model="cn11")
-            lattice              :: rop: ≈2^65.9, red: ≈2^64.9, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, ...
+            lattice  :: rop: ≈2^65.9, red: ≈2^64.9, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, ...
         """
 
         algorithms = {}
@@ -122,7 +122,7 @@ class Estimate:
             result = res[algorithm]
             if result["rop"] == oo:
                 continue
-            print(f"{algorithm:20s} :: {result!r}")
+            print(f"{algorithm:8s} :: {result!r}")
 
         return res
 
