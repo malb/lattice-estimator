@@ -7,7 +7,7 @@ See :ref:`SIS Lattice Attacks` for an introduction what is available.
 """
 from functools import partial
 
-from sage.all import oo, sqrt, log, RR, cached_function
+from sage.all import oo, sqrt, log, RR, floor, cached_function
 from .reduction import beta as betaf
 from .reduction import cost as costf
 from .util import local_minimum
@@ -27,7 +27,7 @@ class SISLattice:
     Estimate cost of solving SIS via lattice reduction.
     """
     @staticmethod
-    def _solve_for_delta_euclidian(params, d):
+    def _solve_for_delta_euclidean(params, d):
         # root_volume = params.q**(params.n/d)
         # delta = (params.length_bound / root_volume)**(1/(d - 1))
         root_volume = (params.n/d) * log(params.q, 2)
@@ -35,8 +35,18 @@ class SISLattice:
         return RR(2**log_delta)
 
     @staticmethod
+    def _opt_sis_d(params):
+        """
+        Optimizes SIS dimension for the given parameters, assuming the optimal
+        d \approx sqrt(n*log(q)/log(delta))
+        """
+        log_delta = log(params.length_bound, 2)**2 / (4 * params.n * log(params.q, 2))
+        d = sqrt(params.n * log(params.q, 2) / log_delta)
+        return d
+
+    @staticmethod
     @cached_function
-    def cost_euclidian(
+    def cost_euclidean(
         params: SISParameters,
         d=None,
         red_cost_model=red_cost_model_default,
@@ -48,10 +58,10 @@ class SISLattice:
             raise ValueError("SIS trivially easy. Please set norm bound < q.")
 
         if d is None:
-            d = params.m
+            d = min(floor(SISLattice._opt_sis_d(params)), params.m)
 
         # First solve for root hermite factor
-        delta = SISLattice._solve_for_delta_euclidian(params, d)
+        delta = SISLattice._solve_for_delta_euclidean(params, d)
         # Then derive beta from the cost model(s)
         if delta >= 1 and betaf(delta) <= d:
             beta = betaf(delta)
@@ -181,7 +191,7 @@ class SISLattice:
         Ignored coordinates are set to 0 in the final SIS solution, so the dimension of the
         instance is treated as d-ζ.
         """
-        # step 0. establish baseline cost using worst case euclidian norm estimate
+        # step 0. establish baseline cost using worst case euclidean norm estimate
         params_baseline = params.updated(norm=2)
         baseline_cost = lattice(
             params_baseline,
@@ -260,7 +270,7 @@ class SISLattice:
 
             >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm=2)
             >>> SIS.lattice(params)
-            rop: ≈2^89.7, red: ≈2^89.7, δ: 1.006095, β: 210, d: 862, tag: euclidian
+            rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
             >>> SIS.lattice(params.updated(norm=oo), red_shape_model="lgsa")
             rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, prob: 1, ↻: 1, tag: infinity
@@ -272,16 +282,16 @@ class SISLattice:
         BKZ to produce the required output. For infinity norm bounds, the success conditions are derived using a
         probabilistic analysis. Vectors are assumed to be short as in [MATZOV22]_ P.18, or [Dilithium21]_ P.35.
 
-        .. note :: When using euclidian norm bounds and the length bound is too small, this function returns
+        .. note :: When using euclidean norm bounds and the length bound is too small, this function returns
          β = d, and rop: inf
 
         """
         if params.norm == 2:
-            tag = "euclidian"
+            tag = "euclidean"
         elif params.norm == oo:
             tag = "infinity"
         else:
-            raise NotImplementedError("SIS attack estimation currently only supports euclidian and infinity norms")
+            raise NotImplementedError("SIS attack estimation currently only supports euclidean and infinity norms")
 
         if tag == "infinity":
             red_shape_model = simulator_normalize(red_shape_model)
@@ -309,7 +319,7 @@ class SISLattice:
                 cost = f(zeta=zeta)
 
         else:
-            cost = self.cost_euclidian(
+            cost = self.cost_euclidean(
                 params=params,
                 red_cost_model=red_cost_model,
                 log_level=log_level + 1,
@@ -318,7 +328,7 @@ class SISLattice:
         cost["tag"] = tag
         cost["problem"] = params
 
-        if tag == "euclidian":
+        if tag == "euclidean":
             for k in ("sieve", "prob", "repetitions", "zeta"):
                 try:
                     del cost[k]
