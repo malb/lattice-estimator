@@ -26,12 +26,13 @@ class SISLattice:
     """
     Estimate cost of solving SIS via lattice reduction.
     """
+
     @staticmethod
     def _solve_for_delta_euclidean(params, d):
         # root_volume = params.q**(params.n/d)
         # delta = (params.length_bound / root_volume)**(1/(d - 1))
-        root_volume = (params.n/d) * log(params.q, 2)
-        log_delta = (1/(d - 1)) * (log(params.length_bound, 2) - root_volume)
+        root_volume = (params.n / d) * log(params.q, 2)
+        log_delta = (1 / (d - 1)) * (log(params.length_bound, 2) - root_volume)
         return RR(2**log_delta)
 
     @staticmethod
@@ -40,7 +41,7 @@ class SISLattice:
         Optimizes SIS dimension for the given parameters, assuming the optimal
         d \approx sqrt(n*log(q)/log(delta))
         """
-        log_delta = log(params.length_bound, 2)**2 / (4 * params.n * log(params.q, 2))
+        log_delta = log(params.length_bound, 2) ** 2 / (4 * params.n * log(params.q, 2))
         d = sqrt(params.n * log(params.q, 2) / log_delta)
         return d
 
@@ -71,8 +72,10 @@ class SISLattice:
             beta = d
             reduction_possible = False
 
-        lb = min(RR(sqrt(params.n * log(params.q))), RR(sqrt(d) * params.q**(params.n/d)))
-        return costf(red_cost_model, beta, d, predicate=params.length_bound > lb and reduction_possible)
+        lb = min(RR(sqrt(params.n * log(params.q))), RR(sqrt(d) * params.q ** (params.n / d)))
+        return costf(
+            red_cost_model, beta, d, predicate=params.length_bound > lb and reduction_possible
+        )
 
     @staticmethod
     @cached_function
@@ -110,6 +113,9 @@ class SISLattice:
         # Calculate the basis shape to aid in both styles of analysis
         d_ = d - zeta
 
+        if d_ < beta:
+            return Cost(rop=oo, mem=oo)
+
         r = simulator(d=d_, n=d_ - params.n, q=params.q, beta=beta, xi=1, tau=False)
 
         # Cost the sampling of short vectors.
@@ -121,7 +127,7 @@ class SISLattice:
             vector_length = rho * sqrt(r[0])
             # Find probability that all coordinates meet norm bound
             sigma = vector_length / sqrt(d_)
-            log_trial_prob = RR(d_*log(1 - 2*gaussian_cdf(0, sigma, -params.length_bound), 2))
+            log_trial_prob = RR(d_ * log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2))
 
         else:  # Dilithium style analysis
             # Find first non-q-vector in r
@@ -142,10 +148,14 @@ class SISLattice:
             gaussian_coords = max(idx_end - idx_start + 1, sieve_dim)
             sigma = vector_length / sqrt(gaussian_coords)
 
-            log_trial_prob = RR(log(1 - 2*gaussian_cdf(0, sigma, -params.length_bound), 2)*(gaussian_coords))
-            log_trial_prob += RR(log((2*params.length_bound + 1)/params.q, 2)*(idx_start))
+            log_trial_prob = RR(
+                log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2) * (gaussian_coords)
+            )
+            log_trial_prob += RR(log((2 * params.length_bound + 1) / params.q, 2) * (idx_start))
 
-        probability = 2**min(0, log_trial_prob + RR(log(N, 2)))  # expected number of solutions (max 1)
+        probability = 2 ** min(
+            0, log_trial_prob + RR(log(N, 2))
+        )  # expected number of solutions (max 1)
         ret = Cost()
         ret["rop"] = cost_red
         ret["red"] = bkz_cost["rop"]
@@ -272,11 +282,11 @@ class SISLattice:
             >>> SIS.lattice(params)
             rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
-            >>> SIS.lattice(params.updated(norm=oo), red_shape_model="lgsa")
-            rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, prob: 1, ↻: 1, tag: infinity
+            >>> SIS.lattice(params.updated(norm=oo, length_bound=16), red_shape_model="lgsa")
+            rop: ≈2^61.0, red: ≈2^59.9, sieve: ≈2^60.1, β: 95, η: 126, ζ: 0, d: 2486, prob: 1, ↻: 1, tag: infinity
 
-            >>> SIS.lattice(params.updated(norm=oo), red_shape_model="cn11")
-            rop: ≈2^43.6, red: ≈2^42.6, sieve: ≈2^42.7, β: 40, η: 67, ζ: 112, d: 750, prob: 1, ↻: 1, tag: infinity
+            >>> SIS.lattice(params.updated(norm=oo, length_bound=16), red_shape_model="cn11")
+            rop: ≈2^65.9, red: ≈2^64.9, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, prob: 1, ↻: 1, tag: infinity
 
         The success condition for euclidean norm bound is derived by determining the root hermite factor required for
         BKZ to produce the required output. For infinity norm bounds, the success conditions are derived using a
@@ -291,7 +301,9 @@ class SISLattice:
         elif params.norm == oo:
             tag = "infinity"
         else:
-            raise NotImplementedError("SIS attack estimation currently only supports euclidean and infinity norms")
+            raise NotImplementedError(
+                "SIS attack estimation currently only supports euclidean and infinity norms"
+            )
 
         if tag == "infinity":
             red_shape_model = simulator_normalize(red_shape_model)
@@ -305,7 +317,7 @@ class SISLattice:
             )
 
             if zeta is None:
-                with local_minimum(0, params.n, log_level=log_level) as it:
+                with local_minimum(0, params.m, log_level=log_level) as it:
                     for zeta in it:
                         it.update(
                             f(
