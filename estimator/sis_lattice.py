@@ -7,7 +7,7 @@ See :ref:`SIS Lattice Attacks` for an introduction what is available.
 """
 from functools import partial
 
-from sage.all import oo, sqrt, log, RR, floor, cached_function
+from sage.all import oo, sqrt, log, RR, floor, cached_function, ceil
 from .reduction import beta as betaf
 from .reduction import cost as costf
 from .util import local_minimum
