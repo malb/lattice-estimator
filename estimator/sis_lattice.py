@@ -26,12 +26,13 @@ class SISLattice:
     """
     Estimate cost of solving SIS via lattice reduction.
     """
+
     @staticmethod
     def _solve_for_delta_euclidean(params, d):
         # root_volume = params.q**(params.n/d)
         # delta = (params.length_bound / root_volume)**(1/(d - 1))
-        root_volume = (params.n/d) * log(params.q, 2)
-        log_delta = (1/(d - 1)) * (log(params.length_bound, 2) - root_volume)
+        root_volume = (params.n / d) * log(params.q, 2)
+        log_delta = (1 / (d - 1)) * (log(params.length_bound, 2) - root_volume)
         return RR(2**log_delta)
 
     @staticmethod
@@ -40,7 +41,7 @@ class SISLattice:
         Optimizes SIS dimension for the given parameters, assuming the optimal
         d \approx sqrt(n*log(q)/log(delta))
         """
-        log_delta = log(params.length_bound, 2)**2 / (4 * params.n * log(params.q, 2))
+        log_delta = log(params.length_bound, 2) ** 2 / (4 * params.n * log(params.q, 2))
         d = sqrt(params.n * log(params.q, 2) / log_delta)
         return d
 
@@ -71,8 +72,10 @@ class SISLattice:
             beta = d
             reduction_possible = False
 
-        lb = min(RR(sqrt(params.n * log(params.q))), RR(sqrt(d) * params.q**(params.n/d)))
-        return costf(red_cost_model, beta, d, predicate=params.length_bound > lb and reduction_possible)
+        lb = min(RR(sqrt(params.n * log(params.q))), RR(sqrt(d) * params.q ** (params.n / d)))
+        return costf(
+            red_cost_model, beta, d, predicate=params.length_bound > lb and reduction_possible
+        )
 
     @staticmethod
     @cached_function
@@ -121,7 +124,7 @@ class SISLattice:
             vector_length = rho * sqrt(r[0])
             # Find probability that all coordinates meet norm bound
             sigma = vector_length / sqrt(d_)
-            log_trial_prob = RR(d_*log(1 - 2*gaussian_cdf(0, sigma, -params.length_bound), 2))
+            log_trial_prob = RR(d_ * log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2))
 
         else:  # Dilithium style analysis
             # Find first non-q-vector in r
@@ -142,10 +145,14 @@ class SISLattice:
             gaussian_coords = max(idx_end - idx_start + 1, sieve_dim)
             sigma = vector_length / sqrt(gaussian_coords)
 
-            log_trial_prob = RR(log(1 - 2*gaussian_cdf(0, sigma, -params.length_bound), 2)*(gaussian_coords))
-            log_trial_prob += RR(log((2*params.length_bound + 1)/params.q, 2)*(idx_start))
+            log_trial_prob = RR(
+                log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2) * (gaussian_coords)
+            )
+            log_trial_prob += RR(log((2 * params.length_bound + 1) / params.q, 2) * (idx_start))
 
-        probability = 2**min(0, log_trial_prob + RR(log(N, 2)))  # expected number of solutions (max 1)
+        probability = 2 ** min(
+            0, log_trial_prob + RR(log(N, 2))
+        )  # expected number of solutions (max 1)
         ret = Cost()
         ret["rop"] = cost_red
         ret["red"] = bkz_cost["rop"]
@@ -291,7 +298,9 @@ class SISLattice:
         elif params.norm == oo:
             tag = "infinity"
         else:
-            raise NotImplementedError("SIS attack estimation currently only supports euclidean and infinity norms")
+            raise NotImplementedError(
+                "SIS attack estimation currently only supports euclidean and infinity norms"
+            )
 
         if tag == "infinity":
             red_shape_model = simulator_normalize(red_shape_model)
