@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from sage.all import log, ceil
+from sage.all import log, ceil, oo
 
 
 @dataclass
@@ -19,7 +19,11 @@ class SISParameters:
 
     def __post_init__(self, **kwds):
         if not self.m:
-            self.m = ceil(self.n*log(self.q))  #: Set m to be the minimum required for a solution to exist.
+            #: Set m to be the minimum required for a solution to exist.
+            if self.norm == oo:
+                self.m = ceil(self.n * log(self.q, (2 * self.length_bound + 1)))
+            else:
+                self.m = ceil(self.n * log(self.q, 2))
 
     @property
     def _homogeneous(self):
