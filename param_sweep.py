@@ -88,23 +88,25 @@ class ParameterSweep:
                     num_proc=1,\
                 )
             usvp                 :: rop: ≈2^45.6, red: ≈2^45.6, δ: 1.007290, β: 156, d: 1120, tag: usvp
-            dual_hybrid          :: rop: ≈2^46.6, mem: ≈2^42.9, m: 579, β: 159, d: 1169, ↻: 1, ζ: 10, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^45.7, red: ≈2^45.6, guess: ≈2^41.7, β: 156, p: 2, ζ: 0, t: 25, β': 156, ...
             usvp                 :: rop: ≈2^51.7, red: ≈2^51.7, δ: 1.006767, β: 177, d: 1124, tag: usvp
-            dual_hybrid          :: rop: ≈2^52.7, mem: ≈2^48.4, m: 571, β: 180, d: 1160, ↻: 1, ζ: 11, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^51.4, red: ≈2^51.4, guess: ≈2^46.6, β: 176, p: 2, ζ: 0, t: 30, β': 176, ...
             usvp                 :: rop: ≈2^82.9, red: ≈2^82.9, δ: 1.005021, β: 284, d: 1661, tag: usvp
-            dual_hybrid          :: rop: ≈2^83.0, mem: ≈2^77.8, m: 830, β: 284, d: 1711, ↻: 1, ζ: 19, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^80.3, red: ≈2^80.3, guess: ≈2^75.4, β: 275, p: 2, ζ: 5, t: 50, β': 275, ...
             usvp                 :: rop: ≈2^92.6, red: ≈2^92.6, δ: 1.004667, β: 317, d: 1650, tag: usvp
-            dual_hybrid          :: rop: ≈2^92.4, mem: ≈2^87.4, m: 816, β: 316, d: 1694, ↻: 1, ζ: 22, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^89.1, red: ≈2^89.1, guess: ≈2^84.9, β: 305, p: 2, ζ: 5, t: 60, β': 305, ...
             >>> results[(600, 4294967296, 9.0, 2.0, 600, 'test')]
-            51.684000000000005
+            51.4434...
             >>> results[(600, 4294967296, 7.0, 2.0, 600, 'test')]
             45.552
             >>> results[(900, 4294967296, 7.0, 2.0, 900, 'test')]
-            82.928
+            80.347...
             >>> results[(900, 4294967296, 9.0, 2.0, 900, 'test')]
-            92.36860677483823
+            89.138...
         """
-        n, q, m, e, s = [param if hasattr(param, "__iter__") else [param] for param in (n, q, m, e, s)]
+        n, q, m, e, s = [
+            param if hasattr(param, "__iter__") else [param] for param in (n, q, m, e, s)
+        ]
 
         @dataclass
         class Params:
@@ -127,7 +129,14 @@ class ParameterSweep:
         tasks = [astuple(Params(*params)) for params in it.product(n, q, e, s, m)]
 
         fn = partial(
-            ParameterSweep.security_level, Xe=Xe, e_log=e_log, Xs=Xs, s_log=s_log, tag=tag, f=f, log_level=log_level
+            ParameterSweep.security_level,
+            Xe=Xe,
+            e_log=e_log,
+            Xs=Xs,
+            s_log=s_log,
+            tag=tag,
+            f=f,
+            log_level=log_level,
         )
 
         if num_proc <= 1:
@@ -255,13 +264,14 @@ class ParameterSweep:
                     num_proc=1,\
                 )
             usvp                 :: rop: ≈2^69.2, red: ≈2^69.2, δ: 1.005647, β: 237, d: 1396, tag: usvp
-            dual_hybrid          :: rop: ≈2^78.5, mem: ≈2^75.8, m: 700, β: 267, d: 1392, ↻: 1, ζ: 8, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^70.7, red: ≈2^70.7, guess: ≈2^63.6, β: 242, p: 3, ζ: 0, t: 0, β': 242, ...
             usvp                 :: rop: ≈2^78.8, red: ≈2^78.8, δ: 1.005191, β: 270, d: 1396, tag: usvp
-            dual_hybrid          :: rop: ≈2^92.5, mem: ≈2^90.3, m: 700, β: 314, d: 1392, ↻: 1, ζ: 8, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^80.6, red: ≈2^80.6, guess: ≈2^74.0, β: 276, p: 3, ζ: 0, t: 0, β': 276, ...
             usvp                 :: rop: ≈2^78.8, red: ≈2^78.8, δ: 1.005191, β: 270, d: 1391, tag: usvp
-            dual_hybrid          :: rop: ≈2^87.2, mem: ≈2^84.2, m: 700, β: 297, d: 1392, ↻: 1, ζ: 8, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^80.6, red: ≈2^80.6, guess: ≈2^70.0, β: 276, p: 3, ζ: 0, t: 0, β': 276, ...
             usvp                 :: rop: ≈2^90.5, red: ≈2^90.5, δ: 1.004738, β: 310, d: 1394, tag: usvp
-            dual_hybrid          :: rop: ≈2^102.5, mem: ≈2^100.0, m: 700, β: 349, d: 1392, ↻: 1, ζ: 8, tag: dual_hybrid
+            dual_hybrid          :: rop: ≈2^92.6, red: ≈2^92.6, guess: ≈2^82.3, β: 317, p: 3, ζ: 0, t: 0, β': 317, ...
+
             >>> Path(f'/tmp/{file_name}.pickle').exists()
             True
             >>> Path(f'/tmp/{file_name}_gradient.png').exists()
@@ -297,7 +307,12 @@ class ParameterSweep:
                 # Pickle the intermediate computation results
                 with open(pickle_filename, "wb") as f:
                     pickle.dump(result_dict, f)
-                Logging.log("sweep", log_level, "Pickled the intermediate computations to: %s", pickle_filename)
+                Logging.log(
+                    "sweep",
+                    log_level,
+                    "Pickled the intermediate computations to: %s",
+                    pickle_filename,
+                )
 
         Xe_string = "log_2(Xe)" if e_log else "Xe"
         Xs_string = "log_2(Xs)" if s_log else "Xs"
@@ -441,7 +456,9 @@ class ParameterSweep:
                         va="center",
                         color="white",
                     )
-                plt.title(f"Security with fixed parameters {fixed_vars} and cutoff at {security_cutoff}")
+                plt.title(
+                    f"Security with fixed parameters {fixed_vars} and cutoff at {security_cutoff}"
+                )
 
                 ax2.set_xlabel(f"Parameter: {x_param}")
                 ax2.set_ylabel(f"Parameter: {y_param}")
@@ -450,4 +467,6 @@ class ParameterSweep:
                 fig2.savefig(cutoff_filename)
                 Logging.log("sweep", log_level, "Saved the cutoff graph to: %s", cutoff_filename)
         else:
-            raise ValueError("Cannot plot more than two variables. Try freezing one or more of them.")
+            raise ValueError(
+                "Cannot plot more than two variables. Try freezing one or more of them."
+            )

@@ -27,16 +27,14 @@ Quick Start
     
     >>> r = LWE.estimate.rough(schemes.Kyber512)
     usvp                 :: rop: ≈2^118.6, red: ≈2^118.6, δ: 1.003941, β: 406, d: 998, tag: usvp
-    dual_hybrid          :: rop: ≈2^121.9, mem: ≈2^116.8, m: 512, β: 417, d: 1013, ↻: 1, ζ: 11, tag: dual_hybrid
+    dual_hybrid          :: rop: ≈2^115.4, red: ≈2^115.3, guess: ≈2^110.0, β: 395, p: 6, ζ: 5, t: 30, β': 395, ...
 
     >>> r = LWE.estimate(schemes.Kyber512)
     bkw                  :: rop: ≈2^178.8, m: ≈2^166.8, mem: ≈2^167.8, b: 14, t1: 0, t2: 16, ℓ: 13, #cod: 448, #top: 0, #test: 64, tag: coded-bkw
     usvp                 :: rop: ≈2^143.8, red: ≈2^143.8, δ: 1.003941, β: 406, d: 998, tag: usvp
     bdd                  :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, d: 1013, tag: bdd
-    bdd_hybrid           :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, ζ: 0, |S|: 1, d: 1016, prob: 1, ↻: 1, tag: hybrid
-    bdd_mitm_hybrid      :: rop: ≈2^260.3, red: ≈2^259.4, svp: ≈2^259.3, β: 405, η: 2, ζ: 102, |S|: ≈2^247.2, d: 923, prob: ≈2^-113.8, ↻: ≈2^116.0, tag: hybrid
     dual                 :: rop: ≈2^149.9, mem: ≈2^97.1, m: 512, β: 424, d: 1024, ↻: 1, tag: dual
-    dual_hybrid          :: rop: ≈2^145.6, mem: ≈2^140.5, m: 512, β: 408, d: 1004, ↻: 1, ζ: 20, tag: dual_hybrid
+    dual_hybrid          :: rop: ≈2^139.2, red: ≈2^139.0, guess: ≈2^136.2, β: 385, p: 6, ζ: 15, t: 30, β': 389, N: ≈2^80.1, ...
 
   .. code-block:: python
 
