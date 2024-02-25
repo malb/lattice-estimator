@@ -3,6 +3,7 @@ References
                
 .. [AC:AGPS20] Albrecht, M. R., Gheorghiu, V., Postlethwaite, E. W., & Schanck, J. M. (2020). Estimating quantum speedups for lattice sieves. In S. Moriai, & H. Wang, ASIACRYPT 2020, Part II (pp. 583–613). : Springer, Heidelberg.
 .. [AC:AGVW17] Martin R. Albrecht, Florian Göpfert, Fernando Virdia & Thomas Wunderer. Revisiting the expected cost of solving uSVP and applications to LWE. In T. Takagi, & T. Peyrin, ASIACRYPT 2017, Part I (pp. 297–322). : Springer, Heidelberg.
+.. [AC:ChaLoy21] André Chailloux, & Loyer, J. (2021). Lattice sieving via quantum random walks. In M. Tibouchi, & H. Wang, Advances in Cryptology - ASIACRYPT 2021 - 27th International Conference on the Theory and Application of Cryptology and Information Security, Singapore, December 6-10, 2021, Proceedings, Part IV (pp. 63–91). : Springer.
 .. [AC:CheNgu11] Yuanmi Chen & Phong Q. Nguyen. BKZ 2.0: better lattice security estimates. In D. H. Lee, & X. Wang, ASIACRYPT 2011 (pp. 1–20): Springer, Heidelberg.
 .. [AC:DucWoe21] Ducas, L., van Woerden, W. (2021). NTRU Fatigue: How Stretched is Overstretched?. In: Tibouchi, M., Wang, H. (eds) Advances in Cryptology – ASIACRYPT 2021. ASIACRYPT 2021. Lecture Notes in Computer Science(), vol 13093. Springer, Cham. https://doi.org/10.1007/978-3-030-92068-5_1
 .. [AC:GuoJoh21] Qian Guo, Thomas Johansson. Faster Dual Lattice Attacks for Solving LWE with Applications to CRYSTALS. In International Conference on the Theory and Application of Cryptology and Information Security (pp. 33-62). Springer, Cham.

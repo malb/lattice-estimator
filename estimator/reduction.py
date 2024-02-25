@@ -636,6 +636,24 @@ class ADPS16(ReductionCost):
         return ZZ(2) ** RR(c * beta)
 
 
+class ChaLoy21(ReductionCost):
+
+    __name__ = "ChaLoy21"
+    short_vectors = ReductionCost._short_vectors_sieve
+
+    def __call__(self, beta, d, B=None):
+        """
+
+        See [AC:ChaLoy21]_.
+
+        :param beta: Block size ≥ 2.
+        :param d: Lattice dimension.
+        :param B: Bit-size of entries.
+        """
+
+        return ZZ(2) ** RR(0.2570 * beta)
+
+
 class Kyber(ReductionCost):
     __name__ = "Kyber"
 
