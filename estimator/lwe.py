@@ -9,7 +9,8 @@ from sage.all import oo
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
 from .lwe_bkw import coded_bkw
 from .lwe_guess import exhaustive_search, mitm, distinguish, guess_composition  # noqa
-from .lwe_dual import dual, matzov
+from .lwe_dual import dual
+from .lwe_dual import matzov as dual_hybrid
 from .gb import arora_gb  # noqa
 from .lwe_parameters import LWEParameters as Parameters  # noqa
 from .conf import (
@@ -53,7 +54,7 @@ class Estimate:
         algorithms = {}
 
         algorithms["usvp"] = partial(primal_usvp, red_cost_model=RC.ADPS16, red_shape_model="gsa")
-        algorithms["dual_hybrid"] = partial(matzov, red_cost_model=RC.ADPS16)
+        algorithms["dual_hybrid"] = partial(dual_hybrid, red_cost_model=RC.ADPS16)
 
         if params.m > params.n**2 and params.Xe.is_bounded:
             if params.Xs.is_sparse:
@@ -142,7 +143,7 @@ class Estimate:
             red_shape_model=red_shape_model,
         )
         algorithms["dual"] = partial(dual, red_cost_model=red_cost_model)
-        algorithms["dual_hybrid"] = partial(matzov, red_cost_model=red_cost_model)
+        algorithms["dual_hybrid"] = partial(dual_hybrid, red_cost_model=red_cost_model)
 
         algorithms = {k: v for k, v in algorithms.items() if k not in deny_list}
         algorithms.update(add_list)
