@@ -9,7 +9,7 @@ from sage.all import oo
 from .lwe_primal import primal_usvp, primal_bdd, primal_hybrid
 from .lwe_bkw import coded_bkw
 from .lwe_guess import exhaustive_search, mitm, distinguish, guess_composition  # noqa
-from .lwe_dual import dual, dual_hybrid, matzov
+from .lwe_dual import dual, matzov
 from .gb import arora_gb  # noqa
 from .lwe_parameters import LWEParameters as Parameters  # noqa
 from .conf import (
