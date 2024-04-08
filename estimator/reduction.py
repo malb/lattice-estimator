@@ -382,7 +382,9 @@ class ReductionCost:
         elif N is None:
             N = floor(2 ** (0.2075 * beta))  # pick something
 
-        c = N / floor(2 ** (0.2075 * beta))
+        c0 = RR(N)
+        c1 = RR(2 ** (RR(0.2075 * beta)))
+        c = c0 / c1
 
         rho = sqrt(4 / 3.0) * RR(
             self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim)
@@ -391,7 +393,7 @@ class ReductionCost:
         return (
             rho,
             ceil(c) * self(beta, d),
-            ceil(c) * floor(2 ** (0.2075 * beta)),
+            ceil(c) * floor(c1),
             sieve_dim,
         )
 
