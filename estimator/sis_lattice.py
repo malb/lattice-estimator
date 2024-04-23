@@ -203,7 +203,9 @@ class SISLattice:
         """
         # step 0. establish baseline cost using worst case euclidean norm estimate
         # length_bound =1 makes sense when norm=∞, but we take logs and divide
-        params_baseline = params.updated(norm=2, length_bound=params.length_bound + 1)
+        params_baseline = params.updated(
+            norm=2, length_bound=2 if params.length_bound == 1 else params.length_bound
+        )
         baseline_cost = lattice(
             params_baseline,
             ignore_qary=ignore_qary,
