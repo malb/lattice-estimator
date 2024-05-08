@@ -55,7 +55,7 @@ class SISLattice:
         **kwds,
     ):
         # Check for triviality
-        if params.length_bound >= sqrt(params.m) * params.q // 2:
+        if params.length_bound >= sqrt(params.m) * (params.q / 2):
             raise ValueError("SIS trivially easy. Please set norm bound < √{m}⋅q/2.")
 
         if d is None:
