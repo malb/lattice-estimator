@@ -392,8 +392,13 @@ class ReductionCost:
 
         # arbitrary choice
         if c > 2**1000:
-            c = oo
-            return (rho, oo, oo, sieve_dim)
+            # set c = oo
+            return (
+                rho,
+                oo,
+                oo,
+                sieve_dim,
+            )
 
         return (
             rho,
