@@ -591,6 +591,7 @@ class MATZOV:
             k_fft,
             p,
         )
+
         rho, T_sample, _, beta_sieve = red_cost_model.short_vectors(
             beta, N=N, d=k_lat + m, sieve_dim=beta_sieve
         )
