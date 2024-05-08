@@ -390,6 +390,11 @@ class ReductionCost:
             self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim)
         )
 
+        #arbitrary choice
+        if c > 2**1000:
+            c = oo
+            return (rho, oo, oo, sieve_dim)
+
         return (
             rho,
             ceil(c) * self(beta, d),
@@ -883,7 +888,7 @@ class GJ21(Kyber):
         rho = sqrt(4 / 3.0) * RR(
             self.delta(sieve_dim) ** (sieve_dim - 1) * self.delta(beta) ** (1 - sieve_dim)
         )
-
+        
         if N == 1:
             if preprocess:
                 return 1.0, self(beta, d, B=B), 1, beta
@@ -892,8 +897,16 @@ class GJ21(Kyber):
         elif N is None:
             N = floor(2 ** (0.2075 * sieve_dim))  # pick something
 
-        c = N / floor(2 ** (0.2075 * sieve_dim))
-        sieve_cost = C * 2 ** (self.NN_AGPS[self.nn]["a"] * sieve_dim + self.NN_AGPS[self.nn]["b"])
+        c0 = RR(N)
+        c1 = RR(2 ** (0.2075 * sieve_dim))
+        c = c0 / floor(c1)
+        sieve_cost = C * 2 ** RR((self.NN_AGPS[self.nn]["a"] * sieve_dim + self.NN_AGPS[self.nn]["b"]))
+
+        #arbitrary choice
+        if c > 2**1000:
+            c = oo
+            return(rho, oo, oo, sieve_dim)
+
         return (
             rho,
             ceil(c) * (self(beta, d) + sieve_cost),
