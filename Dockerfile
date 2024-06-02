@@ -1,2 +1,2 @@
-FROM sagemathinc/cocalc:latest
+FROM sagemath/sagemath:latest
 COPY --chown=sage:sage . ${HOME}
