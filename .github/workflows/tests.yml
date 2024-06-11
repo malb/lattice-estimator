@@ -1,0 +1,39 @@
+name: Tests
+
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0' # weekly
+
+env:
+  JOBS: 2
+  DEPS: sagemath
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out
+        uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install $DEPS
+      - name: Test
+        run: |
+          export DOT_SAGE=$HOME/.sage/
+          pip install --upgrade pytest traitlets nbmake nbclient sphinxcontrib-jupyter
+          # TODO: for some strange reason it hangs otherwise
+          pip install --upgrade nbmake
+          # make jupyter notebooks
+          make jupyter
+          # We have to manually copy over those notebooks we want check
+          cp docs/_build/jupyter/prompt.ipynb .
+          cp docs/_build/jupyter/algorithms/*.ipynb .
+          # sage wants it
+          sudo mkdir -p /usr/share/sagemath/build/pkgs
+          # run tests
+          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` python -m pytest
+          

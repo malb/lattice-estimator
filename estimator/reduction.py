@@ -903,7 +903,7 @@ class GJ21(Kyber):
             N = floor(2 ** (0.2075 * sieve_dim))  # pick something
 
         c0 = RR(N)
-        c1 = RR(2 ** (0.2075 * sieve_dim))
+        c1 = RR(2 ** RR(0.2075 * sieve_dim))
         c = c0 / floor(c1)
         sieve_cost = C * 2 ** RR((self.NN_AGPS[self.nn]["a"] * sieve_dim + self.NN_AGPS[self.nn]["b"]))
 
@@ -920,7 +920,7 @@ class GJ21(Kyber):
         return (
             rho,
             ceil(c) * (self(beta, d) + sieve_cost),
-            ceil(c) * floor(2 ** (0.2075 * sieve_dim)),
+            ceil(c) * floor(c1),
             sieve_dim,
         )
 
