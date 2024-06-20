@@ -32,8 +32,18 @@ jobs:
           cp -r .github/ out/
           cp -r estimator/ out/
           rm -rf out/estimator/__pycache__
-          echo 'FROM sagemathinc/cocalc:latest' >> out/Dockerfile
-          echo 'COPY --chown=sage:sage . ${HOME}' >> out/Dockerfile
+          echo 'name: lattice-estimator-environment' >> out/environment.yml
+          echo 'channels:' >> out/environment.yml
+          echo '  - conda-forge' >> out/environment.yml
+          echo 'dependencies:' >> out/environment.yml
+          echo '  - python' >> out/environment.yml
+          echo '  - pip' >> out/environment.yml
+          echo '  - sage' >> out/environment.yml
+          echo '  - pip:' >> out/environment.yml
+          echo '    - nbgitpuller' >> out/environment.yml
+          echo '    - sphinx-gallery' >> out/environment.yml
+          echo '    - pandas' >> out/environment.yml
+          echo '    - matplotlib' >> out/environment.yml
           cp docs/_build/jupyter/algorithms/*.ipynb out
           cp docs/_build/jupyter/prompt.ipynb out
 
