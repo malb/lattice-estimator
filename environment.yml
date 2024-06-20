@@ -1,0 +1,12 @@
+name: lattice-estimator-environment
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - pip
+  - sage
+  - pip:
+    - nbgitpuller
+    - sphinx-gallery
+    - pandas
+    - matplotlib
