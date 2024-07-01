@@ -21,9 +21,7 @@ we optimize β and d separately::
 
     LWE.primal_usvp(params, red_shape_model=Simulator.GSA)
 
-To get a more precise answer we may use the CN11 simulator by Chen and Nguyen [AC:CheNgu11]_ (as
-`implemented in FPyLLL
-<https://github.com/fplll/fpylll/blob/master/src/fpylll/tools/bkz_simulator.py>_`)::
+To get a more precise answer we may use the CN11 simulator by Chen and Nguyen [AC:CheNgu11]_ (as `implemented in FPyLLL <https://github.com/fplll/fpylll/blob/master/src/fpylll/tools/bkz_simulator.py>`__)::
 
     LWE.primal_usvp(params, red_shape_model=Simulator.CN11)
 

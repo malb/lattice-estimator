@@ -10,11 +10,11 @@ We construct an (easy) example LWE instance::
     params = LWE.Parameters(n=200, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CenteredBinomial(4))
     params
 
-The simples (and quickest to estimate) algorithm is the "plain" dual attack as described in [PQCBook:MicReg09]_::
+The simplest (and quickest to estimate) algorithm is the "plain" dual attack as described in [PQCBook:MicReg09]_::
 
     LWE.dual(params)
 
-We can improve these results by considering a dual hybrid attack as in [EC:Albrecht17,INDOCRYPT:EspJouKha20]_::
+We can improve these results by considering a dual hybrid attack as in [EC:Albrecht17]_, [INDOCRYPT:EspJouKha20]_::
 
     dual_hybrid(params)
 
