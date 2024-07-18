@@ -1011,3 +1011,4 @@ class RC:
     MATZOV = MATZOV()
     GJ21 = GJ21()
     LaaMosPol14 = LaaMosPol14()
+    ChaLoy21 = ChaLoy21()
