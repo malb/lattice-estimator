@@ -650,9 +650,10 @@ class MATZOV:
         params = params.normalize()
 
         for p in early_abort_range(2, params.q):
-            for k_enum in early_abort_range(0, params.n, 5):
-                for k_fft in early_abort_range(0, params.n - k_enum[0], 5):
-                    with local_minimum(40, params.n, log_level=log_level + 4) as it:
+            for k_enum in early_abort_range(0, params.n, 10):
+                for k_fft in early_abort_range(0, params.n - k_enum[0], 10):
+                    # RC.ADPS16(1754, 1754) ~ 2^(512)
+                    with local_minimum(40, min(params.n, 1754), log_level=log_level + 4) as it:
                         for beta in it:
                             cost = self.cost(
                                 beta,
