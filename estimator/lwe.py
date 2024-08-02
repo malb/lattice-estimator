@@ -124,13 +124,16 @@ class Estimate:
         if params.Xs.is_sparse:
             # guess zeros for uSVP if the secret is sparse
             algorithms["usvp"] = partial(
-                    partial(guess_composition.sparse_solve, primal_usvp), red_cost_model=red_cost_model, red_shape_model=red_shape_model
+                partial(guess_composition.sparse_solve, primal_usvp),
+                red_cost_model=red_cost_model,
+                red_shape_model=red_shape_model
             )
+
         else:
             algorithms["usvp"] = partial(
                 primal_usvp, red_cost_model=red_cost_model, red_shape_model=red_shape_model
             )
-            
+
         algorithms["bdd"] = partial(
             primal_bdd, red_cost_model=red_cost_model, red_shape_model=red_shape_model
         )
