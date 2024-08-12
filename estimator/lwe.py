@@ -46,7 +46,7 @@ class Estimate:
             >>> from estimator import *
             >>> _ = LWE.estimate.rough(schemes.Kyber512)
             usvp                 :: rop: ≈2^118.6, red: ≈2^118.6, δ: 1.003941, β: 406, d: 998, tag: usvp
-            dual_hybrid          :: rop: ≈2^115.4, red: ≈2^115.3, guess: ≈2^110.0, β: 395, p: 6, ζ: 5, t: 30, β': 395...
+            dual_hybrid          :: rop: ≈2^115.5, red: ≈2^115.3, guess: ≈2^112.3, β: 395, p: 5, ζ: 0, t: 40, β': 395...
 
         """
         params = params.normalize()
@@ -111,7 +111,7 @@ class Estimate:
             usvp                 :: rop: ≈2^143.8, red: ≈2^143.8, δ: 1.003941, β: 406, d: 998, tag: usvp
             bdd                  :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.8, β: 391, η: 421, d: 1013, tag: bdd
             dual                 :: rop: ≈2^149.9, mem: ≈2^97.1, m: 512, β: 424, d: 1024, ↻: 1, tag: dual
-            dual_hybrid          :: rop: ≈2^139.2, red: ≈2^139.0, guess: ≈2^136.2, β: 385, p: 6, ζ: 15, t: 30, ...
+            dual_hybrid          :: rop: ≈2^139.7, red: ≈2^139.6, guess: ≈2^135.9, β: 387, p: 5, ζ: 0, t: 50, β': 391...
 
         """
         params = params.normalize()
