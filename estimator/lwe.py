@@ -37,6 +37,9 @@ class Estimate:
         - Arora-GB only applies to bounded noise with at least `n^2` samples.
         - BKW is not competitive.
 
+        Lattice reduction cost is evaluated based on the non-default "Core-SVP" method from
+        [USENIX:ADPS16].
+
         :param params: LWE parameters.
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.

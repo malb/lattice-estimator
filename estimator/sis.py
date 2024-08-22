@@ -27,6 +27,9 @@ class Estimate:
         This function furthermore assumes the following heuristics:
         - None at the moment. May change as more algorithms are added.
 
+        Lattice reduction cost is evaluated based on the non-default "Core-SVP" method from
+        [USENIX:ADPS16].
+
         :param params: SIS parameters.
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.

@@ -33,6 +33,9 @@ class Estimate:
         - The dual hybrid MITM attack only applies to sparse secrets.
         - The dense sublattice attack only applies to possibly overstretched parameters
 
+        Lattice reduction cost is evaluated based on the non-default "Core-SVP" method from
+        [USENIX:ADPS16].
+
         :param params: NTRU parameters.
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
