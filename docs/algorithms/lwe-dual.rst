@@ -22,6 +22,6 @@ Further improvements are possible using a meet-in-the-middle approach [EPRINT:CH
 
    dual_hybrid(params, mitm_optimization=True)
 
-We consider the variant fron [MATZOV22]_::
+We consider the variant from [MATZOV22]_::
 
    matzov(params)

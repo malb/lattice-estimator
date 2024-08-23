@@ -19,16 +19,16 @@ from .reduction import RC
 class Estimate:
     def rough(self, params, jobs=1, catch_exceptions=True):
         """
-        This function makes the following somewhat routine assumptions:
+        This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice 
+        reduction, and to provide comparable numbers with most of the literature:
 
         - The LGSA holds.
         - The Core-SVP model holds.
 
+        Provided numbers are notably not directly comparable with the rest of our API, when using the default cost models.
+
         This function furthermore assumes the following heuristics:
         - None at the moment. May change as more algorithms are added.
-
-        Lattice reduction cost is evaluated based on the non-default "Core-SVP" method from
-        [USENIX:ADPS16].
 
         :param params: SIS parameters.
         :param jobs: Use multiple threads in parallel.
@@ -77,7 +77,7 @@ class Estimate:
         catch_exceptions=True,
     ):
         """
-        Run all estimates.
+        Run all estimates, based on the default cost and shape models for lattice reduction.
 
         :param params: SIS parameters.
         :param red_cost_model: How to cost lattice reduction.

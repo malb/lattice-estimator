@@ -22,19 +22,19 @@ class Estimate:
 
     def rough(self, params, jobs=1, catch_exceptions=True):
         """
-        This function makes the following somewhat routine assumptions:
+        This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice 
+        reduction, and to provide comparable numbers with most of the literature:
 
         - The ZGSA holds.
         - The Core-SVP model holds.
+
+        Provided numbers are notably not directly comparable with the rest of our API, when using the default cost models.
 
         This function furthermore assumes the following heuristics:
 
         - The primal hybrid attack only applies to sparse secrets.
         - The dual hybrid MITM attack only applies to sparse secrets.
         - The dense sublattice attack only applies to possibly overstretched parameters
-
-        Lattice reduction cost is evaluated based on the non-default "Core-SVP" method from
-        [USENIX:ADPS16].
 
         :param params: NTRU parameters.
         :param jobs: Use multiple threads in parallel.
@@ -94,7 +94,7 @@ class Estimate:
         catch_exceptions=True,
     ):
         """
-        Run all estimates.
+        Run all estimates, based on the default cost and shape models for lattice reduction.
 
         :param params: NTRU parameters.
         :param red_cost_model: How to cost lattice reduction.
