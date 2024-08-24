@@ -22,13 +22,14 @@ class Estimate:
 
     def rough(self, params, jobs=1, catch_exceptions=True):
         """
-        This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice 
+        This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice
         reduction, and to provide comparable numbers with most of the literature:
 
         - The ZGSA holds.
         - The Core-SVP model holds.
 
-        Provided numbers are notably not directly comparable with the rest of our API, when using the default cost models.
+        Provided numbers are notably not directly comparable with the rest of our API, when using the default cost
+        models.
 
         This function furthermore assumes the following heuristics:
 
