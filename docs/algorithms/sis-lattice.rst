@@ -32,5 +32,5 @@ Another option is to simulate a rerandomization of the basis, such that the q-ve
 
     SIS.lattice(params.updated(length_bound=70), red_shape_model=Simulator.LGSA)
 
-**Note:** Currently, lattice attack estimation is only avalailable for euclidean (``2``) and infinity (``oo``) norms. ``SIS.lattice()`` will return a ``NotImplementedError`` if one of these two norms are not selected.
+**Note:** Currently, lattice attack estimation is only available for euclidean (``2``) and infinity (``oo``) norms. ``SIS.lattice()`` will return a ``NotImplementedError`` if one of these two norms are not selected.
                         

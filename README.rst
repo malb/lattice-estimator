@@ -14,7 +14,21 @@ The main purpose of this estimator is to give designers an easy way to choose pa
 Quick Start
 -----------
 
-- Usage
+We currently provide evaluators for the security of the `LWE`, `NTRU`, and `SIS` problems. 
+Our estimator integrates simulators for the best known attacks against these problems, and provides
+bit-security estimates relying on heuristics to predict the cost and shape of lattice reduction algorithms. The default
+models are configured in `conf.py <https://github.com/malb/lattice-estimator/blob/main/estimator/conf.py>`.
+
+It is possible to evaluate attacks cost individually, or using the helper functions:
+- `*.estimator.rough`: fast routine that evaluates the security of the problem only against the usually most efficient
+   attacks. Note that it uses a non-default cost model for lattice reduction, most often used in the literature for ease of 
+   comparison, and will thus return different numbers than the rest of the API. Refer to 
+   `its documentation <https://lattice-estimator.readthedocs.io/en/latest/_apidoc/estimator.lwe/estimator.lwe.Estimate/estimator.lwe.Estimate.rough.html>` 
+   for details.
+- `*.estimator`: extended routine that evaluates the security of the problem against all supported attacks. This uses the
+   default cost and shape model for lattice reduction.
+
+Usage examples:
 
   .. code-block:: python
     

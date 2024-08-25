@@ -25,10 +25,14 @@ class Estimate:
 
     def rough(self, params, jobs=1, catch_exceptions=True):
         """
-        This function makes the following somewhat routine assumptions:
+        This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice
+        reduction, and to provide comparable numbers with most of the literature:
 
         - The GSA holds.
         - The Core-SVP model holds.
+
+        Provided numbers are notably not directly comparable with the rest of our API, when using the default cost
+        models.
 
         This function furthermore assumes the following heuristics:
 
@@ -93,7 +97,7 @@ class Estimate:
         catch_exceptions=True,
     ):
         """
-        Run all estimates.
+        Run all estimates, based on the default cost and shape models for lattice reduction.
 
         :param params: LWE parameters.
         :param red_cost_model: How to cost lattice reduction.
