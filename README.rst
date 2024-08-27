@@ -14,19 +14,20 @@ The main purpose of this estimator is to give designers an easy way to choose pa
 Quick Start
 -----------
 
-We currently provide evaluators for the security of the `LWE`, `NTRU`, and `SIS` problems. 
+We currently provide evaluators for the security of the `LWE`, `NTRU`, and `SIS` problems.
 Our estimator integrates simulators for the best known attacks against these problems, and provides
 bit-security estimates relying on heuristics to predict the cost and shape of lattice reduction algorithms. The default
-models are configured in `conf.py <https://github.com/malb/lattice-estimator/blob/main/estimator/conf.py>`.
+models are configured in `conf.py <https://github.com/malb/lattice-estimator/blob/main/estimator/conf.py>`__.
 
 It is possible to evaluate attacks cost individually, or using the helper functions:
-- `*.estimator.rough`: fast routine that evaluates the security of the problem only against the usually most efficient
-   attacks. Note that it uses a non-default cost model for lattice reduction, most often used in the literature for ease of 
-   comparison, and will thus return different numbers than the rest of the API. Refer to 
-   `its documentation <https://lattice-estimator.readthedocs.io/en/latest/_apidoc/estimator.lwe/estimator.lwe.Estimate/estimator.lwe.Estimate.rough.html>` 
-   for details.
-- `*.estimator`: extended routine that evaluates the security of the problem against all supported attacks. This uses the
-   default cost and shape model for lattice reduction.
+
+- ``*.estimate.rough``: fast routine that evaluates the security of the problem only against the usually most efficient
+  attacks. Note that it uses a non-default cost model for lattice reduction, most often used in the literature for ease of
+  comparison, and will thus return different numbers than the rest of the API. Refer to 
+  `its documentation <https://lattice-estimator.readthedocs.io/en/latest/_apidoc/estimator.lwe/estimator.lwe.Estimate/estimator.lwe.Estimate.rough.html>`__
+  for details.
+- ``*.estimate``: extended routine that evaluates the security of the problem against all supported attacks. This uses the
+  default cost and shape model for lattice reduction.
 
 Usage examples:
 
@@ -154,7 +155,8 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Rachel Player
 - Sam Scott
 
- See :doc:`Contributing <../contributing>` for details on how to contribute.
+See `Contributing <https://lattice-estimator.readthedocs.io/en/latest/contributing.html>`__ for details on how
+to contribute.
 
 Citing
 ------
