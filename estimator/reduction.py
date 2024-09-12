@@ -650,13 +650,12 @@ class ADPS16(ReductionCost):
 
 class ChaLoy21(ReductionCost):
 
-    __name__ = "ChaLoy21"
+    __name__ = "ChaLoy21_CoreSVP"
     short_vectors = ReductionCost._short_vectors_sieve
 
     def __call__(self, beta, d, B=None):
         """
-
-        See [AC:ChaLoy21]_.
+        Runtime estimation for solving the Core-SVP using quantum sieving, based on the work in [AC:ChaLoy21]_.
 
         :param beta: Block size ≥ 2.
         :param d: Lattice dimension.
@@ -665,6 +664,23 @@ class ChaLoy21(ReductionCost):
 
         return ZZ(2) ** RR(0.2570 * beta)
 
+class ChaLoy21_BKZ(ReductionCost):
+    __name__ = "ChaLoy21_BKZ"
+    short_vectors = ReductionCost._short_vectors_sieve
+
+    def __call__(self, beta, d, B=None):
+        """
+        Total runtime estimation for the BKZ (Block Korkine-Zolotarev) algorithm, 
+        including multiple calls for solving Core-SVP using quantum sieving, based on the work in [AC:ChaLoy21]_.
+
+        :param beta: Block size ≥ 2.
+        :param d: Lattice dimension.
+        :param B: Bit-size of entries.
+        """
+
+        return self.LLL(d, B) + ZZ(2) ** RR(
+            (0.2570 * beta + 16.4 + log(self.svp_repeat(beta, d), 2))
+        )
 
 class Kyber(ReductionCost):
     __name__ = "Kyber"
@@ -1012,3 +1028,4 @@ class RC:
     GJ21 = GJ21()
     LaaMosPol14 = LaaMosPol14()
     ChaLoy21 = ChaLoy21()
+    ChaLoy21_BKZ = ChaLoy21_BKZ()
