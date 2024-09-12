@@ -649,7 +649,6 @@ class ADPS16(ReductionCost):
 
 
 class ChaLoy21(ReductionCost):
-
     __name__ = "ChaLoy21_CoreSVP"
     short_vectors = ReductionCost._short_vectors_sieve
 
