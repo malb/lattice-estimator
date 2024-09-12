@@ -663,13 +663,14 @@ class ChaLoy21(ReductionCost):
 
         return ZZ(2) ** RR(0.2570 * beta)
 
+
 class ChaLoy21_BKZ(ReductionCost):
     __name__ = "ChaLoy21_BKZ"
     short_vectors = ReductionCost._short_vectors_sieve
 
     def __call__(self, beta, d, B=None):
         """
-        Total runtime estimation for the BKZ (Block Korkine-Zolotarev) algorithm, 
+        Total runtime estimation for the BKZ (Block Korkine-Zolotarev) algorithm,
         including multiple calls for solving Core-SVP using quantum sieving, based on the work in [AC:ChaLoy21]_.
 
         :param beta: Block size ≥ 2.
@@ -680,6 +681,7 @@ class ChaLoy21_BKZ(ReductionCost):
         return self.LLL(d, B) + ZZ(2) ** RR(
             (0.2570 * beta + 16.4 + log(self.svp_repeat(beta, d), 2))
         )
+
 
 class Kyber(ReductionCost):
     __name__ = "Kyber"
