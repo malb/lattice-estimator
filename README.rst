@@ -150,7 +150,7 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - [Léo Ducas](https://github.com/lducas)
 - [Ludo Pulles](https://github.com/ludopulles)
 - [Markus Schmidt](https://github.com/swissiety)
-- [Martin Albrecht](https://github.com/sanzaru)
+- [Martin Albrecht](https://github.com/malb)
 - [Michael Walter](https://github.com/catch22)
 - [Rachel Player](https://github.com/rachelplayer)
 - [Sam Scott](https://github.com/samscott89)
