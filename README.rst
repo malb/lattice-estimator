@@ -139,21 +139,21 @@ Contributions
 
 At present, this estimator is maintained by Martin Albrecht. Contributors are:
 
-- Benjamin Curtis
-- Cathie Yun
-- Cedric Lefebvre
-- Fernando Virdia
+- [Benjamin Curtis](https://github.com/stympy)
+- [Cathie Yun](https://github.com/cathieyun)
+- [Cedric Lefebvre](https://github.com/Cedric-Lefebvre)
+- [Fernando Virdia](https://github.com/fvirdia)
 - Florian Göpfert
-- Hamish Hunt
-- Hunter Kippen
-- James Owen
-- Léo Ducas
-- Ludo Pulles
-- Markus Schmidt
-- Martin Albrecht
-- Michael Walter
-- Rachel Player
-- Sam Scott
+- [Hamish Hunt](https://github.com/hamishun)
+- [Hunter Kippen](https://github.com/hunterkipt)
+- [James Owen](https://github.com/jo276)
+- [Léo Ducas](https://github.com/lducas)
+- [Ludo Pulles](https://github.com/ludopulles)
+- [Markus Schmidt](https://github.com/swissiety)
+- [Martin Albrecht](https://github.com/sanzaru)
+- [Michael Walter](https://github.com/catch22)
+- [Rachel Player](https://github.com/rachelplayer)
+- [Sam Scott](https://github.com/samscott89)
 
 See `Contributing <https://lattice-estimator.readthedocs.io/en/latest/contributing.html>`__ for details on how
 to contribute.
