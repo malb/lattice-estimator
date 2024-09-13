@@ -139,7 +139,7 @@ Contributions
 
 At present, this estimator is maintained by Martin Albrecht. Contributors are:
 
-- [Benjamin Curtis](https://github.com/stympy)
+- [Benjamin Curtis](https://github.com/bencrts)
 - [Cathie Yun](https://github.com/cathieyun)
 - [Cedric Lefebvre](https://github.com/Cedric-Lefebvre)
 - [Fernando Virdia](https://github.com/fvirdia)
