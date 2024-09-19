@@ -3,7 +3,7 @@
 from copy import copy
 from dataclasses import dataclass
 
-from sage.all import binomial, ceil, exp, log, oo, parent, pi, RealField, RR, sqrt
+from sage.all import binomial, ceil, exp, log, oo, parent, pi, QQ, RealField, RR, sqrt
 
 
 def stddevf(sigma):
@@ -14,14 +14,14 @@ def stddevf(sigma):
 
     EXAMPLE::
 
-        >>> from estimator.nd import stddevf
-        >>> stddevf(64.0)
+        >>> from estimator import *
+        >>> ND.stddevf(64.0)
         25.532...
 
-        >>> stddevf(64)
+        >>> ND.stddevf(64)
         25.532...
 
-        >>> stddevf(RealField(256)(64)).prec()
+        >>> ND.stddevf(RealField(256)(64)).prec()
         256
     """
     try:
@@ -43,16 +43,16 @@ def sigmaf(stddev):
 
     EXAMPLE::
 
-        >>> from estimator.nd import stddevf, sigmaf
+        >>> from estimator import *
         >>> n = 64.0
-        >>> sigmaf(stddevf(n))
+        >>> ND.sigmaf(ND.stddevf(n))
         64.000...
 
-        >>> sigmaf(RealField(128)(1.0))
+        >>> ND.sigmaf(RealField(128)(1.0))
         2.5066282746310005024157652848110452530
-        >>> sigmaf(1.0)
+        >>> ND.sigmaf(1.0)
         2.506628274631...
-        >>> sigmaf(1)
+        >>> ND.sigmaf(1)
         2.506628274631...
     """
     RR = parent(stddev)
@@ -75,6 +75,7 @@ class NoiseDistribution:
     n: int = None
     bounds: tuple = (-oo, oo)
     density: float = 1.0  # hamming_weight() / n.
+    is_Gaussian_like: bool = False
 
     def __lt__(self, other):
         """
@@ -141,7 +142,7 @@ class NoiseDistribution:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> hash(ND(3.0, 1.0)) == hash((3.0, 1.0, None))
+            >>> hash(ND.DiscreteGaussian(3.0, 1.0)) == hash((3.0, 1.0, None))
             True
 
         """
@@ -215,8 +216,8 @@ class DiscreteGaussian(NoiseDistribution):
 
     EXAMPLE::
 
-        >>> from estimator.nd import DiscreteGaussian
-        >>> DiscreteGaussian(3.0, 1.0)
+        >>> from estimator import *
+        >>> ND.DiscreteGaussian(3.0, 1.0)
         D(σ=3.00, μ=1.00)
     """
     # cut-off for Gaussian distributions
@@ -225,15 +226,11 @@ class DiscreteGaussian(NoiseDistribution):
     gaussian_tail_prob: float = 1 - 2 * exp(-4 * pi)
 
     def __init__(self, stddev, mean=0, n=None):
-        super().__init__(stddev=stddev, mean=mean, n=n)
+        super().__init__(stddev=stddev, mean=mean, n=n, is_Gaussian_like=True)
 
         b_val = oo if n is None else ceil(log(n, 2) * stddev)
         self.bounds = (-b_val, b_val)
         self.density = max(0.0, 1 - RR(1 / sigmaf(stddev)))
-
-    @property
-    def is_Gaussian_like(self):
-        return True
 
     def support_size(self, fraction=1.0):
         """
@@ -241,9 +238,9 @@ class DiscreteGaussian(NoiseDistribution):
 
         EXAMPLE::
 
-            >>> from estimator.nd import DiscreteGaussian
-            >>> DiscreteGaussian(1.0, n=128).support_size(0.99)
-            ???
+            >>> from estimator import *
+            >>> ND.DiscreteGaussian(1.0, n=128).support_size(0.99)
+            2.68643790357272e174
         """
         # We will treat this noise distribution as bounded with failure probability `1 - fraction`.
         n = len(self)
@@ -256,21 +253,23 @@ class DiscreteGaussian(NoiseDistribution):
             )
 
         b = 2 * t * sigmaf(self.stddev) + 1
-        return (2 * b + 1)**n
+        return RR(2.0 * b + 1)**n
 
 
-class DiscreteGaussianAlpha(DiscreteGaussian):
+def DiscreteGaussianAlpha(alpha, q, mean=0, n=None):
     """
     A discrete Gaussian distribution with standard deviation α⋅q/√(2π) per component.
 
     EXAMPLE::
 
-        >>> from estimator.nd import DiscreteGaussianAlpha
-        >>> DiscreteGaussianAlpha(0.001, 2048)
+        >>> from estimator import *
+        >>> alpha, q = 0.001, 2048
+        >>> ND.DiscreteGaussianAlpha(alpha, q)
         D(σ=0.82)
+        >>> ND.DiscreteGaussianAlpha(alpha, q) == ND.DiscreteGaussian(ND.stddevf(alpha * q))
+        True
     """
-    def __init__(self, alpha, q, mean=0, n=None):
-        super().__init__(RR(stddevf(alpha * q)), RR(mean), n)
+    return DiscreteGaussian(RR(stddevf(alpha * q)), RR(mean), n)
 
 
 class CenteredBinomial(NoiseDistribution):
@@ -279,7 +278,7 @@ class CenteredBinomial(NoiseDistribution):
 
     EXAMPLE::
 
-        >>> import estimator.ND
+        >>> from estimator import *
         >>> ND.CenteredBinomial(8)
         D(σ=2.00)
     """
@@ -287,13 +286,10 @@ class CenteredBinomial(NoiseDistribution):
         super().__init__(
             density=1 - binomial(2 * eta, eta) * 2 ** (-2 * eta),
             stddev=RR(sqrt(eta / 2.0)),
+            is_Gaussian_like=True,
             bounds=(-eta, eta),
             n=n,
         )
-
-    @property
-    def is_Gaussian_like(self):
-        return True
 
     def support_size(self, fraction=1.0):
         """
@@ -302,7 +298,7 @@ class CenteredBinomial(NoiseDistribution):
         EXAMPLE::
 
             >>> from estimator import *
-            >>> CenteredBinomial(3, 10).support_size()
+            >>> ND.CenteredBinomial(3, 10).support_size()
             282475249
             >>> ND.CenteredBinomial(3, 10).support_size(0.99)
             279650497
@@ -337,6 +333,16 @@ class Uniform(NoiseDistribution):
             n=n,
         )
 
+    def __hash__(self):
+        """
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> hash(ND.Uniform(-10, 10)) == hash(("Uniform", (-10, 10), None))
+            True
+        """
+        return hash(("Uniform", self.bounds, self.n))
+
     def support_size(self, fraction=1.0):
         """
         Compute the size of the support covering the probability given as fraction.
@@ -352,9 +358,9 @@ class Uniform(NoiseDistribution):
         return ceil(RR(fraction) * (b - a + 1)**len(self))
 
 
-class UniformMod(Uniform):
+def UniformMod(q, n=None):
     """
-    Uniform mod ``q``, with balanced representation.
+    Uniform mod ``q``, with balanced representation, i.e. values in ZZ ∩ [q/2, q/2).
 
     EXAMPLE::
 
@@ -362,12 +368,13 @@ class UniformMod(Uniform):
         >>> ND.UniformMod(7)
         D(σ=2.00)
         >>> ND.UniformMod(8)
-        D(σ=2.29, μ=0.50)
+        D(σ=2.29, μ=-0.50)
+        >>> ND.UniformMod(2) == ND.Uniform(-1, 0)
+        True
     """
-    def __init__(self, q, n=None):
-        a = -(q // 2)
-        b = -a -1 if q % 2 == 0 else -a
-        super().__init__(a, b, n=n)
+    a = -(q // 2)
+    b = a + q - 1
+    return Uniform(a, b, n=n)
 
 
 class SparseTernary(NoiseDistribution):
@@ -384,8 +391,7 @@ class SparseTernary(NoiseDistribution):
         D(σ=0.42, μ=0.02)
     """
     def __init__(self, n, p, m=None):
-        if m is None:
-            m = p
+        p, m = int(p), int(p if m is None else m)
         self.p, self.m = p, m
 
         # Yes, n=0 might happen when estimating the cost of the dual attack!
@@ -430,9 +436,9 @@ class SparseTernary(NoiseDistribution):
         n, hw = len(self), self.hamming_weight
         if new_hw is None:
             # Most likely split has same density: new_hw / new_n = hw / n.
-            new_hw = int(round(hw * new_n / n))
+            new_hw = int(QQ(hw * new_n / n).round('down'))
 
-        new_p = int(round((new_hw * self.p) / hw))
+        new_p = int((QQ(new_hw * self.p) / hw).round('down'))
         new_m = new_hw - new_p
         return (
             SparseTernary(new_n, new_p, new_m),

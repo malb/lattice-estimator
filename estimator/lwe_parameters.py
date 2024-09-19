@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from sage.all import oo, binomial, log, sqrt, ceil
 
-from .nd import NoiseDistribution
+from .nd import NoiseDistribution, DiscreteGaussian
 from .errors import InsufficientSamplesError
 
 
@@ -120,7 +120,7 @@ class LWEParameters:
             #  -two signs per position (+1,-1)
             # - all "-" and all "+" are the same
             if binomial(self.m, k) * 2**k - 1 >= m:
-                Xe = NoiseDistribution.DiscreteGaussian(float(sqrt(k) * self.Xe.stddev))
+                Xe = DiscreteGaussian(float(sqrt(k) * self.Xe.stddev))
                 d["Xe"] = Xe
                 d["m"] = ceil(m)
                 return LWEParameters(**d)
@@ -157,7 +157,7 @@ class LWEParameters:
             self.n,
             p,
             Xs=self.Xs,
-            Xe=NoiseDistribution.DiscreteGaussian(sqrt(2) * self.Xe.stddev * scale),
+            Xe=DiscreteGaussian(sqrt(2) * self.Xe.stddev * scale),
             m=self.m,
             tag=f"{self.tag},scaled" if self.tag else None,
         )
