@@ -439,6 +439,15 @@ class SparseTernary(NoiseDistribution):
             SparseTernary(n - new_n, self.p - new_p, self.m - new_m)
         )
 
+    def split_probability(self, new_n, new_hw=None):
+        """
+        Compute probability of splitting in a way that one half having `new_n` coefficients has
+        `new_hw` of the weight, and the remaining part the rest. This is naturally the proportion
+        of such splits divided this support size.
+        """
+        left, right = self.split_balanced(new_n, new_hw)
+        return left.support_size() * right.support_size() / self.support_size()
+
     @property
     def hamming_weight(self):
         return self.p + self.m
@@ -451,9 +460,7 @@ class SparseTernary(NoiseDistribution):
 
             >>> from estimator import *
             >>> ND.SparseTernary(64, 8).support_size()
-            32016101348447354880
+            6287341680214194176
         """
-        h = self.hamming_weight
-        # TODO: this is assuming that the non-zero entries are uniform over {-1,1}
-        # need p and m for more accurate calculation
-        return ceil(2**h * binomial(len(self), h) * RR(fraction))
+        n, p, m = len(self), self.p, self.m
+        return ceil(binomial(n, p) * binomial(n - p, m) * RR(fraction))

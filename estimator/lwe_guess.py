@@ -15,7 +15,7 @@ from .errors import InsufficientSamplesError, OutOfBoundsError
 from .lwe_parameters import LWEParameters
 from .prob import amplify as prob_amplify, drop as prob_drop, amplify_sigma
 from .util import local_minimum, log2
-from .nd import sigmaf
+from .nd import sigmaf, SparseTernary
 
 
 class guess_composition:
@@ -239,12 +239,10 @@ class MITM:
         # we could now call self.cost with this k, but using our model below seems
         # about 3x faster and reasonably accurate
 
-        if params.Xs.is_sparse:
+        if type(params.Xs) is SparseTernary:
             h = params.Xs.hamming_weight
-            split_h = round(h * k / n)
-            success_probability_ = (
-                binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
-            )
+            # split optimally and compute the probability of this event
+            success_probability_ = params.Xs.split_probability(k)
 
             logT = RR(h * (log2(n) - log2(h) + log2(sd_rng - 1) + log2(e))) / (2 - delta)
             logT -= RR(log2(h) / 2)
@@ -275,21 +273,21 @@ class MITM:
         nd_rng, nd_p = self.X_range(params.Xe)
         delta = nd_rng / params.q  # possible error range scaled
 
-        sd_rng, sd_p = self.X_range(params.Xs)
         n = params.n
 
-        if params.Xs.is_sparse:
-            h = params.Xs.hamming_weight
-
+        if type(params.Xs) is SparseTernary:
             # we assume the hamming weight to be distributed evenly across the two parts
             # if not we can rerandomize on the coordinates and try again -> repeat
-            split_h = round(h * k / n)
-            size_tab = RR((sd_rng - 1) ** split_h * binomial(k, split_h))
-            size_sea = RR((sd_rng - 1) ** (h - split_h) * binomial(n - k, h - split_h))
-            success_probability_ = (
-                binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
-            )
+            sec_tab, sec_sea = params.Xs.split_balanced(k)
+
+            size_tab = sec_tab.support_size()
+            size_sea = sec_sea.support_size()
+            success_probability_ = size_tab * size_sea / params.Xs.support_size()
+
+            sd_p = 1.0
         else:
+            sd_rng, sd_p = self.X_range(params.Xs)
+
             size_tab = sd_rng**k
             size_sea = sd_rng ** (n - k)
             success_probability_ = 1
