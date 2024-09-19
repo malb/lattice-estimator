@@ -5,11 +5,10 @@ Estimate cost of solving LWE using primal attacks.
 See :ref:`LWE Primal Attacks` for an introduction what is available.
 
 """
-from sage.all import oo, log, RR, cached_function, exp, pi, floor, euler_gamma
-from math import lgamma
+from sage.all import oo, log, RR, cached_function, exp, floor, euler_gamma
 from scipy.special import digamma
 from .reduction import cost as costf
-from .util import zeta_precomputed, zeta_prime_precomputed, gh_constant
+from .util import zeta_precomputed, zeta_prime_precomputed, log_gh
 from .lwe_primal import PrimalUSVP, PrimalHybrid
 from .ntru_parameters import NTRUParameters
 from .simulator import normalize as simulator_normalize
@@ -24,18 +23,6 @@ class PrimalDSD:
     """
     Estimate cost of solving (overstretched) NTRU via dense sublattice discovery
     """
-
-    @staticmethod
-    @cached_function
-    def ball_log_vol(n):
-        return RR((n / 2.0)) * RR(log(pi)) - RR(lgamma(n / 2.0 + 1))
-
-    @staticmethod
-    def log_gh(d, logvol=0):
-        if d < 49:
-            return RR(gh_constant[d]) + RR(logvol) / d
-
-        return RR(1.0 / d) * RR(logvol - PrimalDSD.ball_log_vol(d))
 
     @staticmethod
     def DSL_logvol_matrix(n, sigmasq):
@@ -126,7 +113,7 @@ class PrimalDSD:
         for i in range(1, params.n + 1):
             s = params.n + i
 
-            dslv_len = PrimalDSD.log_gh(i, dsli_vols[s])
+            dslv_len = log_gh(i, dsli_vols[s])
             sigma_sq = exp(2 * dslv_len) / s
 
             if sigma_sq > 10**10:
