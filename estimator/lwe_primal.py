@@ -99,6 +99,8 @@ class PrimalUSVP:
             tau = False  # Tau false ==> instance is homogeneous
 
         d = PrimalUSVP._solve_for_d(params, m, beta, tau, xi) if d is None else d
+        if d < beta:
+            d = beta
         # if d == β we assume one SVP call, otherwise poly calls. This makes the cost curve jump, so
         # we avoid it here.
         if d == beta and d < m:
@@ -369,6 +371,10 @@ class PrimalHybrid:
         else:
             # we scaled the lattice so that χ_e is what we want
             eta = PrimalHybrid.svp_dimension(r, params.Xe)
+            if eta > d:
+                # Lattice reduction was not strong enough to "reveal" the LWE solution.
+                # A larger `beta` should perhaps be attempted.
+                return Cost(rop=oo)
             svp_cost = costf(red_cost_model, eta, eta)
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
