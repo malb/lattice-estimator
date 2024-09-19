@@ -17,7 +17,7 @@ where
 The last row is optional.
 """
 
-from sage.all import RR, log, line, cached_function, pi, exp
+from sage.all import RR, log, line, cached_function, exp
 from functools import partial
 
 
@@ -120,8 +120,6 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
 
 def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
-    from math import lgamma
-    from .util import gh_constant, small_slope_t8
     """
     Reduced lattice Z-shape following the Geometric Series Assumption as specified in
     NTRU fatrigue [DucWoe21]_
@@ -178,18 +176,8 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
         >>> sum([log(x) for x in cn11_profile])
         1473.630905870442
     """
-
+    from .util import log_gh, small_slope_t8
     assert 2 <= beta <= d
-
-    @cached_function
-    def ball_log_vol(n):
-        return RR((n/2.) * log(pi) - lgamma(n/2. + 1))
-
-    def log_gh(d, logvol=0):
-        if d < 49:
-            return RR(gh_constant[d] + logvol/d)
-
-        return RR(1./d * (logvol - ball_log_vol(d)))
 
     def delta(k):
         assert k >= 60
