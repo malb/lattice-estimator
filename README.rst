@@ -139,18 +139,18 @@ Contributions
 
 At present, this estimator is maintained by Martin Albrecht. Contributors are:
 
-- [Benjamin Curtis](https://github.com/bencrts)
-- [Cathie Yun](https://github.com/cathieyun)
+- `Benjamin Curtis <https://github.com/bencrts>`__
+- `Cathie Yun <https://github.com/cathieyun>`__
 - Cedric Lefebvre
 - Fernando Virdia
 - Florian Göpfert
-- [Hamish Hunt](https://github.com/hamishun)
-- [Hunter Kippen](https://github.com/hkippen-SBAQ)
+- `Hamish Hunt <https://github.com/hamishun>`__
+- `Hunter Kippen <https://github.com/hkippen-SBAQ>`__
 - James Owen
 - Léo Ducas
-- [Ludo Pulles](https://github.com/ludopulles)
+- `Ludo Pulles <https://github.com/ludopulles>`__
 - Markus Schmidt
-- [Martin Albrecht](https://github.com/malb)
+- `Martin Albrecht <https://github.com/malb>`__
 - Michael Walter
 - Rachel Player
 - Sam Scott
