@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from copy import copy
 from dataclasses import dataclass
 
 from sage.all import binomial, ceil, exp, log, oo, parent, pi, RealField, RR, sqrt
@@ -69,11 +70,11 @@ class NoiseDistribution:
     """
     All noise distributions are instances of this class.
     """
-    stddev: float
+    stddev: float = 0
     mean: float = 0
     n: int = None
     bounds: tuple = (-oo, oo)
-    density: float = 1.0  # Hamming weight / dimension.
+    density: float = 1.0  # hamming_weight() / n.
 
     def __lt__(self, other):
         """
@@ -162,6 +163,14 @@ class NoiseDistribution:
             raise ValueError("Distribution has no length.")
         return self.n
 
+    def resize(self, new_n):
+        """
+        Return an altered distribution having a dimension `new_n`.
+        """
+        new_self = copy(self)
+        new_self.n = new_n
+        return new_self
+
     @property
     def hamming_weight(self):
         """
@@ -184,6 +193,9 @@ class NoiseDistribution:
         """
         # NOTE: somewhat arbitrary
         return self.density < 0.5
+
+    def support_size(self, fraction=1.0):
+        raise NotImplementedError("support_size")
 
 
 """
@@ -223,23 +235,24 @@ class DiscreteGaussian(NoiseDistribution):
     def is_Gaussian_like(self):
         return True
 
-    def support_size(self, fraction=1.0, n=None):
+    def support_size(self, fraction=1.0):
         """
         Compute the size of the support covering the probability given as fraction.
 
         EXAMPLE::
 
             >>> from estimator.nd import DiscreteGaussian
-            >>> DiscreteGaussian(1.0, n=128).support_size(fraction=.99)
+            >>> DiscreteGaussian(1.0, n=128).support_size(0.99)
             ???
         """
         # We will treat this noise distribution as bounded with failure probability `1 - fraction`.
+        n = len(self)
         t = self.gaussian_tail_bound
         p = self.gaussian_tail_prob
 
         if p**n < fraction:
             raise NotImplementedError(
-                f"TODO(nd.support-size): raise t. {RR(p ** n)}, {n}, {fraction}"
+                f"TODO(DiscreteGaussian.support_size): raise t. {RR(p ** n)}, {n}, {fraction}"
             )
 
         b = 2 * t * sigmaf(self.stddev) + 1
@@ -262,7 +275,7 @@ class DiscreteGaussianAlpha(DiscreteGaussian):
 
 class CenteredBinomial(NoiseDistribution):
     """
-    Sample a_1, …, a_η, b_1, …, b_η and return Σ(a_i - b_i).
+    Sample a_1, …, a_η, b_1, …, b_η uniformly from {0, 1}, and return Σ(a_i - b_i).
 
     EXAMPLE::
 
@@ -282,7 +295,7 @@ class CenteredBinomial(NoiseDistribution):
     def is_Gaussian_like(self):
         return True
 
-    def support_size(self, fraction=1.0, n=None):
+    def support_size(self, fraction=1.0):
         """
         Compute the size of the support covering the probability given as fraction.
 
@@ -291,15 +304,12 @@ class CenteredBinomial(NoiseDistribution):
             >>> from estimator import *
             >>> CenteredBinomial(3, 10).support_size()
             282475249
-            >>> ND.CenteredBinomial(3, 10).support_size(fraction=.99)
+            >>> ND.CenteredBinomial(3, 10).support_size(0.99)
             279650497
         """
-        if not n:
-            n = len(self)
-
         # TODO: this might be suboptimal/inaccurate for binomial distribution
         a, b = self.bounds
-        return ceil(RR(fraction) * (b - a + 1)**n)
+        return ceil(RR(fraction) * (b - a + 1)**len(self))
 
 
 class Uniform(NoiseDistribution):
@@ -327,22 +337,19 @@ class Uniform(NoiseDistribution):
             n=n,
         )
 
-    def support_size(self, fraction=1.0, n=None):
+    def support_size(self, fraction=1.0):
         """
         Compute the size of the support covering the probability given as fraction.
 
         EXAMPLE::
 
             >>> from estimator import *
-            >>> ND.Uniform(-3,3, 64).support_size(fraction=.99)
+            >>> ND.Uniform(-3,3, 64).support_size(0.99)
             1207562882759477428726191443614714994252339953407098880
         """
-        if not n:
-            n = len(self)
-
         # TODO: this might be suboptimal/inaccurate for binomial distribution
         a, b = self.bounds
-        return ceil(RR(fraction) * (b - a + 1)**n)
+        return ceil(RR(fraction) * (b - a + 1)**len(self))
 
 
 class UniformMod(Uniform):
@@ -355,7 +362,7 @@ class UniformMod(Uniform):
         >>> ND.UniformMod(7)
         D(σ=2.00)
         >>> ND.UniformMod(8)
-        D(σ=2.29, μ=-0.50)
+        D(σ=2.29, μ=0.50)
     """
     def __init__(self, q, n=None):
         a = -(q // 2)
@@ -381,13 +388,10 @@ class SparseTernary(NoiseDistribution):
             m = p
         self.p, self.m = p, m
 
-        # Yes, n=0 might happen in the dual attack!
+        # Yes, n=0 might happen when estimating the cost of the dual attack!
         mean = 0 if n == 0 else RR((p - m) / n)
         density = 0 if n == 0 else RR((p + m) / n)
         stddev = sqrt(density - mean**2)
-        # stddev = sqrt(p / n * (1 - mean)**2 +
-        #               m / n * (-1 - mean)**2 +
-        #               (n - (p + m)) / n * (mean)**2)
 
         super().__init__(
             stddev=stddev,
@@ -401,7 +405,7 @@ class SparseTernary(NoiseDistribution):
     def hamming_weight(self):
         return self.p + self.m
 
-    def support_size(self, fraction=1.0, n=None):
+    def support_size(self, fraction=1.0):
         """
         Compute the size of the support covering the probability given as fraction.
 
@@ -411,10 +415,7 @@ class SparseTernary(NoiseDistribution):
             >>> ND.SparseTernary(64, 8).support_size()
             32016101348447354880
         """
-        if not n:
-            n = len(self)
-
         h = self.hamming_weight
         # TODO: this is assuming that the non-zero entries are uniform over {-1,1}
         # need p and m for more accurate calculation
-        return ceil(2**h * binomial(n, h) * RR(fraction))
+        return ceil(2**h * binomial(len(self), h) * RR(fraction))

@@ -175,7 +175,7 @@ class ExhaustiveSearch:
         probability = sqrt(success_probability)
 
         try:
-            size = params.Xs.support_size(n=params.n, fraction=probability)
+            size = params.Xs.support_size(probability)
         except NotImplementedError:
             # not achieving required probability with search space
             # given our settings that means the search space is huge
@@ -221,7 +221,7 @@ class MITM:
         else:
             # setting fraction=0 to ensure that support size does not
             # throw error. we'll take the probability into account later
-            rng = nd.support_size(n=1, fraction=0.0)
+            rng = nd.resize(1).support_size(0.0)
             return rng, nd.gaussian_tail_prob
 
     def local_range(self, center):
@@ -240,7 +240,7 @@ class MITM:
         # about 3x faster and reasonably accurate
 
         if params.Xs.is_sparse:
-            h = params.Xs.get_hamming_weight(n=params.n)
+            h = params.Xs.hamming_weight
             split_h = round(h * k / n)
             success_probability_ = (
                 binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
@@ -279,7 +279,7 @@ class MITM:
         n = params.n
 
         if params.Xs.is_sparse:
-            h = params.Xs.get_hamming_weight(n=n)
+            h = params.Xs.hamming_weight
 
             # we assume the hamming weight to be distributed evenly across the two parts
             # if not we can rerandomize on the coordinates and try again -> repeat

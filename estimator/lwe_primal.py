@@ -628,7 +628,7 @@ class PrimalHybrid:
             while zeta_max < params.n:
                 # TODO: once support_size() is supported for NTRU, remove the below try/except
                 try:
-                    if params.Xs.support_size(zeta_max) > usvp_cost:
+                    if params.Xs.resize(zeta_max).support_size() > usvp_cost:
                         # double it for mitm
                         return 2 * zeta_max
                     zeta_max +=1

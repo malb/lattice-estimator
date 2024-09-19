@@ -61,7 +61,7 @@ class DualHybrid:
 
         # Compute new secret distribution
         if params.Xs.is_sparse:
-            h = params.Xs.get_hamming_weight(params.n)
+            h = params.Xs.hamming_weight
             if not 0 <= h1 <= h:
                 raise OutOfBoundsError(f"Splitting weight {h1} must be between 0 and h={h}.")
             # assuming the non-zero entries are uniform
@@ -177,7 +177,7 @@ class DualHybrid:
 
         rep = 1
         if params.Xs.is_sparse:
-            h = params.Xs.get_hamming_weight(params.n)
+            h = params.Xs.hamming_weight
             probability = RR(prob_drop(params.n, h, zeta, h1))
             rep = prob_amplify(success_probability, probability)
         # don't need more samples to re-run attack, since we may
@@ -210,7 +210,7 @@ class DualHybrid:
         probability = sqrt(success_probability)
 
         try:
-            size = params.Xs.support_size(n=params.n, fraction=probability)
+            size = params.Xs.support_size(probability)
             size_fft = 2**t
         except NotImplementedError:
             # not achieving required probability with search space
@@ -440,7 +440,7 @@ class DualHybrid:
                 log_level=None,
                 fft=False,
             ):
-                h = params.Xs.get_hamming_weight(params.n)
+                h = params.Xs.hamming_weight
                 h1_min = max(0, h - (params.n - zeta))
                 h1_max = min(zeta, h)
                 if h1_min == h1_max:
