@@ -401,6 +401,44 @@ class SparseTernary(NoiseDistribution):
             n=n
         )
 
+    def __hash__(self):
+        """
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> hash(ND.SparseTernary(128, 16)) == hash(("SparseTernary", 128, 16, 16))
+            True
+        """
+        return hash(("SparseTernary", self.n, self.p, self.m))
+
+    def resize(self, new_n):
+        """
+        Return an altered distribution having a dimension `new_n`.
+        Assumes `p` and `m` stay the same.
+        """
+        return SparseTernary(new_n, self.p, self.m)
+
+    def split_balanced(self, new_n, new_hw=None):
+        """
+        Split the +1 and -1 entries in a balanced way, and return 2 SparseTernary distributions:
+        one of dimension `new_n` and the other of dimension `n - new_n`.
+
+        :param new_n: dimension of the first noise distribution
+        :param new_hw: hamming weight of the first noise distribution. If none, we take the most likely weight.
+        :return: tuple of (SparseTernary, SparseTernary)
+        """
+        n, hw = len(self), self.hamming_weight
+        if new_hw is None:
+            # Most likely split has same density: new_hw / new_n = hw / n.
+            new_hw = int(round(hw * new_n / n))
+
+        new_p = int(round((new_hw * self.p) / hw))
+        new_m = new_hw - new_p
+        return (
+            SparseTernary(new_n, new_p, new_m),
+            SparseTernary(n - new_n, self.p - new_p, self.m - new_m)
+        )
+
     @property
     def hamming_weight(self):
         return self.p + self.m
