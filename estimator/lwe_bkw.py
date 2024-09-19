@@ -239,7 +239,7 @@ class CodedBKW:
         # the search cannot fail. It just outputs some X with X["oracle"]>m.
         if best["m"] > params.m:
             raise InsufficientSamplesError(
-                f"Got m≈2^{float(log(params.m, 2.0)):.1f} samples, but require ≈2^{float(log(best['m'],2.0)):.1f}.",
+                f"Got m≈2^{float(log(params.m, 2.0)):.1f} samples, but require ≈2^{float(log(best['m'], 2.0)):.1f}.",
                 best["m"],
             )
         return best
