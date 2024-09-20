@@ -133,7 +133,7 @@ class guess_composition:
         Compare::
 
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^136.4, red: ≈2^136.3, svp: ≈2^131.1, β: 251, η: 2, ζ: 203, |S|: ≈2^152.6, d: 673, ...
+            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, prob: ≈2^-23.4, ↻:...
 
         """
         params = LWEParameters.normalize(params)

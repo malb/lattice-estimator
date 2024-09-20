@@ -569,16 +569,16 @@ class PrimalHybrid:
 
             >>> from estimator import *
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
-            rop: ≈2^97.3, red: ≈2^96.3, svp: ≈2^96.3, β: 170, η: 142, ζ: 203, |S|: ≈2^16.3, d: 574, ...
+            rop: ≈2^91.5, red: ≈2^90.7, svp: ≈2^90.2, β: 178, η: 21, ζ: 256, |S|: ≈2^56.6, d: 531, prob: 0.003, ↻: 1...
 
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
-            rop: ≈2^102.4, red: ≈2^102.2, svp: ≈2^99.8, β: 216, η: 2, ζ: 203, |S|: ≈2^69.7, d: 632, prob: 0.002, ...
+            rop: ≈2^88.7, red: ≈2^88.0, svp: ≈2^87.2, β: 98, η: 2, ζ: 323, |S|: ≈2^39.7, d: 346, prob: ≈2^-28.4, ↻: ...
 
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
-            rop: ≈2^90.6, red: ≈2^89.7, svp: ≈2^89.6, β: 173, η: 138, ζ: 203, |S|: ≈2^36.4, d: 578, prob: 0.002, ...
+            rop: ≈2^74.1, red: ≈2^73.7, svp: ≈2^71.9, β: 104, η: 16, ζ: 320, |S|: ≈2^77.1, d: 359, prob: ≈2^-12.3, ↻...
 
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
-            rop: ≈2^136.4, red: ≈2^136.3, svp: ≈2^131.1, β: 251, η: 2, ζ: 203, |S|: ≈2^152.6, d: 673, ...
+            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, prob: ≈2^-23.4, ↻:...
 
         TESTS:
 
@@ -622,31 +622,18 @@ class PrimalHybrid:
             log_level=log_level + 1,
         )
 
-        def find_zeta_max(params, red_cost_model):
-            usvp_cost = primal_usvp(params, red_cost_model=red_cost_model)["rop"]
-            zeta_max = 1
-            while zeta_max < params.n:
-                # TODO: once support_size() is supported for NTRU, remove the below try/except
-                try:
-                    if params.Xs.resize(zeta_max).support_size() > usvp_cost:
-                        # double it for mitm
-                        return 2 * zeta_max
-                    zeta_max +=1
-                except NotImplementedError:
-                    return params.n
-            return params.n
-
         if zeta is None:
-            zeta_max = find_zeta_max(params, red_cost_model)
+            # Find the smallest value for zeta such that the square root of the search space for
+            # zeta is larger than the number of operations to solve uSVP on the whole LWE instance
+            # (without guessing).
+            usvp_cost = primal_usvp(params, red_cost_model=red_cost_model)["rop"]
+            zeta_max = params.n
+            while zeta_max < params.n and sqrt(params.Xs.resize(zeta_max).support_size()) < usvp_cost:
+                zeta_max += 1
+
             with local_minimum(0, min(zeta_max, params.n), log_level=log_level) as it:
                 for zeta in it:
-                    it.update(
-                        f(
-                            zeta=zeta,
-                            optimize_d=False,
-                            **kwds,
-                        )
-                    )
+                    it.update(f(zeta=zeta, optimize_d=False, **kwds))
             # TODO: this should not be required
             cost = min(it.y, f(0, optimize_d=False, **kwds))
         else:
