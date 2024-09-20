@@ -199,6 +199,15 @@ class PrimalUSVP:
             >>> LWE.primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
             rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 400, tag: usvp
 
+            >>> params = LWE.Parameters(n=384, q=2**7, Xs=ND.Uniform(0, 1), Xe=ND.CenteredBinomial(8), m=2*384)
+            >>> LWE.primal_usvp(params, red_cost_model=RC.BDGL16)  # Issue #87
+            rop: ≈2^161.8, red: ≈2^161.8, δ: 1.003634, β: 456, d: 595, tag: usvp
+
+            >>> Xe=ND.DiscreteGaussian(stddev=3.19)
+            >>> params = LWE.Parameters(n=1030, m=2060, q=2**64, Xs=ND.Uniform(0, 1), Xe=Xe)
+            >>> LWE.primal_usvp(params, red_cost_model=RC.BDGL16)  # Issue 95
+            rop: ≈2^56.6, red: ≈2^56.6, δ: 1.009686, β: 91, d: 1618, tag: usvp
+
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
         [AC:AGVW17]_, [C:DDGR20]_, [PKC:PosVir21]_. The treatment of small secrets is from
         [ACISP:BaiGal14]_.
@@ -578,6 +587,15 @@ class PrimalHybrid:
             >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
             >>> LWE.primal_bdd(params)
             rop: ≈2^43.7, red: ≈2^43.7, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
+
+        We also test a LWE instance with a large error (coming from issue #106)::
+
+            >>> LWE.primal_bdd(LWE.Parameters(n=256, q=12289, Xs=ND.UniformMod(2), Xe=ND.UniformMod(1024)))
+            rop: ≈2^116.3, red: ≈2^41.4, svp: ≈2^116.3, β: 40, η: 340, d: 340, tag: bdd
+
+            >>> LWE.primal_bdd(LWE.Parameters(n=700, q=2**64, Xs=ND.UniformMod(2), Xe=ND.UniformMod(2**59)))
+            rop: ≈2^263.2, red: ≈2^42.8, svp: ≈2^263.2, β: 40, η: 867, d: 867, tag: bdd
+
 
         """
 
