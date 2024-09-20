@@ -363,7 +363,7 @@ class DualHybrid:
 
             >>> from estimator import *
             >>> from estimator.lwe_dual import dual_hybrid
-            >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
+            >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Binary, Xe=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
             rop: ≈2^107.0, mem: ≈2^66.4, m: 970, β: 264, d: 1994, ↻: 1, tag: dual
             >>> dual_hybrid(params)
@@ -373,7 +373,7 @@ class DualHybrid:
             >>> dual_hybrid(params, mitm_optimization="numerical")
             rop: ≈2^129.0, m: 1145, k: 1, mem: ≈2^131.0, ↻: 1, β: 346, d: 2044, ζ: 125, tag: dual_mitm_hybrid
 
-            >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
+            >>> params = params.updated(Xs=ND.SparseTernary(32))
             >>> LWE.dual(params)
             rop: ≈2^103.4, mem: ≈2^63.9, m: 904, β: 251, d: 1928, ↻: 1, tag: dual
             >>> dual_hybrid(params)

@@ -363,20 +363,17 @@ class NTRUPrimalHybrid(PrimalHybrid):
         EXAMPLES::
 
             >>> from estimator import *
-            >>> NTRU.primal_hybrid(schemes.NTRUHPS2048509Enc.updated(Xs=ND.SparseTernary(508,16)),
-            ... mitm = False, babai = False)
+            >>> params = schemes.NTRUHPS2048509Enc.updated(Xs=ND.SparseTernary(16))
+            >>> NTRU.primal_hybrid(params, mitm=False, babai=False)
             rop: ≈2^87.8, red: ≈2^87.0, svp: ≈2^86.6, β: 116, η: 21, ζ: 302, |S|: ≈2^39.2, d: 372, prob: ≈2^-22.3, ↻...
 
-            >>> NTRU.primal_hybrid(schemes.NTRUHPS2048509Enc.updated(Xs=ND.SparseTernary(508,16)),
-            ... mitm = False, babai = True)
+            >>> NTRU.primal_hybrid(params, mitm=False, babai=True)
             rop: ≈2^88.0, red: ≈2^87.4, svp: ≈2^86.4, β: 98, η: 2, ζ: 318, |S|: ≈2^39.6, d: 328, prob: ≈2^-27.9, ↻: ...
 
-            >>> NTRU.primal_hybrid(schemes.NTRUHPS2048509Enc.updated(Xs=ND.SparseTernary(508,16)),
-            ... mitm = True, babai = False)
+            >>> NTRU.primal_hybrid(params, mitm=True, babai=False)
             rop: ≈2^80.1, red: ≈2^79.7, svp: ≈2^78.3, β: 170, η: 22, ζ: 254, |S|: ≈2^103.7, d: 495, prob: 0.708, ↻: ...
 
-            >>> NTRU.primal_hybrid(schemes.NTRUHPS2048509Enc.updated(Xs=ND.SparseTernary(508,16)),
-            ... mitm = True, babai = True)
+            >>> NTRU.primal_hybrid(params, mitm=True, babai=True)
             rop: ≈2^85.1, red: ≈2^84.1, svp: ≈2^84.0, β: 105, η: 2, ζ: 363, |S|: ≈2^85.0, d: 294, prob: ≈2^-22.9, ↻:...
 
         TESTS:

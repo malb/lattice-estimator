@@ -568,16 +568,17 @@ class PrimalHybrid:
         EXAMPLES::
 
             >>> from estimator import *
-            >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = False)
+            >>> params = schemes.Kyber512.updated(Xs=ND.SparseTernary(16))
+            >>> LWE.primal_hybrid(params, mitm=False, babai=False)
             rop: ≈2^91.5, red: ≈2^90.7, svp: ≈2^90.2, β: 178, η: 21, ζ: 256, |S|: ≈2^56.6, d: 531, prob: 0.003, ↻: 1...
 
-            >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = False, babai = True)
+            >>> LWE.primal_hybrid(params, mitm=False, babai=True)
             rop: ≈2^88.7, red: ≈2^88.0, svp: ≈2^87.2, β: 98, η: 2, ζ: 323, |S|: ≈2^39.7, d: 346, prob: ≈2^-28.4, ↻: ...
 
-            >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = False)
+            >>> LWE.primal_hybrid(params, mitm=True, babai=False)
             rop: ≈2^74.1, red: ≈2^73.7, svp: ≈2^71.9, β: 104, η: 16, ζ: 320, |S|: ≈2^77.1, d: 359, prob: ≈2^-12.3, ↻...
 
-            >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)), mitm = True, babai = True)
+            >>> LWE.primal_hybrid(params, mitm=True, babai=True)
             rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, prob: ≈2^-23.4, ↻:...
 
         TESTS:

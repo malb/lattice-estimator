@@ -7,7 +7,7 @@ We construct an (easy) example LWE instance::
 
     from estimator import *
     from estimator.lwe_dual import dual_hybrid, matzov
-    params = LWE.Parameters(n=200, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CenteredBinomial(4))
+    params = LWE.Parameters(n=200, q=7981, Xs=ND.SparseTernary(16), Xe=ND.CenteredBinomial(4))
     params
 
 The simplest (and quickest to estimate) algorithm is the "plain" dual attack as described in [PQCBook:MicReg09]_::

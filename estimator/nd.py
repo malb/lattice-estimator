@@ -69,6 +69,21 @@ def sigmaf(stddev):
 class NoiseDistribution:
     """
     All noise distributions are instances of this class.
+    It is recommended to pick one of the following available implementations below:
+    - DiscreteGaussian
+    - DiscreteGaussianAlpha
+    - CenteredBinomial
+    - Uniform
+    - UniformMod
+    - SparseTernary
+    - SparseBinary
+    - Binary
+    - Ternary
+
+    NOTE:
+    Generally, to generate an LWE parameter you call one of the above for the secret and error,
+    **without** specifying the dimension `n` and `m` for secret/error respectively!
+    These are initialized, when constructing the LWEParameters object.
     """
     stddev: float = 0
     mean: float = 0
@@ -153,7 +168,7 @@ class NoiseDistribution:
         EXAMPLE::
 
             >>> from estimator import *
-            >>> D = ND.SparseTernary(1024, p=128, m=128)
+            >>> D = ND.SparseTernary(128, 128, 1024)
             >>> len(D)
             1024
             >>> int(round(len(D) * float(D.density)))
@@ -197,17 +212,6 @@ class NoiseDistribution:
 
     def support_size(self, fraction=1.0):
         raise NotImplementedError("support_size")
-
-
-"""
-The follow noise distributions are implemented below:
-- DiscreteGaussian
-- DiscreteGaussianAlpha
-- CenteredBinomial
-- Uniform
-- UniformMod
-- SparseTernary
-"""
 
 
 class DiscreteGaussian(NoiseDistribution):
@@ -382,19 +386,25 @@ class SparseTernary(NoiseDistribution):
     Distribution of vectors of length ``n`` with ``p`` entries of 1 and ``m`` entries of -1, rest 0.
 
     EXAMPLE::
+
         >>> from estimator import *
-        >>> ND.SparseTernary(100, p=10)
+        >>> ND.SparseTernary(10, n=100)
         D(σ=0.45)
-        >>> ND.SparseTernary(100, p=10, m=10)
+        >>> ND.SparseTernary(10, 10, 100)
         D(σ=0.45)
-        >>> ND.SparseTernary(100, p=10, m=8)
+        >>> ND.SparseTernary(10, 8, 100)
         D(σ=0.42, μ=0.02)
+        >>> ND.SparseTernary(0, 0, 0).support_size()
+        1
     """
-    def __init__(self, n, p, m=None):
+    def __init__(self, p, m=None, n=None):
         p, m = int(p), int(p if m is None else m)
         self.p, self.m = p, m
 
-        # Yes, n=0 might happen when estimating the cost of the dual attack!
+        # Yes, n=0 might happen when estimating the cost of the dual attack! Support size is 1
+        if n is None:
+            # Treat it the same as n=0.
+            n = 0
         mean = 0 if n == 0 else RR((p - m) / n)
         density = 0 if n == 0 else RR((p + m) / n)
         stddev = sqrt(density - mean**2)
@@ -403,7 +413,7 @@ class SparseTernary(NoiseDistribution):
             stddev=stddev,
             mean=mean,
             density=density,
-            bounds=(-1, 1),
+            bounds=(0 if m == 0 else -1, 0 if p == 0 else 1),
             n=n
         )
 
@@ -412,7 +422,7 @@ class SparseTernary(NoiseDistribution):
         EXAMPLE::
 
             >>> from estimator import *
-            >>> hash(ND.SparseTernary(128, 16)) == hash(("SparseTernary", 128, 16, 16))
+            >>> hash(ND.SparseTernary(16, n=128)) == hash(("SparseTernary", 128, 16, 16))
             True
         """
         return hash(("SparseTernary", self.n, self.p, self.m))
@@ -422,7 +432,7 @@ class SparseTernary(NoiseDistribution):
         Return an altered distribution having a dimension `new_n`.
         Assumes `p` and `m` stay the same.
         """
-        return SparseTernary(new_n, self.p, self.m)
+        return SparseTernary(self.p, self.m, new_n)
 
     def split_balanced(self, new_n, new_hw=None):
         """
@@ -441,8 +451,8 @@ class SparseTernary(NoiseDistribution):
         new_p = int((QQ(new_hw * self.p) / hw).round('down'))
         new_m = new_hw - new_p
         return (
-            SparseTernary(new_n, new_p, new_m),
-            SparseTernary(n - new_n, self.p - new_p, self.m - new_m)
+            SparseTernary(new_p, new_m, new_n),
+            SparseTernary(self.p - new_p, self.m - new_m, n - new_n)
         )
 
     def split_probability(self, new_n, new_hw=None):
@@ -465,8 +475,32 @@ class SparseTernary(NoiseDistribution):
         EXAMPLE::
 
             >>> from estimator import *
-            >>> ND.SparseTernary(64, 8).support_size()
+            >>> ND.SparseTernary(8, 8, 64).support_size()
             6287341680214194176
         """
         n, p, m = len(self), self.p, self.m
         return ceil(binomial(n, p) * binomial(n - p, m) * RR(fraction))
+
+
+def SparseBinary(hw, n=None):
+    """
+    Sparse binary noise distribution having `hw` coefficients equal to 1, and the rest zero.
+
+    EXAMPLE::
+
+        >>> from estimator import *
+        >>> ND.SparseBinary(10).bounds
+        (0, 1)
+    """
+    return SparseTernary(hw, 0, n)
+
+
+"""
+Binary noise uniform from {0, 1}^n
+"""
+Binary = Uniform(0, 1)
+
+"""
+Ternary noise uniform from {-1, 0, 1}^n
+"""
+Ternary = Uniform(-1, 1)

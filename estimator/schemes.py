@@ -1,5 +1,5 @@
 from sage.all import oo
-from .nd import stddevf, CenteredBinomial, DiscreteGaussian, SparseTernary, UniformMod
+from .nd import stddevf, Binary, CenteredBinomial, DiscreteGaussian, SparseTernary, UniformMod
 from .lwe_parameters import LWEParameters
 from .ntru_parameters import NTRUParameters
 from .sis_parameters import SISParameters
@@ -88,7 +88,7 @@ FireSaber = LWEParameters(
 NTRUHPS2048509Enc = NTRUParameters(
     n=508,
     q=2048,
-    Xe=SparseTernary(508, 2048 / 16 - 1),
+    Xe=SparseTernary(2048 / 16 - 1),
     Xs=UniformMod(3),
     m=508,
     tag="NTRUHPS2048509Enc",
@@ -98,7 +98,7 @@ NTRUHPS2048677Enc = NTRUParameters(
     n=676,
     q=2048,
     Xs=UniformMod(3),
-    Xe=SparseTernary(676, 2048 / 16 - 1),
+    Xe=SparseTernary(2048 / 16 - 1),
     m=676,
     tag="NTRUHPS2048677Enc",
 )
@@ -107,7 +107,7 @@ NTRUHPS4096821Enc = NTRUParameters(
     n=820,
     q=4096,
     Xs=UniformMod(3),
-    Xe=SparseTernary(820, 4096 / 16 - 1),
+    Xe=SparseTernary(4096 / 16 - 1),
     m=820,
     tag="NTRUHPS4096821Enc",
 )
@@ -301,7 +301,7 @@ HESv11 = (HESv111024128error, HESv111024128ternary)
 TFHE630 = LWEParameters(
     n=630,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=2 ** (-15) * 2**32),
     tag="TFHE630",
 )
@@ -309,7 +309,7 @@ TFHE630 = LWEParameters(
 TFHE1024 = LWEParameters(
     n=1024,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=2 ** (-25) * 2**32),
     tag="TFHE1024",
 )
@@ -322,7 +322,7 @@ TFHE1024 = LWEParameters(
 Concrete_TFHE586 = LWEParameters(
     n=586,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=2 ** (-13.4) * 2**32),
     tag="Concrete_TFHE586",
 )
@@ -330,7 +330,7 @@ Concrete_TFHE586 = LWEParameters(
 Concrete_TFHE512 = LWEParameters(
     n=512,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=2 ** (-24.8) * 2**32),
     tag="Concrete_TFHE512",
 )
@@ -341,7 +341,7 @@ Concrete_TFHE512 = LWEParameters(
 TFHE16_500 = LWEParameters(
     n=500,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=2.43 * 10 ** (-5) * 2**32),
     tag="TFHE16_500",
 )
@@ -349,7 +349,7 @@ TFHE16_500 = LWEParameters(
 TFHE16_1024 = LWEParameters(
     n=1024,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=3.73 * 10 ** (-9) * 2**32),
     tag="TFHE16_1024",
 )
@@ -359,7 +359,7 @@ TFHE16_1024 = LWEParameters(
 TFHE20_612 = LWEParameters(
     n=612,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=2 ** (-15) * 2**32),
     tag="TFHE20_612",
 )
@@ -367,7 +367,7 @@ TFHE20_612 = LWEParameters(
 TFHE20_1024 = LWEParameters(
     n=1024,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=2 ** (-26) * 2**32),
     tag="TFHE20_1024",
 )
@@ -379,7 +379,7 @@ TFHE20_1024 = LWEParameters(
 FHEW = LWEParameters(
     n=500,
     q=2**32,
-    Xs=UniformMod(2),
+    Xs=Binary,
     Xe=DiscreteGaussian(stddev=2 ** (-15) * 2**32),
     tag="FHEW",
 )
@@ -485,7 +485,7 @@ SEAL22_32768 = LWEParameters(
 HElib80_1024 = LWEParameters(
     n=1024,
     q=2**47,
-    Xs=SparseTernary(n=1024, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
     tag="HElib80_1024",
 )
@@ -493,7 +493,7 @@ HElib80_1024 = LWEParameters(
 HElib80_2048 = LWEParameters(
     n=2048,
     q=2**87,
-    Xs=SparseTernary(n=2048, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
     tag="HElib80_2048",
 )
@@ -501,7 +501,7 @@ HElib80_2048 = LWEParameters(
 HElib80_4096 = LWEParameters(
     n=4096,
     q=2**167,
-    Xs=SparseTernary(n=4096, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
     tag="HElib80_4096",
 )
@@ -511,7 +511,7 @@ HElib80_4096 = LWEParameters(
 HElib120_1024 = LWEParameters(
     n=1024,
     q=2**38,
-    Xs=SparseTernary(n=1024, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
     tag="HElib80_1024",
 )
@@ -519,7 +519,7 @@ HElib120_1024 = LWEParameters(
 HElib120_2048 = LWEParameters(
     n=2048,
     q=2**70,
-    Xs=SparseTernary(n=2048, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
     tag="HElib80_2048",
 )
@@ -527,7 +527,7 @@ HElib120_2048 = LWEParameters(
 HElib120_4096 = LWEParameters(
     n=4096,
     q=2**134,
-    Xs=SparseTernary(n=4096, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
     tag="HElib80_4096",
 )
@@ -540,7 +540,7 @@ HElib120_4096 = LWEParameters(
 CHHS_1024_25 = LWEParameters(
     n=1024,
     q=2**25,
-    Xs=SparseTernary(n=1024, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=stddevf(8)),
     tag="CHHS_1024_25",
 )
@@ -548,7 +548,7 @@ CHHS_1024_25 = LWEParameters(
 CHHS_2048_38 = LWEParameters(
     n=2048,
     q=2**38,
-    Xs=SparseTernary(n=2048, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=stddevf(8)),
     tag="CHHS_2048_38",
 )
@@ -556,7 +556,7 @@ CHHS_2048_38 = LWEParameters(
 CHHS_2048_45 = LWEParameters(
     n=2048,
     q=2**45,
-    Xs=SparseTernary(n=2048, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=stddevf(8)),
     tag="CHHS_2048_45",
 )
@@ -564,7 +564,7 @@ CHHS_2048_45 = LWEParameters(
 CHHS_4096_67 = LWEParameters(
     n=4096,
     q=2**67,
-    Xs=SparseTernary(n=4096, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=stddevf(8)),
     tag="CHHS_4096_67",
 )
@@ -572,7 +572,7 @@ CHHS_4096_67 = LWEParameters(
 CHHS_4096_82 = LWEParameters(
     n=4096,
     q=2**82,
-    Xs=SparseTernary(n=4096, p=32),
+    Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=stddevf(8)),
     tag="CHHS_4096_82",
 )
