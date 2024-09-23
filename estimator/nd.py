@@ -465,6 +465,15 @@ class SparseTernary(NoiseDistribution):
         return left.support_size() * right.support_size() / self.support_size()
 
     @property
+    def is_sparse(self):
+        """
+        Always say this is a sparse distribution, even if p + m >= n/2, because there is correlation between the
+        coefficients: if you split the distribution into two of half the length, then you expect in each of them to be
+        half the weight.
+        """
+        return True
+
+    @property
     def hamming_weight(self):
         return self.p + self.m
 

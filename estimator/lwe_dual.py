@@ -59,12 +59,19 @@ class DualHybrid:
             )
 
         # Compute new secret distribution
-        if type(params.Xs) is SparseTernary:
+        if params.Xs.is_sparse:
             h = params.Xs.hamming_weight
             if not 0 <= h1 <= h:
                 raise OutOfBoundsError(f"Splitting weight {h1} must be between 0 and h={h}.")
-            # split the +1 and -1 entries in a balanced way.
-            slv_Xs, red_Xs = params.Xs.split_balanced(zeta, h1)
+
+            if type(params.Xs) is SparseTernary:
+                # split the +1 and -1 entries in a balanced way.
+                slv_Xs, red_Xs = params.Xs.split_balanced(zeta, h1)
+            else:
+                # TODO: Implement this for sparse secret that are not SparseTernary,
+                # i.e. DiscreteGaussian with extremely small stddev.
+                raise NotImplementedError(f"Unknown how to exploit sparsity of {params.Xs}")
+
             if h1 == h:
                 # no reason to do lattice reduction if we assume
                 # that the hw on the reduction part is 0
@@ -172,7 +179,7 @@ class DualHybrid:
         Logging.log("dual", log_level, f"{repr(cost)}")
 
         rep = 1
-        if type(params.Xs) is SparseTernary:
+        if params.Xs.is_sparse:
             h = params.Xs.hamming_weight
             probability = RR(prob_drop(params.n, h, zeta, h1))
             rep = prob_amplify(success_probability, probability)
@@ -309,7 +316,7 @@ class DualHybrid:
             beta = cost["beta"]
 
         cost["zeta"] = zeta
-        if type(params.Xs) is SparseTernary:
+        if params.Xs.is_sparse:
             cost["h1"] = h1
         return cost
 
@@ -424,7 +431,7 @@ class DualHybrid:
 
         params = params.normalize()
 
-        if type(params.Xs) is SparseTernary:
+        if params.Xs.is_sparse:
             Cost.register_impermanent(h1=False)
 
             def _optimize_blocksize(
