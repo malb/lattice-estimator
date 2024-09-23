@@ -46,6 +46,7 @@ class Estimate:
             >>> from estimator import *
             >>> _ = NTRU.estimate.rough(schemes.NTRUHPS2048509Enc)
             usvp                 :: rop: ≈2^109.2, red: ≈2^109.2, δ: 1.004171, β: 374, d: 643, tag: usvp
+            bdd_hybrid           :: rop: ≈2^108.6, red: ≈2^107.7, svp: ≈2^107.5, β: 369, η: 368, ζ: 0, |S|: 1, ...
 
         """
         params = params.normalize()
@@ -61,8 +62,12 @@ class Estimate:
             )
 
         if params.Xs.is_sparse:
-            algorithms["hybrid"] = partial(
-                primal_hybrid, red_cost_model=RC.ADPS16, red_shape_model="zgsa"
+            algorithms["bdd_hybrid"] = partial(
+                primal_hybrid,
+                mitm=False,
+                babai=False,
+                red_cost_model=RC.ADPS16,
+                red_shape_model="ZGSA",
             )
 
         res_raw = batch_estimate(
