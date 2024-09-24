@@ -287,8 +287,7 @@ class PrimalHybrid:
         :param r: squared Gram-Schmidt norms
 
         """
-        from math import lgamma, exp, pi
-        from math import log as math_log
+        from math import lgamma, exp, pi, log as math_log
 
         def ball_log_vol(n):
             return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
@@ -304,7 +303,7 @@ class PrimalHybrid:
         try:
             r = [math_log(x) for x in r]
 
-        except:
+        except ValueError:
             # use slower one when the above crashes due to small values
             r = [log(x) for x in r]
 
