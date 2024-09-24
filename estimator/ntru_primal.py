@@ -101,12 +101,12 @@ class PrimalDSD:
     def prob_dsd(
         beta: int,
         params: NTRUParameters,
-        simulator,
         m: int = oo,
         tau=None,
         d=None,
         dsl_logvol=None,
         red_cost_model=red_cost_model_default,
+        red_shape_model=red_shape_model_default,
         log_level=None,
     ):
 
@@ -117,7 +117,9 @@ class PrimalDSD:
         if dsl_logvol is None:
             dsl_logvol = PrimalDSD.DSL_logvol(params.n, params.Xs.stddev**2, ntru=params.ntru_type)
 
-        B_shape = [log(r_) / 2 for r_ in simulator(d, params.n, params.q, beta, xi=xi, tau=tau)]
+        simulator = simulator_normalize(red_shape_model)
+        r = simulator(d, params.n, params.q, beta, xi=xi, tau=tau)
+        B_shape = [log(r_) / 2 for r_ in r]
         dsli_vols = PrimalDSD.DSLI_vols(dsl_logvol, B_shape)
         prob_all_not = RR(1.0)
         prob_pos = (2 * params.n) * [RR(0)]
@@ -210,11 +212,6 @@ class PrimalDSD:
         # allow for a larger embedding lattice dimension: Bai and Galbraith
         m = params.m + params.n if params.Xs <= params.Xe else params.m
 
-        try:
-            red_shape_model = simulator_normalize(red_shape_model)
-        except ValueError:
-            pass
-
         if params.n > max_n_cache:
             raise ValueError(
                 "Please increase the hardcoded value of max_n_cache to run the predictor for such large n"
@@ -232,7 +229,7 @@ class PrimalDSD:
             DSD_prob, DSD_prob_pos = self.prob_dsd(
                 beta,
                 params,
-                red_shape_model,
+                red_shape_model=red_shape_model,
                 m=m,
                 red_cost_model=red_cost_model,
                 log_level=log_level,

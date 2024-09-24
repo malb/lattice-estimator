@@ -13,7 +13,7 @@ from .reduction import cost as costf
 from .util import local_minimum
 from .cost import Cost
 from .lwe_parameters import LWEParameters
-from .simulator import normalize as simulator_normalize
+from .simulator import normalize as simulator_normalize, GSA
 from .prob import guessing_set_and_hit_probability
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
@@ -231,7 +231,9 @@ class PrimalUSVP:
             m = params.m + params.n
         else:
             m = params.m
-        if red_shape_model == "gsa":
+
+        simulator = simulator_normalize(red_shape_model)
+        if simulator == GSA:
             precision = 5
             max_beta = max(min(max_beta_global, m), 40 + precision)
             with local_minimum(40, max_beta, precision=precision) as it:
@@ -250,29 +252,23 @@ class PrimalUSVP:
             cost["problem"] = params
             return cost.sanity_check()
 
-        try:
-            red_shape_model = simulator_normalize(red_shape_model)
-        except ValueError:
-            pass
-
         # step 0. establish baseline
         cost_gsa = self(
             params,
             red_cost_model=red_cost_model,
-            red_shape_model="gsa",
+            red_shape_model=GSA,
         )
         Logging.log("usvp", log_level + 1, f"GSA: {repr(cost_gsa)}")
 
         f = partial(
             self.cost_simulator,
-            simulator=red_shape_model,
+            simulator=simulator,
             red_cost_model=red_cost_model,
             m=m,
             params=params,
         )
 
         # step 1. find β
-
         with local_minimum(
             max(cost_gsa["beta"] - ceil(0.10 * cost_gsa["beta"]), 40),
             max(cost_gsa["beta"] + ceil(0.20 * cost_gsa["beta"]), 40),
@@ -476,7 +472,7 @@ class PrimalHybrid:
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
             # we scaled the lattice so that χ_e is what we want
-            if red_shape_model == "gsa":
+            if simulator == GSA:
                 log_vol = RR((d - (params.n - zeta)) * log(params.q) + (params.n - zeta) * log(xi))
                 log_delta = RR(log(deltaf(beta)))
                 svp_dim = PrimalHybrid.svp_dimension_gsa(d, log_vol, log_delta, params.Xe, params._homogeneous)
