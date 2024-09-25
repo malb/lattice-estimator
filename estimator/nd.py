@@ -3,7 +3,7 @@
 from copy import copy
 from dataclasses import dataclass
 
-from sage.all import binomial, ceil, exp, log, oo, parent, pi, QQ, RealField, RR, sqrt
+from sage.all import binomial, ceil, exp, floor, log, oo, parent, pi, QQ, RealField, RR, sqrt
 
 
 def stddevf(sigma):
@@ -85,12 +85,12 @@ class NoiseDistribution:
     **without** specifying the dimension `n` and `m` for secret/error respectively!
     These are initialized, when constructing the LWEParameters object.
     """
-    stddev: float = 0
-    mean: float = 0
-    n: int = None
-    bounds: tuple = (-oo, oo)
-    density: float = 1.0  # hamming_weight() / n.
-    is_Gaussian_like: bool = False
+    n: int = None  # dimension of noise
+    mean: float = 0  # expectation value
+    stddev: float = 0  # standard deviation (square root of variance)
+    bounds: tuple = (-oo, oo)  # range in which each coefficient is sampled with high probability
+    is_Gaussian_like: bool = False  # whether the distribution "decays like a gaussian"
+    _density: float = 1.0  # proportion of nonzero coefficients in a sample
 
     def __lt__(self, other):
         """
@@ -165,14 +165,13 @@ class NoiseDistribution:
 
     def __len__(self):
         """
+        Dimension of this noise distribution, i.e. number of coefficients that gets sampled.
+
         EXAMPLE::
 
             >>> from estimator import *
-            >>> D = ND.SparseTernary(128, 128, 1024)
-            >>> len(D)
+            >>> len(ND.SparseTernary(128, n=1024))
             1024
-            >>> int(round(len(D) * float(D.density)))
-            256
 
         """
         if self.n is None:
@@ -182,6 +181,8 @@ class NoiseDistribution:
     def resize(self, new_n):
         """
         Return an altered distribution having a dimension `new_n`.
+
+        :param int new_n: new dimension to change to
         """
         new_self = copy(self)
         new_self.n = new_n
@@ -191,8 +192,16 @@ class NoiseDistribution:
     def hamming_weight(self):
         """
         The number of non-zero coefficients in this distribution
+
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> ND.SparseTernary(128, n=1024).hamming_weight
+            256
+            >>> ND.SparseTernary(128, 64, 1024).hamming_weight
+            192
         """
-        return round(len(self) * float(self.density))
+        return round(len(self) * float(self._density))
 
     @property
     def is_bounded(self):
@@ -208,7 +217,7 @@ class NoiseDistribution:
         Note: 1/2 might be considered somewhat arbitrary.
         """
         # NOTE: somewhat arbitrary
-        return self.density < 0.5
+        return self._density < 0.5
 
     def support_size(self, fraction=1.0):
         raise NotImplementedError("support_size")
@@ -230,11 +239,17 @@ class DiscreteGaussian(NoiseDistribution):
     gaussian_tail_prob: float = 1 - 2 * exp(-4 * pi)
 
     def __init__(self, stddev, mean=0, n=None):
-        super().__init__(stddev=stddev, mean=mean, n=n, is_Gaussian_like=True)
-
         b_val = oo if n is None else ceil(log(n, 2) * stddev)
-        self.bounds = (-b_val, b_val)
-        self.density = max(0.0, 1 - RR(1 / sigmaf(stddev)))
+        density = max(0.0, 1 - RR(1 / sigmaf(stddev)))  # NOTE: approximation that is accurate for large stddev.
+
+        super().__init__(
+            n=n,
+            mean=mean,
+            stddev=stddev,
+            bounds=(-b_val, b_val),
+            _density=density,
+            is_Gaussian_like=True,
+        )
 
     def support_size(self, fraction=1.0):
         """
@@ -287,12 +302,15 @@ class CenteredBinomial(NoiseDistribution):
         D(σ=2.00)
     """
     def __init__(self, eta, n=None):
+        density = 1 - binomial(2 * eta, eta) * 2 ** (-2 * eta)
+
         super().__init__(
-            density=1 - binomial(2 * eta, eta) * 2 ** (-2 * eta),
-            stddev=RR(sqrt(eta / 2.0)),
-            is_Gaussian_like=True,
-            bounds=(-eta, eta),
             n=n,
+            mean=0,
+            stddev=RR(sqrt(eta / 2.0)),
+            bounds=(-eta, eta),
+            _density=density,
+            is_Gaussian_like=True,
         )
 
     def support_size(self, fraction=1.0):
@@ -314,7 +332,7 @@ class CenteredBinomial(NoiseDistribution):
 
 class Uniform(NoiseDistribution):
     """
-    Uniform distribution ∈ ``[a,b]``, endpoints inclusive.
+    Uniform distribution ∈ ``ZZ ∩ [a, b]``, endpoints inclusive.
 
     EXAMPLE::
 
@@ -325,16 +343,17 @@ class Uniform(NoiseDistribution):
         D(σ=2.29, μ=-0.50)
     """
     def __init__(self, a, b, n=None):
+        a, b = int(ceil(a)), int(floor(b))
         if b < a:
             raise ValueError(f"upper limit must be larger than lower limit but got: {b} < {a}")
-
         m = b - a + 1
+
         super().__init__(
-            stddev=RR(sqrt((m**2 - 1) / 12)),
-            mean=RR((a + b) / 2),
-            bounds=(a, b),
-            density=(1 - 1 / m if a <= 0 and b >= 0 else 1),
             n=n,
+            mean=RR((a + b) / 2),
+            stddev=RR(sqrt((m**2 - 1) / 12)),
+            bounds=(a, b),
+            _density=(1 - 1 / m if a <= 0 and b >= 0 else 1),
         )
 
     def __hash__(self):
@@ -354,7 +373,7 @@ class Uniform(NoiseDistribution):
         EXAMPLE::
 
             >>> from estimator import *
-            >>> ND.Uniform(-3,3, 64).support_size(0.99)
+            >>> ND.Uniform(-3, 3, 64).support_size(0.99)
             1207562882759477428726191443614714994252339953407098880
         """
         # TODO: this might be suboptimal/inaccurate for binomial distribution
@@ -364,7 +383,7 @@ class Uniform(NoiseDistribution):
 
 def UniformMod(q, n=None):
     """
-    Uniform mod ``q``, with balanced representation, i.e. values in ZZ ∩ [q/2, q/2).
+    Uniform mod ``q``, with balanced representation, i.e. values in ZZ ∩ [-q/2, q/2).
 
     EXAMPLE::
 
@@ -410,11 +429,11 @@ class SparseTernary(NoiseDistribution):
         stddev = sqrt(density - mean**2)
 
         super().__init__(
-            stddev=stddev,
+            n=n,
             mean=mean,
-            density=density,
+            stddev=stddev,
             bounds=(0 if m == 0 else -1, 0 if p == 0 else 1),
-            n=n
+            _density=density,
         )
 
     def __hash__(self):
