@@ -140,7 +140,8 @@ class LWEParameters:
             LWEParameters(n=128, q=5289, Xs=D(σ=0.82), Xe=D(σ=3.08), m=+Infinity, tag=None)
 
         """
-        h = self.Xs.hamming_weight
+        # Note: hamming_weight rounds to an integer, which we do not want here.
+        h = len(self.Xs) * self.Xs._density
 
         # h uniform in -(0.5,0.5) ± stddev(χ_s)
         Xr_stddev = sqrt(h / 12) * self.Xs.stddev  # rounding noise
