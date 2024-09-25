@@ -140,10 +140,10 @@ class LWEParameters:
             LWEParameters(n=128, q=5289, Xs=D(σ=0.82), Xe=D(σ=3.08), m=+Infinity, tag=None)
 
         """
-        n = self.Xs.density * len(self.Xs)
+        h = self.Xs.hamming_weight
 
-        # n uniform in -(0.5,0.5) ± stddev(χ_s)
-        Xr_stddev = sqrt(n / 12) * self.Xs.stddev  # rounding noise
+        # h uniform in -(0.5,0.5) ± stddev(χ_s)
+        Xr_stddev = sqrt(h / 12) * self.Xs.stddev  # rounding noise
         # χ_r == p/q ⋅ χ_e # we want the rounding noise match the scaled noise
         p = ceil(Xr_stddev * self.q / self.Xe.stddev)
 

@@ -405,7 +405,7 @@ class PrimalHybrid:
 
         if zeta:
             # the number of non-zero entries
-            h = ceil(len(params.Xs) * params.Xs.density)
+            h = params.Xs.hamming_weight
             probability = RR(prob_drop(params.n, h, zeta))
             hw = 1
             while hw < min(h, zeta):

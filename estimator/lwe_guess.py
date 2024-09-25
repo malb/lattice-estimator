@@ -102,7 +102,7 @@ class guess_composition:
         :param params: LWE parameters.
         """
         base = params.Xs.bounds[1] - params.Xs.bounds[0]  # we exclude zero
-        h = ceil(len(params.Xs) * params.Xs.density)  # nr of non-zero entries
+        h = params.Xs.hamming_weight
 
         with local_minimum(0, params.n - 40, log_level=log_level) as it:
             for zeta in it:
