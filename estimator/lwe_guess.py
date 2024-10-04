@@ -15,7 +15,7 @@ from .errors import InsufficientSamplesError, OutOfBoundsError
 from .lwe_parameters import LWEParameters
 from .prob import amplify as prob_amplify, drop as prob_drop, amplify_sigma
 from .util import local_minimum, log2
-from .nd import sigmaf
+from .nd import sigmaf, SparseTernary
 
 
 class guess_composition:
@@ -102,7 +102,7 @@ class guess_composition:
         :param params: LWE parameters.
         """
         base = params.Xs.bounds[1] - params.Xs.bounds[0]  # we exclude zero
-        h = ceil(len(params.Xs) * params.Xs.density)  # nr of non-zero entries
+        h = params.Xs.hamming_weight
 
         with local_minimum(0, params.n - 40, log_level=log_level) as it:
             for zeta in it:
@@ -127,13 +127,13 @@ class guess_composition:
 
             >>> from estimator import *
             >>> from estimator.lwe_guess import guess_composition
-            >>> guess_composition(LWE.primal_usvp)(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^99.4, red: ≈2^99.4, δ: 1.008705, β: 113, d: 421, tag: usvp, ↻: ≈2^37.5, ζ: 265, |S|: 1, ...
+            >>> guess_composition(LWE.primal_usvp)(schemes.Kyber512.updated(Xs=ND.SparseTernary(16)))
+            rop: ≈2^102.2, red: ≈2^102.2, δ: 1.008011, β: 132, d: 461, tag: usvp, ↻: ≈2^34.9, ζ: 252, |S|: 1, ...
 
         Compare::
 
-            >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(512, 16)))
-            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, prob: ≈2^-23.4, ...
+            >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(16)))
+            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, prob: ≈2^-23.4, ↻:...
 
         """
         params = LWEParameters.normalize(params)
@@ -161,12 +161,12 @@ class ExhaustiveSearch:
 
             >>> from estimator import *
             >>> from estimator.lwe_guess import exhaustive_search
-            >>> params = LWE.Parameters(n=64, q=2**40, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.2))
+            >>> params = LWE.Parameters(n=64, q=2**40, Xs=ND.Binary, Xe=ND.DiscreteGaussian(3.2))
             >>> exhaustive_search(params)
             rop: ≈2^73.6, mem: ≈2^72.6, m: 397.198
-            >>> params = LWE.Parameters(n=1024, q=2**40, Xs=ND.SparseTernary(n=1024, p=32), Xe=ND.DiscreteGaussian(3.2))
+            >>> params = LWE.Parameters(n=1024, q=2**40, Xs=ND.SparseTernary(32), Xe=ND.DiscreteGaussian(3.2))
             >>> exhaustive_search(params)
-            rop: ≈2^417.3, mem: ≈2^416.3, m: ≈2^11.2
+            rop: ≈2^413.9, mem: ≈2^412.9, m: ≈2^11.1
 
         """
         params = LWEParameters.normalize(params)
@@ -175,7 +175,7 @@ class ExhaustiveSearch:
         probability = sqrt(success_probability)
 
         try:
-            size = params.Xs.support_size(n=params.n, fraction=probability)
+            size = params.Xs.support_size(probability)
         except NotImplementedError:
             # not achieving required probability with search space
             # given our settings that means the search space is huge
@@ -221,7 +221,7 @@ class MITM:
         else:
             # setting fraction=0 to ensure that support size does not
             # throw error. we'll take the probability into account later
-            rng = nd.support_size(n=1, fraction=0.0)
+            rng = nd.resize(1).support_size(0.0)
             return rng, nd.gaussian_tail_prob
 
     def local_range(self, center):
@@ -240,11 +240,16 @@ class MITM:
         # about 3x faster and reasonably accurate
 
         if params.Xs.is_sparse:
-            h = params.Xs.get_hamming_weight(n=params.n)
-            split_h = round(h * k / n)
-            success_probability_ = (
-                binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
-            )
+            h = params.Xs.hamming_weight
+            if type(params.Xs) is SparseTernary:
+                # split optimally and compute the probability of this event
+                success_probability_ = params.Xs.split_probability(k)
+            else:
+                split_h = (h * k / n).round('down')
+                # Assume each coefficient is sampled i.i.d.:
+                success_probability_ = (
+                    binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
+                )
 
             logT = RR(h * (log2(n) - log2(h) + log2(sd_rng - 1) + log2(e))) / (2 - delta)
             logT -= RR(log2(h) / 2)
@@ -279,16 +284,20 @@ class MITM:
         n = params.n
 
         if params.Xs.is_sparse:
-            h = params.Xs.get_hamming_weight(n=n)
-
+            h = params.Xs.hamming_weight
             # we assume the hamming weight to be distributed evenly across the two parts
             # if not we can rerandomize on the coordinates and try again -> repeat
-            split_h = round(h * k / n)
-            size_tab = RR((sd_rng - 1) ** split_h * binomial(k, split_h))
-            size_sea = RR((sd_rng - 1) ** (h - split_h) * binomial(n - k, h - split_h))
-            success_probability_ = (
-                binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
-            )
+            if type(params.Xs) is SparseTernary:
+                sec_tab, sec_sea = params.Xs.split_balanced(k)
+                size_tab = sec_tab.support_size()
+                size_sea = sec_sea.support_size()
+            else:
+                # Assume each coefficient is sampled i.i.d.:
+                split_h = (h * k / n).round('down')
+                size_tab = RR((sd_rng - 1) ** split_h * binomial(k, split_h))
+                size_sea = RR((sd_rng - 1) ** (h - split_h) * binomial(n - k, h - split_h))
+
+            success_probability_ = size_tab * size_sea / params.Xs.support_size()
         else:
             size_tab = sd_rng**k
             size_sea = sd_rng ** (n - k)
@@ -338,16 +347,16 @@ class MITM:
 
             >>> from estimator import *
             >>> from estimator.lwe_guess import mitm
-            >>> params = LWE.Parameters(n=64, q=2**40, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(3.2))
+            >>> params = LWE.Parameters(n=64, q=2**40, Xs=ND.Binary, Xe=ND.DiscreteGaussian(3.2))
             >>> mitm(params)
             rop: ≈2^37.0, mem: ≈2^37.2, m: 37, k: 32, ↻: 1
             >>> mitm(params, optimization="numerical")
             rop: ≈2^39.2, m: 36, k: 32, mem: ≈2^39.1, ↻: 1
-            >>> params = LWE.Parameters(n=1024, q=2**40, Xs=ND.SparseTernary(n=1024, p=32), Xe=ND.DiscreteGaussian(3.2))
+            >>> params = LWE.Parameters(n=1024, q=2**40, Xs=ND.SparseTernary(32), Xe=ND.DiscreteGaussian(3.2))
             >>> mitm(params)
-            rop: ≈2^215.4, mem: ≈2^210.2, m: ≈2^13.1, k: 512, ↻: 43
+            rop: ≈2^217.8, mem: ≈2^210.2, m: ≈2^15.5, k: 512, ↻: 226
             >>> mitm(params, optimization="numerical")
-            rop: ≈2^216.0, m: ≈2^13.1, k: 512, mem: ≈2^211.4, ↻: 43
+            rop: ≈2^215.6, m: ≈2^15.5, k: 512, mem: ≈2^208.6, ↻: 226
 
         """
         Cost.register_impermanent(rop=True, mem=False, m=True, k=False)
@@ -400,7 +409,7 @@ class Distinguisher:
 
             >>> from estimator import *
             >>> from estimator.lwe_guess import distinguish
-            >>> params = LWE.Parameters(n=0, q=2 ** 32, Xs=ND.UniformMod(2), Xe=ND.DiscreteGaussian(2 ** 32))
+            >>> params = LWE.Parameters(n=0, q=2 ** 32, Xs=ND.Binary, Xe=ND.DiscreteGaussian(2 ** 32))
             >>> distinguish(params)
             rop: ≈2^60.0, mem: ≈2^60.0, m: ≈2^60.0
 
