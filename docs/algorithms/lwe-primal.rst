@@ -6,7 +6,7 @@ LWE Primal Attacks
 We construct an (easy) example LWE instance::
 
     from estimator import *
-    params = LWE.Parameters(n=200, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CenteredBinomial(4))
+    params = LWE.Parameters(n=200, q=7981, Xs=ND.SparseTernary(16), Xe=ND.CenteredBinomial(4))
     params
 
 The simplest (and quickest to estimate) model is solving via uSVP and assuming the Geometric Series
@@ -21,9 +21,7 @@ we optimize β and d separately::
 
     LWE.primal_usvp(params, red_shape_model=Simulator.GSA)
 
-To get a more precise answer we may use the CN11 simulator by Chen and Nguyen [AC:CheNgu11]_ (as
-`implemented in FPyLLL
-<https://github.com/fplll/fpylll/blob/master/src/fpylll/tools/bkz_simulator.py>_`)::
+To get a more precise answer we may use the CN11 simulator by Chen and Nguyen [AC:CheNgu11]_ (as `implemented in FPyLLL <https://github.com/fplll/fpylll/blob/master/src/fpylll/tools/bkz_simulator.py>`__)::
 
     LWE.primal_usvp(params, red_shape_model=Simulator.CN11)
 

@@ -22,9 +22,8 @@ from typing import Iterable, Union, Optional, Callable
 import numpy as np
 from matplotlib import pyplot as plt
 
-from estimator import LWE
+from estimator import ND, LWE
 from estimator.io import Logging
-from estimator.nd import NoiseDistribution as ND
 
 
 class ParameterSweep:
@@ -71,7 +70,7 @@ class ParameterSweep:
 
         EXAMPLE ::
 
-            >>> from estimator import LWE, nd
+            >>> from estimator import LWE, ND
             >>> from param_sweep import ParameterSweep as PS
             >>> n_list = [600, 900]
             >>> e_list = [7, 9]
@@ -81,7 +80,7 @@ class ParameterSweep:
                     e=e_list,\
                     s=2,\
                     s_log=False,\
-                    Xs=nd.NoiseDistribution.UniformMod,\
+                    Xs=ND.UniformMod,\
                     f=LWE.estimate.rough,\
                     tag='test',\
                     log_level=2,\

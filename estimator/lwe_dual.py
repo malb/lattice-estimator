@@ -7,7 +7,6 @@ See :ref:`LWE Dual Attacks` for an introduction what is available.
 """
 
 from functools import partial
-from dataclasses import replace
 
 from sage.all import oo, ceil, sqrt, log, cached_function, RR, exp, pi, e, coth, tanh
 
@@ -19,7 +18,7 @@ from .prob import drop as prob_drop, amplify as prob_amplify
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default, mitm_opt as mitm_opt_default
 from .errors import OutOfBoundsError, InsufficientSamplesError
-from .nd import NoiseDistribution
+from .nd import DiscreteGaussian, SparseTernary
 from .lwe_guess import exhaustive_search, mitm, distinguish
 
 
@@ -61,22 +60,26 @@ class DualHybrid:
 
         # Compute new secret distribution
         if params.Xs.is_sparse:
-            h = params.Xs.get_hamming_weight(params.n)
+            h = params.Xs.hamming_weight
             if not 0 <= h1 <= h:
                 raise OutOfBoundsError(f"Splitting weight {h1} must be between 0 and h={h}.")
-            # assuming the non-zero entries are uniform
-            p = h1 / 2
-            red_Xs = NoiseDistribution.SparseTernary(params.n - zeta, h / 2 - p)
-            slv_Xs = NoiseDistribution.SparseTernary(zeta, p)
+
+            if type(params.Xs) is SparseTernary:
+                # split the +1 and -1 entries in a balanced way.
+                slv_Xs, red_Xs = params.Xs.split_balanced(zeta, h1)
+            else:
+                # TODO: Implement this for sparse secret that are not SparseTernary,
+                # i.e. DiscreteGaussian with extremely small stddev.
+                raise NotImplementedError(f"Unknown how to exploit sparsity of {params.Xs}")
 
             if h1 == h:
                 # no reason to do lattice reduction if we assume
                 # that the hw on the reduction part is 0
-                return replace(params, Xs=slv_Xs, m=oo), 1
+                return params.updated(Xs=slv_Xs, m=oo), 1
         else:
             # distribution is i.i.d. for each coordinate
-            red_Xs = replace(params.Xs, n=params.n - zeta)
-            slv_Xs = replace(params.Xs, n=zeta)
+            red_Xs = params.Xs.resize(params.n - zeta)
+            slv_Xs = params.Xs.resize(zeta)
 
         c = red_Xs.stddev * params.q / params.Xe.stddev
 
@@ -91,7 +94,7 @@ class DualHybrid:
         # Compute new noise as in [INDOCRYPT:EspJouKha20]
         # ~ sigma_ = rho * red_Xs.stddev * delta ** (m_ + red_Xs.n) / c ** (m_ / (m_ + red_Xs.n))
         sigma_ = rho * red_Xs.stddev * delta**d / c ** (m_ / d)
-        slv_Xe = NoiseDistribution.DiscreteGaussian(params.q * sigma_)
+        slv_Xe = DiscreteGaussian(params.q * sigma_)
 
         slv_params = LWEParameters(
             n=zeta,
@@ -177,7 +180,7 @@ class DualHybrid:
 
         rep = 1
         if params.Xs.is_sparse:
-            h = params.Xs.get_hamming_weight(params.n)
+            h = params.Xs.hamming_weight
             probability = RR(prob_drop(params.n, h, zeta, h1))
             rep = prob_amplify(success_probability, probability)
         # don't need more samples to re-run attack, since we may
@@ -210,7 +213,7 @@ class DualHybrid:
         probability = sqrt(success_probability)
 
         try:
-            size = params.Xs.support_size(n=params.n, fraction=probability)
+            size = params.Xs.support_size(probability)
             size_fft = 2**t
         except NotImplementedError:
             # not achieving required probability with search space
@@ -367,7 +370,7 @@ class DualHybrid:
 
             >>> from estimator import *
             >>> from estimator.lwe_dual import dual_hybrid
-            >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Uniform(0,1), Xe=ND.DiscreteGaussian(3.0))
+            >>> params = LWE.Parameters(n=1024, q = 2**32, Xs=ND.Binary, Xe=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
             rop: ≈2^107.0, mem: ≈2^66.4, m: 970, β: 264, d: 1994, ↻: 1, tag: dual
             >>> dual_hybrid(params)
@@ -377,13 +380,13 @@ class DualHybrid:
             >>> dual_hybrid(params, mitm_optimization="numerical")
             rop: ≈2^129.0, m: 1145, k: 1, mem: ≈2^131.0, ↻: 1, β: 346, d: 2044, ζ: 125, tag: dual_mitm_hybrid
 
-            >>> params = params.updated(Xs=ND.SparseTernary(params.n, 32))
+            >>> params = params.updated(Xs=ND.SparseTernary(32))
             >>> LWE.dual(params)
             rop: ≈2^103.4, mem: ≈2^63.9, m: 904, β: 251, d: 1928, ↻: 1, tag: dual
             >>> dual_hybrid(params)
-            rop: ≈2^92.1, mem: ≈2^78.2, m: 716, β: 170, d: 1464, ↻: 1989, ζ: 276, h1: 8, tag: dual_hybrid
+            rop: ≈2^91.6, mem: ≈2^77.2, m: 711, β: 168, d: 1456, ↻: ≈2^11.2, ζ: 279, h1: 8, tag: dual_hybrid
             >>> dual_hybrid(params, mitm_optimization=True)
-            rop: ≈2^98.2, mem: ≈2^78.6, m: 728, k: 292, ↻: ≈2^18.7, β: 180, d: 1267, ζ: 485, h1: 17, tag: ...
+            rop: ≈2^98.7, mem: ≈2^78.6, m: 737, k: 288, ↻: ≈2^19.6, β: 184, d: 1284, ζ: 477, h1: 17, tag: dual_mitm_...
 
             >>> params = params.updated(Xs=ND.CenteredBinomial(8))
             >>> LWE.dual(params)
@@ -402,7 +405,7 @@ class DualHybrid:
             rop: ≈2^160.7, mem: ≈2^156.8, m: 1473, k: 25, ↻: 1, β: 456, d: 2472, ζ: 25, tag: dual_mitm_hybrid
 
             >>> dual_hybrid(schemes.NTRUHPS2048509Enc)
-            rop: ≈2^131.7, mem: ≈2^128.5, m: 436, β: 358, d: 906, ↻: 1, ζ: 38, tag: dual_hybrid
+            rop: ≈2^136.2, mem: ≈2^127.8, m: 434, β: 356, d: 902, ↻: 35, ζ: 40, h1: 19, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
             rop: ≈2^206.9, mem: ≈2^137.5, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
@@ -440,7 +443,7 @@ class DualHybrid:
                 log_level=None,
                 fft=False,
             ):
-                h = params.Xs.get_hamming_weight(params.n)
+                h = params.Xs.hamming_weight
                 h1_min = max(0, h - (params.n - zeta))
                 h1_max = min(zeta, h)
                 if h1_min == h1_max:

@@ -6,7 +6,7 @@ Coded-BKW for LWE
 We construct an example LWE instance::
 
     from estimator import *
-    params = LWE.Parameters(n=400, q=7981, Xs=ND.SparseTernary(384, 16), Xe=ND.CenteredBinomial(4), m=800)
+    params = LWE.Parameters(n=400, q=7981, Xs=ND.SparseTernary(16), Xe=ND.CenteredBinomial(4), m=800)
     params
 
 and estimate the cost of Coded-BKW [C:GuoJohSta15]_, [C:KirFou15]_::
