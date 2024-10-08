@@ -380,6 +380,58 @@ class Uniform(NoiseDistribution):
         a, b = self.bounds
         return ceil(RR(fraction) * (b - a + 1)**len(self))
 
+class TUniform(NoiseDistribution):
+    """
+    TUniform distribution ∈ ``ZZ ∩ [-2**b, 2**b]``, endpoints inclusive. 
+    This distribution samples the two end-points with probability 1/2**(b+2) and the
+    intermediate points with probability 1/2**(b+1). 
+
+    As an example, with b=0 this distribution samples ±1 each with probability 1/4 and
+    0 with probability 1/2.
+
+    EXAMPLE::
+
+        >>> from estimator import *
+        >>> ND.TUniform(0)
+        D(σ=0.82)
+        >>> ND.TUniform(10)
+        D(σ=591.50)
+    """
+    def __init__(self, b, n=None):
+        b = int(ceil(b))
+        a = - b
+        m = b - a + 1
+
+        super().__init__(
+            n=n,
+            mean=RR(0),
+            stddev=RR(sqrt(((2**(b+1) + 1)**2 - 1)/12)),
+            bounds=(-2**b, 2**b),
+            _density=(1 - 1 / 2**(b+1)),
+        )
+
+    def __hash__(self):
+        """
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> hash(ND.TUniform(2)) == hash(("TUniform", (-4, 4), None))
+            True
+        """
+        return hash(("TUniform", self.bounds, self.n))
+
+    def support_size(self, fraction=1.0):
+        """
+        Compute the size of the support covering the probability given as fraction.
+
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> ND.TUniform(0, 64).support_size(0.99)
+            3399346982089587232319333203968
+        """
+        a, b = self.bounds
+        return ceil(RR(fraction) * (b - a + 1)**len(self))
 
 def UniformMod(q, n=None):
     """
