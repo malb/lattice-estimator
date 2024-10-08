@@ -380,11 +380,31 @@ class Uniform(NoiseDistribution):
         a, b = self.bounds
         return ceil(RR(fraction) * (b - a + 1)**len(self))
 
+
+def UniformMod(q, n=None):
+    """
+    Uniform mod ``q``, with balanced representation, i.e. values in ZZ ∩ [-q/2, q/2).
+
+    EXAMPLE::
+
+        >>> from estimator import *
+        >>> ND.UniformMod(7)
+        D(σ=2.00)
+        >>> ND.UniformMod(8)
+        D(σ=2.29, μ=-0.50)
+        >>> ND.UniformMod(2) == ND.Uniform(-1, 0)
+        True
+    """
+    a = -(q // 2)
+    b = a + q - 1
+    return Uniform(a, b, n=n)
+
+
 class TUniform(NoiseDistribution):
     """
-    TUniform distribution ∈ ``ZZ ∩ [-2**b, 2**b]``, endpoints inclusive. 
+    TUniform distribution ∈ ``ZZ ∩ [-2**b, 2**b]``, endpoints inclusive.
     This distribution samples the two end-points with probability 1/2**(b+2) and the
-    intermediate points with probability 1/2**(b+1). 
+    intermediate points with probability 1/2**(b+1).
 
     As an example, with b=0 this distribution samples ±1 each with probability 1/4 and
     0 with probability 1/2.
@@ -399,13 +419,11 @@ class TUniform(NoiseDistribution):
     """
     def __init__(self, b, n=None):
         b = int(ceil(b))
-        a = - b
-        m = b - a + 1
 
         super().__init__(
             n=n,
             mean=RR(0),
-            stddev=RR(sqrt(((2**(b+1) + 1)**2 - 1)/12)),
+            stddev=RR(sqrt((2**(2*b+1) + 1)/6)),
             bounds=(-2**b, 2**b),
             _density=(1 - 1 / 2**(b+1)),
         )
@@ -432,24 +450,6 @@ class TUniform(NoiseDistribution):
         """
         a, b = self.bounds
         return ceil(RR(fraction) * (b - a + 1)**len(self))
-
-def UniformMod(q, n=None):
-    """
-    Uniform mod ``q``, with balanced representation, i.e. values in ZZ ∩ [-q/2, q/2).
-
-    EXAMPLE::
-
-        >>> from estimator import *
-        >>> ND.UniformMod(7)
-        D(σ=2.00)
-        >>> ND.UniformMod(8)
-        D(σ=2.29, μ=-0.50)
-        >>> ND.UniformMod(2) == ND.Uniform(-1, 0)
-        True
-    """
-    a = -(q // 2)
-    b = a + q - 1
-    return Uniform(a, b, n=n)
 
 
 class SparseTernary(NoiseDistribution):
