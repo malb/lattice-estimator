@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     name: Publish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -19,8 +19,8 @@ jobs:
   
       - name: Install Prerequists
         run: |
-          python -m pip install --upgrade pip
-          pip install sphinxcontrib-jupyter
+          python -m pip install --upgrade --break-system-packages pip
+          pip install --break-system-packages sphinxcontrib-jupyter
 
       - name: Generate Jupyter Notebooks
         run: |
