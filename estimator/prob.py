@@ -80,7 +80,7 @@ def gaussian_cdf(mu, sigma, t):
 def mitm_babai_probability(r, stddev, fast=False):
     """
     Compute the "e-admissibility" probability associated to the mitm step, according to
-    [EPRINT:SonChe19]_
+    [WAHC:SonChe19]_
 
     :params r: the squared GSO lengths
     :params stddev: the std.dev of the error distribution
@@ -92,7 +92,7 @@ def mitm_babai_probability(r, stddev, fast=False):
         return 1
 
     # Note: `r` contains *square norms*, so convert to non-square norms.
-    # Follow the proof of Lemma 4.2 [EPRINT_SonChe19]_, because that one uses standard deviation.
+    # Follow the proof of Lemma 4.2 [WAHC:SonChe19]_, because that one uses standard deviation.
     xs = [sqrt(.5 * ri) / stddev for ri in r]
     p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(pi))) for x in xs)
     assert 0.0 <= p <= 1.0
@@ -101,7 +101,7 @@ def mitm_babai_probability(r, stddev, fast=False):
 
 def babai(r, norm):
     """
-    Babai probability following [EPRINT:Wun16]_.
+    Babai probability following [JMC:Wunderer19]_.
 
     """
     denom = float(2 * norm) ** 2

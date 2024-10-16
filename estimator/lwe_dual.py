@@ -364,7 +364,7 @@ class DualHybrid:
         - When ζ > 1 and ``solver`` is ``exhaustive_search`` this function estimates
             the hybrid attack as given in [INDOCRYPT:EspJouKha20]_
         - When ζ > 1 and ``solver`` is ``mitm`` this function estimates the dual MITM
-            hybrid attack roughly following [EPRINT:CHHS19]_
+            hybrid attack roughly following [IEEE:CHHS19]_
 
         EXAMPLES::
 
