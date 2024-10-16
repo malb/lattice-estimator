@@ -12,11 +12,11 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out
         uses: actions/checkout@v2
       - name: PEP8
         run: |
-          pip install --upgrade --break-system-packages pyproject-flake8
+          pip install --upgrade pyproject-flake8
           flake8 estimator/
