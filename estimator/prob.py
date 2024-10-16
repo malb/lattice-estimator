@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, pi
 from sage.all import RealDistribution, RR, sqrt, prod, erf
-from .nd import sigmaf
 from .conf import max_n_cache
 
 
@@ -78,35 +77,26 @@ def gaussian_cdf(mu, sigma, t):
     return RR((1/2)*(1 + erf((t - mu)/(sqrt(2)*sigma))))
 
 
-def mitm_babai_probability(r, stddev, q, fast=False):
+def mitm_babai_probability(r, stddev, fast=False):
     """
     Compute the "e-admissibility" probability associated to the mitm step, according to
     [EPRINT:SonChe19]_
 
     :params r: the squared GSO lengths
     :params stddev: the std.dev of the error distribution
-    :params q: the LWE modulus
     :param fast: toggle for setting p = 1 (faster, but underestimates security)
     :return: probability for the mitm process
-
-    # NOTE: the model sometimes outputs negative probabilities, we set p = 0 in this case
     """
-
     if fast:
         # overestimate the probability -> underestimate security
         return 1
 
-    # get non-squared norms
-    alphaq = sigmaf(stddev)
-    probs = (
-        RR(
-            erf(s * sqrt(RR(pi)) / alphaq)
-            + (alphaq / s) * ((exp(-s * sqrt(RR(pi)) / alphaq) - 1) / RR(pi))
-        )
-        for s in map(sqrt, r)
-    )
-    p = RR(prod(probs))
-    return p if 0 <= p <= 1 else 0.0
+    # Note: `r` contains *square norms*, so convert to non-square norms.
+    # Follow the proof of Lemma 4.2 [EPRINT_SonChe19]_, because that one uses standard deviation.
+    xs = [sqrt(.5 * ri) / stddev for ri in r]
+    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(pi))) for x in xs)
+    assert 0.0 <= p <= 1.0
+    return p
 
 
 def babai(r, norm):
