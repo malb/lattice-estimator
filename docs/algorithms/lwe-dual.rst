@@ -18,7 +18,7 @@ We can improve these results by considering a dual hybrid attack as in [EC:Albre
 
     dual_hybrid(params)
 
-Further improvements are possible using a meet-in-the-middle approach [EPRINT:CHHS19]_::
+Further improvements are possible using a meet-in-the-middle approach [IEEE:CHHS19]_::
 
    dual_hybrid(params, mitm_optimization=True)
 
