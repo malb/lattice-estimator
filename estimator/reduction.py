@@ -480,7 +480,7 @@ class LaaMosPol14(ReductionCost):
 
     def __call__(self, beta, d, B=None):
         """
-        Runtime estimation for quantum sieving following [EPRINT:LaaMosPol14]_ and [PhD:Laarhoven15]_.
+        Runtime estimation for quantum sieving following [DCC:LaaMosPol15]_ and [PhD:Laarhoven15]_.
 
         :param beta: Block size ≥ 2.
         :param d: Lattice dimension.
