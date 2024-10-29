@@ -239,6 +239,7 @@ class DiscreteGaussian(NoiseDistribution):
     gaussian_tail_prob: float = 1 - 2 * exp(-4 * pi)
 
     def __init__(self, stddev, mean=0, n=None):
+        stddev, mean = RR(stddev), RR(mean)
         b_val = oo if n is None else ceil(log(n, 2) * stddev)
         density = max(0.0, 1 - RR(1 / sigmaf(stddev)))  # NOTE: approximation that is accurate for large stddev.
 
@@ -288,7 +289,7 @@ def DiscreteGaussianAlpha(alpha, q, mean=0, n=None):
         >>> ND.DiscreteGaussianAlpha(alpha, q) == ND.DiscreteGaussian(ND.stddevf(alpha * q))
         True
     """
-    return DiscreteGaussian(RR(stddevf(alpha * q)), RR(mean), n)
+    return DiscreteGaussian(stddevf(alpha * q), mean, n)
 
 
 class CenteredBinomial(NoiseDistribution):
