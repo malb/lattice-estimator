@@ -409,11 +409,11 @@ class SparseTernary(NoiseDistribution):
 
         >>> from estimator import *
         >>> ND.SparseTernary(10, n=100)
-        D(σ=0.45)
+        T(p=10, m=10, n=100)
         >>> ND.SparseTernary(10, 10, 100)
-        D(σ=0.45)
+        T(p=10, m=10, n=100)
         >>> ND.SparseTernary(10, 8, 100)
-        D(σ=0.42, μ=0.02)
+        T(p=10, m=8, n=100)
         >>> ND.SparseTernary(0, 0, 0).support_size()
         1
     """
@@ -509,6 +509,23 @@ class SparseTernary(NoiseDistribution):
         """
         n, p, m = len(self), self.p, self.m
         return ceil(binomial(n, p) * binomial(n - p, m) * RR(fraction))
+
+    def __str__(self):
+        """
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> ND.SparseTernary(20, 20, n=100)
+            T(p=20, m=20, n=100)
+
+        """
+        if self.n:
+            return f"T(p={self.p}, m={self.m}, n={int(self.n)})"
+        else:
+            return f"T(p={int(self.p)}, m={int(self.m)})"
+
+    def __repr__(self):
+        return str(self)
 
 
 def SparseBinary(hw, n=None):
