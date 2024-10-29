@@ -239,6 +239,7 @@ class DiscreteGaussian(NoiseDistribution):
     gaussian_tail_prob: float = 1 - 2 * exp(-4 * pi)
 
     def __init__(self, stddev, mean=0, n=None):
+        stddev, mean = RR(stddev), RR(mean)
         b_val = oo if n is None else ceil(log(n, 2) * stddev)
         density = max(0.0, 1 - RR(1 / sigmaf(stddev)))  # NOTE: approximation that is accurate for large stddev.
 
@@ -288,7 +289,7 @@ def DiscreteGaussianAlpha(alpha, q, mean=0, n=None):
         >>> ND.DiscreteGaussianAlpha(alpha, q) == ND.DiscreteGaussian(ND.stddevf(alpha * q))
         True
     """
-    return DiscreteGaussian(RR(stddevf(alpha * q)), RR(mean), n)
+    return DiscreteGaussian(stddevf(alpha * q), mean, n)
 
 
 class CenteredBinomial(NoiseDistribution):
@@ -408,11 +409,11 @@ class SparseTernary(NoiseDistribution):
 
         >>> from estimator import *
         >>> ND.SparseTernary(10, n=100)
-        D(σ=0.45)
+        T(p=10, m=10, n=100)
         >>> ND.SparseTernary(10, 10, 100)
-        D(σ=0.45)
+        T(p=10, m=10, n=100)
         >>> ND.SparseTernary(10, 8, 100)
-        D(σ=0.42, μ=0.02)
+        T(p=10, m=8, n=100)
         >>> ND.SparseTernary(0, 0, 0).support_size()
         1
     """
@@ -508,6 +509,23 @@ class SparseTernary(NoiseDistribution):
         """
         n, p, m = len(self), self.p, self.m
         return ceil(binomial(n, p) * binomial(n - p, m) * RR(fraction))
+
+    def __str__(self):
+        """
+        EXAMPLE::
+
+            >>> from estimator import *
+            >>> ND.SparseTernary(20, 20, n=100)
+            T(p=20, m=20, n=100)
+
+        """
+        if self.n:
+            return f"T(p={self.p}, m={self.m}, n={int(self.n)})"
+        else:
+            return f"T(p={int(self.p)}, m={int(self.m)})"
+
+    def __repr__(self):
+        return str(self)
 
 
 def SparseBinary(hw, n=None):

@@ -60,7 +60,7 @@ NIST PQC Round 3 Finalists
 
     >>> from estimator import *
     >>> schemes.NTRUHPS2048509Enc
-    NTRUParameters(n=508, q=2048, Xs=D(σ=0.82), Xe=D(σ=0.71), m=508, tag='NTRUHPS2048509Enc', ntru_type='matrix')
+    NTRUParameters(n=508, q=2048, Xs=D(σ=0.82), Xe=T(p=127, m=127, n=508), m=508, tag='NTRUHPS2048509Enc', ntru_type='matrix')
     >>> NTRU.primal_bdd(schemes.NTRUHPS2048509Enc)
     rop: ≈2^131.1, red: ≈2^130.1, svp: ≈2^130.2, β: 357, η: 390, d: 916, tag: bdd
 
@@ -68,7 +68,7 @@ NIST PQC Round 3 Finalists
 
     >>> from estimator import *
     >>> schemes.NTRUHPS2048677Enc
-    NTRUParameters(n=676, q=2048, Xs=D(σ=0.82), Xe=D(σ=0.61), m=676, tag='NTRUHPS2048677Enc', ntru_type='matrix')
+    NTRUParameters(n=676, q=2048, Xs=D(σ=0.82), Xe=T(p=127, m=127, n=676), m=676, tag='NTRUHPS2048677Enc', ntru_type='matrix')
     >>> NTRU.primal_bdd(schemes.NTRUHPS2048677Enc)
     rop: ≈2^170.8, red: ≈2^169.6, svp: ≈2^169.9, β: 498, η: 533, d: 1179, tag: bdd
 
@@ -76,7 +76,7 @@ NIST PQC Round 3 Finalists
 
     >>> from estimator import *
     >>> schemes.NTRUHPS4096821Enc
-    NTRUParameters(n=820, q=4096, Xs=D(σ=0.82), Xe=D(σ=0.79), m=820, tag='NTRUHPS4096821Enc', ntru_type='matrix')
+    NTRUParameters(n=820, q=4096, Xs=D(σ=0.82), Xe=T(p=255, m=255, n=820), m=820, tag='NTRUHPS4096821Enc', ntru_type='matrix')
     >>> NTRU.primal_bdd(schemes.NTRUHPS4096821Enc)
     rop: ≈2^199.7, red: ≈2^198.7, svp: ≈2^198.6, β: 601, η: 636, d: 1485, tag: bdd
 
