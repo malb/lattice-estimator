@@ -77,6 +77,7 @@ class NoiseDistribution:
     - UniformMod
     - SparseTernary
     - SparseBinary
+    - SparseBinomial
     - Binary
     - Ternary
 
@@ -591,6 +592,89 @@ def SparseBinary(hw, n=None):
         (0, 1)
     """
     return SparseTernary(hw, 0, n)
+
+
+class SparseBinomial(NoiseDistribution):
+    """
+    Distribution of vectors of length ``n`` with ``hw`` non-zero entries in the range {-eta, ..., eta},
+    of which each nonzero entry is obtained by:
+    (1) tossing a fair coin 2*eta times,
+    (2) computing the number of heads minus eta, and
+    (3) restarting at (1), if that number is zero, else returning it.
+    """
+    def __init__(self, eta, hw, n=None):
+        eta, hw = int(eta), int(hw)
+        self.eta, self.hw = eta, hw
+
+        # Yes, n=0 might happen when estimating the cost of the dual attack! Support size is 1
+        if n is None:
+            # Treat it the same as n=0.
+            n = 0
+        density = 0 if n == 0 else hw / n
+        stddev = sqrt(density * eta / 2)
+        super().__init__(
+            n=n,
+            mean=0,
+            stddev=stddev,
+            bounds=(-eta, eta),
+            _density=density,
+        )
+
+    def __hash__(self):
+        return hash(("SparseBinomial", self.n, self.eta, self.hw))
+
+    def resize(self, new_n):
+        """
+        Return an altered distribution having a dimension `new_n`.
+        Assumes `p` and `m` stay the same.
+        """
+        return SparseBinomial(self.eta, self.hw, new_n)
+
+    def split_balanced(self, new_n, new_hw=None):
+        """
+        Split the +1 and -1 entries in a balanced way, and return 2 SparseBinomial distributions:
+        one of dimension `new_n` and the other of dimension `n - new_n`.
+
+        :param new_n: dimension of the first noise distribution
+        :param new_hw: hamming weight of the first noise distribution. If none, we take the most likely weight.
+        :return: tuple of (SparseBinomial, SparseBinomial)
+        """
+        n, hw = len(self), self.hamming_weight
+        if new_hw is None:
+            # Most likely split has same density: new_hw / new_n = hw / n.
+            new_hw = int(QQ(hw * new_n / n).round('down'))
+        return (
+            SparseBinomial(self.eta, new_hw, new_n),
+            SparseBinomial(self.eta, hw - new_hw, n - new_n)
+        )
+
+    def split_probability(self, new_n, new_hw=None):
+        """
+        Compute probability of splitting in a way that one half having `new_n` coefficients has
+        `new_hw` of the weight, and the remaining part the rest. This is naturally the proportion
+        of such splits divided this support size.
+        """
+        left, right = self.split_balanced(new_n, new_hw)
+        return left.support_size() * right.support_size() / self.support_size()
+
+    @property
+    def is_sparse(self):
+        """
+        Always say this is a sparse distribution, even if p + m >= n/2, because there is correlation between the
+        coefficients: if you split the distribution into two of half the length, then you expect in each of them to be
+        half the weight.
+        """
+        return True
+
+    @property
+    def hamming_weight(self):
+        return self.hw
+
+    def support_size(self, fraction=1.0):
+        """
+        Compute the size of the support covering the probability given as fraction.
+        """
+        return (2 * self.eta)**self.hw * binomial(self.n, self.hw)
 
 
 """
