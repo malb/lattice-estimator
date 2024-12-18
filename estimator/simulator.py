@@ -107,7 +107,8 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
         log_vol = RR(log(q, 2) * (d - n - 1) + log(xi, 2) * n + log(tau, 2))
 
     delta = deltaf(beta)
-    r_log = [(d - 1 - 2 * i) * RR(log(delta, 2)) + log_vol / d for i in range(d)]
+    log_delta = RR(log(delta, 2))
+    r_log = [(d - 1 - 2 * i) * log_delta + log_vol / d for i in range(d)]
     r = [2 ** (2 * r_) for r_ in r_log]
     return r
 
