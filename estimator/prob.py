@@ -77,6 +77,9 @@ def gaussian_cdf(mu, sigma, t):
     return RR((1/2)*(1 + erf((t - mu)/(sqrt(2)*sigma))))
 
 
+from math import sqrt, erf, exp, pi
+from functools import reduce
+
 def mitm_babai_probability(r, stddev, fast=False):
     """
     Compute the "e-admissibility" probability associated to the mitm step, according to
@@ -88,15 +91,23 @@ def mitm_babai_probability(r, stddev, fast=False):
     :return: probability for the mitm process
     """
     if fast:
-        # overestimate the probability -> underestimate security
-        return 1
+        return 1  
 
-    # Note: `r` contains *square norms*, so convert to non-square norms.
-    # Follow the proof of Lemma 4.2 [WAHC:SonChe19]_, because that one uses standard deviation.
-    xs = [sqrt(.5 * ri) / stddev for ri in r]
-    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(pi))) for x in xs)
+    # compute once to not repeat
+    pi_const = 1 / sqrt(pi)
+
+    # compute product term-by-term to use reduce
+    def p_i(ri):
+        x = sqrt(0.5 * ri) / stddev 
+        return erf(x) - (1 - exp(-x**2) ) * pi_const / x
+
+    # Use reduce for efficient multiplication instead of `prod`
+    p = reduce(lambda a, b: a * p_i(b), r, 1.0)
+    
+    # Ensure the result remains a valid probability
     assert 0.0 <= p <= 1.0
     return p
+
 
 
 def babai(r, norm):
