@@ -313,7 +313,7 @@ class PrimalHybrid:
         try:
             r = [log(x) for x in r]
         except ValueError:
-            # shift and re-compute
+            # precision error, shift and re-compute
             c_shift = 1e-300
             r = [log(c_shift) + log(x / c_shift) for x in r]
             print(r)
