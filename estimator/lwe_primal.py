@@ -316,7 +316,6 @@ class PrimalHybrid:
             # precision error, shift and re-compute
             c_shift = 1e-300
             r = [log(c_shift) + log(x / c_shift) for x in r]
-            print(r)
 
         if d > 4096:
             for i, _ in enumerate(r):
