@@ -13,7 +13,7 @@ from .util import zeta_precomputed, zeta_prime_precomputed, gh_constant
 from .lwe_primal import PrimalUSVP, PrimalHybrid
 from .ntru_parameters import NTRUParameters
 from .simulator import normalize as simulator_normalize
-from .prob import conditional_chi_squared, chisquared_table
+from .prob import conditional_chi_squared, chi_squared_cdf
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
@@ -132,7 +132,7 @@ class PrimalDSD:
                 continue
 
             norm_threshold = exp(2 * (B_shape[s - beta])) / sigma_sq
-            proba_one = chisquared_table[beta].cum_distribution_function(norm_threshold)
+            proba_one = chi_squared_cdf[beta](norm_threshold)
 
             if proba_one <= 10e-8:
                 continue
