@@ -41,7 +41,7 @@ class SISLattice:
         Optimizes SIS dimension for the given parameters, assuming the optimal
         d ≈ sqrt(n⋅log(q)/log(delta))
         """
-        log_delta = log(params.length_bound, 2) ** 2 / (4 * params.n * log(params.q, 2))
+        log_delta = log(params.length_bound, 2) ** 2 / (4 * params.n * RR(log(params.q, 2)))
         d = sqrt(params.n * log(params.q, 2) / log_delta)
         return d
 
