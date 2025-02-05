@@ -55,7 +55,7 @@ class SISLattice:
         **kwds,
     ):
         # Check for triviality
-        if params.length_bound >= (params.q-1) / 2:
+        if params.length_bound >= (params.q - 1) / 2:
             raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")
 
         if d is None:
@@ -104,7 +104,7 @@ class SISLattice:
             it merely reports costs.
 
         """
-        if params.length_bound >= (params.q-1)/2:
+        if params.length_bound >= (params.q - 1) / 2:
             raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")
 
         if d is None:
