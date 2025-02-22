@@ -100,6 +100,7 @@ We cover:
 - ``[x]`` |lwe-bkw-binder| :doc:`Coded-BKW attack on LWE <../algorithms/lwe-bkw>` 
 - ``[X]`` |gb-binder| :doc:`Arora-GB attack on LWE <../algorithms/gb>`
 - ``[x]`` |ntru-binder| :doc:`attacks on NTRU public keys (using overstretched parameters) <../algorithms/ntru>` 
+- ``[X]`` |sis-lattice-binder| :doc:`attacks on SIS <../algorithms/sis-lattice>` 
 
 .. |lwe-primal-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Flwe-primal.ipynb
@@ -116,10 +117,9 @@ We cover:
 .. |ntru-binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fntru.ipynb
 
-We are planning:
-
-- ``[ ]`` attack on `SIS <https://en.wikipedia.org/wiki/Short_integer_solution_problem>`__ instances
-         
+.. |sis-lattice-binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/malb/lattice-estimator/jupyter-notebooks?labpath=..%2F..%2Ftree%2Fsis-lattice.ipynb
+                     
 Evolution
 ---------
 
