@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Estimate cost of solving LWE using dial attacks.
+Estimate cost of solving LWE using dual attacks.
 
 See :ref:`LWE Dual Attacks` for an introduction what is available.
 
