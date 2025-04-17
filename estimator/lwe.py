@@ -19,11 +19,12 @@ from .conf import (
 )
 from .util import batch_estimate, f_name
 from .reduction import RC
+from .io import Logging
 
 
 class Estimate:
 
-    def rough(self, params, jobs=1, catch_exceptions=True):
+    def rough(self, params, jobs=1, catch_exceptions=True, quiet=False):
         """
         This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice
         reduction, and to provide comparable numbers with most of the literature:
@@ -44,6 +45,7 @@ class Estimate:
         :param params: LWE parameters.
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
+        :param quiet: suppress printing
 
         EXAMPLE ::
 
@@ -51,6 +53,8 @@ class Estimate:
             >>> _ = LWE.estimate.rough(schemes.Kyber512)
             usvp                 :: rop: ≈2^118.6, red: ≈2^118.6, δ: 1.003941, β: 406, d: 998, tag: usvp
             dual_hybrid          :: rop: ≈2^115.5, red: ≈2^115.3, guess: ≈2^112.3, β: 395, p: 5, ζ: 0, t: 40, β': 395...
+
+            >>> _ = LWE.estimate.rough(schemes.Kyber512, quiet=True)
 
         """
         params = params.normalize()
@@ -82,7 +86,7 @@ class Estimate:
                 continue
             result = res[algorithm]
             if result["rop"] != oo:
-                print(f"{algorithm:20s} :: {result!r}")
+                Logging.print("estimator", int(quiet), f"{algorithm:20s} :: {result!r}")
 
         return res
 
@@ -95,6 +99,7 @@ class Estimate:
         add_list=tuple(),
         jobs=1,
         catch_exceptions=True,
+        quiet=False,
     ):
         """
         Run all estimates, based on the default cost and shape models for lattice reduction.
@@ -106,6 +111,7 @@ class Estimate:
         :param add_list: add these ``(name, function)`` pairs to the list of algorithms to estimate.a
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
+        :param quiet: suppress printing
 
         EXAMPLE ::
 
@@ -116,6 +122,8 @@ class Estimate:
             bdd                  :: rop: ≈2^140.3, red: ≈2^139.7, svp: ≈2^138.7, β: 391, η: 421, d: 1013, tag: bdd
             dual                 :: rop: ≈2^149.9, mem: ≈2^97.1, m: 512, β: 424, d: 1024, ↻: 1, tag: dual
             dual_hybrid          :: rop: ≈2^139.7, red: ≈2^139.5, guess: ≈2^135.9, β: 387, p: 5, ζ: 0, t: 50, β': 391...
+
+            >>> _ = LWE.estimate(schemes.Kyber512, quiet=True)
 
         """
         params = params.normalize()
@@ -175,7 +183,7 @@ class Estimate:
                 continue
             if algorithm == "dual_mitm_hybrid" and res["dual_hybrid"]["rop"] < result["rop"]:
                 continue
-            print(f"{algorithm:20s} :: {result!r}")
+            Logging.print("estimator", int(quiet), f"{algorithm:20s} :: {result!r}")
 
         return res
 
