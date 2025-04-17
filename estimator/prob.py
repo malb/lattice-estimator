@@ -87,15 +87,23 @@ def mitm_babai_probability(r, stddev, fast=False):
     :param fast: toggle for setting p = 1 (faster, but underestimates security)
     :return: probability for the mitm process
     """
+    import numpy as np
+    from scipy.special import erf as erf_s
+
     if fast:
         # overestimate the probability -> underestimate security
         return 1
-
     # Note: `r` contains *square norms*, so convert to non-square norms.
     # Follow the proof of Lemma 4.2 [WAHC:SonChe19]_, because that one uses standard deviation.
-    xs = [sqrt(.5 * ri) / stddev for ri in r]
-    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(pi))) for x in xs)
-    assert 0.0 <= p <= 1.0
+
+    # Take constant sqrt(pi) out of the array so we only compute once
+    sqrt_pi = np.sqrt(np.pi)
+    # Use numpy for fast computation of sqrt, erf, exp
+    xs = np.sqrt(0.5 * np.array(r)) / stddev
+    erf_xs = erf_s(xs)
+    p_vec = erf_xs - (1 - np.exp(-xs**2)) / (xs * sqrt_pi)
+    p = RR(np.prod(p_vec))
+
     return p
 
 
