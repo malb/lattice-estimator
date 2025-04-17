@@ -1,5 +1,5 @@
 ---
-name: Add a new attack
+name: Feature request to add a new attack from the literature
 about: add an attack from the literature
 title: ''
 labels: newattack
