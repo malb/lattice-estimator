@@ -360,6 +360,10 @@ class PrimalHybrid:
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
         d -= zeta
 
+        if d < beta:
+            # cannot BKZ-β on a basis of dimension < β
+            return Cost(rop=oo)
+
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         tau = 1
         # 1. Simulate BKZ-β
