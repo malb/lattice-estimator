@@ -125,7 +125,9 @@ class LWEParameters:
                 d["m"] = ceil(m)
                 return LWEParameters(**d)
         else:
-            raise NotImplementedError(f"Cannot amplify to ≈2^{log(m, 2):1} using {{+1,-1}} additions.")
+            raise NotImplementedError(
+                f"Cannot amplify to ≈2^{log(m, 2):1} using {{+1,-1}} additions."
+            )
 
     def switch_modulus(self):
         """
