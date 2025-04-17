@@ -18,11 +18,12 @@ from .conf import (
 )
 from .util import batch_estimate, f_name
 from .reduction import RC
+from .io import Logging
 
 
 class Estimate:
 
-    def rough(self, params, jobs=1, catch_exceptions=True):
+    def rough(self, params, jobs=1, catch_exceptions=True, quiet=False):
         """
         This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice
         reduction, and to provide comparable numbers with most of the literature:
@@ -42,6 +43,7 @@ class Estimate:
         :param params: NTRU parameters.
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
+        :param quiet: suppress printing
 
         EXAMPLE ::
 
@@ -49,6 +51,8 @@ class Estimate:
             >>> _ = NTRU.estimate.rough(schemes.NTRUHPS2048509Enc)
             usvp                 :: rop: ≈2^109.2, red: ≈2^109.2, δ: 1.004171, β: 374, d: 643, tag: usvp
             bdd_hybrid           :: rop: ≈2^108.6, red: ≈2^107.7, svp: ≈2^107.5, β: 369, η: 368, ζ: 0, |S|: 1, ...
+
+            >>> _ = NTRU.estimate.rough(schemes.NTRUHPS2048509Enc, quiet=True)
 
         """
         params = params.normalize()
@@ -88,7 +92,7 @@ class Estimate:
                 continue
             result = res[algorithm]
             if result["rop"] != oo:
-                print(f"{algorithm:20s} :: {result!r}")
+                Logging.print("estimator", int(quiet), f"{algorithm:20s} :: {result!r}")
 
         return res
 
@@ -101,6 +105,7 @@ class Estimate:
         add_list=tuple(),
         jobs=1,
         catch_exceptions=True,
+        quiet=False,
     ):
         """
         Run all estimates, based on the default cost and shape models for lattice reduction.
@@ -112,6 +117,7 @@ class Estimate:
         :param add_list: add these ``(name, function)`` pairs to the list of algorithms to estimate.a
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
+        :param quiet: suppress printing
 
         EXAMPLE ::
 
@@ -129,6 +135,9 @@ class Estimate:
             bdd                  :: rop: ≈2^42.4, red: ≈2^40.9, svp: ≈2^41.7, β: 41, η: 70, d: 225, tag: bdd
             bdd_hybrid           :: rop: ≈2^42.4, red: ≈2^40.9, svp: ≈2^41.7, β: 41, η: 70, ζ: 0, |S|: 1, d: 226, ...
             bdd_mitm_hybrid      :: rop: ≈2^55.8, red: ≈2^54.8, svp: ≈2^54.7, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, ...
+
+            >>> _ = NTRU.estimate(params, quiet=True)
+
         """
         params = params.normalize()
 
@@ -183,7 +192,7 @@ class Estimate:
                 continue
             if algorithm == "dsd" and res["usvp"]["rop"] < result["rop"]:
                 continue
-            print(f"{algorithm:20s} :: {result!r}")
+            Logging.print("estimator", int(quiet), f"{algorithm:20s} :: {result!r}")
 
         return res
 

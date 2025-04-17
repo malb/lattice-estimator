@@ -14,10 +14,11 @@ from .conf import (
 )
 from .util import batch_estimate, f_name
 from .reduction import RC
+from .io import Logging
 
 
 class Estimate:
-    def rough(self, params, jobs=1, catch_exceptions=True):
+    def rough(self, params, jobs=1, catch_exceptions=True, quiet=False):
         """
         This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice
         reduction, and to provide comparable numbers with most of the literature:
@@ -34,12 +35,15 @@ class Estimate:
         :param params: SIS parameters.
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
+        :param quiet: suppress printing
 
         EXAMPLE ::
 
             >>> from estimator import *
             >>> _ = SIS.estimate.rough(schemes.Dilithium2_MSIS_WkUnf)
             lattice  :: rop: ≈2^123.5, red: ≈2^123.5, sieve: ≈2^-332.2, β: 423, η: 423, ζ: 1, d: 2303, ...
+
+            >>> _ = SIS.estimate.rough(schemes.Dilithium2_MSIS_WkUnf, quiet=True)
 
         """
         algorithms = {}
@@ -63,7 +67,7 @@ class Estimate:
                 continue
             result = res[algorithm]
             if result["rop"] != oo:
-                print(f"{algorithm:8s} :: {result!r}")
+                Logging.print("estimator", int(quiet), f"{algorithm:8s} :: {result!r}")
 
         return res
 
@@ -76,6 +80,7 @@ class Estimate:
         add_list=tuple(),
         jobs=1,
         catch_exceptions=True,
+        quiet=False,
     ):
         """
         Run all estimates, based on the default cost and shape models for lattice reduction.
@@ -87,6 +92,7 @@ class Estimate:
         :param add_list: add these ``(name, function)`` pairs to the list of algorithms to estimate.a
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
+        :param quiet: suppress printing
 
         EXAMPLE ::
             >>> from estimator import *
@@ -99,6 +105,8 @@ class Estimate:
 
             >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo), red_shape_model="cn11")
             lattice  :: rop: ≈2^65.8, red: ≈2^64.8, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, ...
+            >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo), quiet=True)
+
         """
 
         algorithms = {}
@@ -126,7 +134,7 @@ class Estimate:
             result = res[algorithm]
             if result["rop"] == oo:
                 continue
-            print(f"{algorithm:8s} :: {result!r}")
+            Logging.print("estimator", int(quiet), f"{algorithm:8s} :: {result!r}")
 
         return res
 
