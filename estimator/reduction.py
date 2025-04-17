@@ -510,7 +510,7 @@ class CheNgu12(ReductionCost):
         :param d: Lattice dimension.
         :param B: Bit-size of entries.
 
-        The constants in this function were derived as follows based on Table 5 in
+        The constants in this function were derived as follows based on Table 5.2 in
         [PhD:Chen13]_::
 
             >>> from sage.all import var, find_fit
