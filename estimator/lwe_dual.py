@@ -496,7 +496,6 @@ class MATZOV:
     See [AC:GuoJoh21]_ and [MATZOV22]_.
     """
 
-    C_prog = 1.0 / (1 - 2.0 ** (-0.292))  # p.37
     C_mul = 32**2  # p.37
     C_add = 5 * 32  # guessing based on C_mul
 
