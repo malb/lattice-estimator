@@ -57,10 +57,12 @@ class LWEParameters:
 
         # Normal form transformation
         if self.Xe < self.Xs and self.m >= 2 * self.n:
-            return LWEParameters(n=self.n, q=self.q, Xs=self.Xe, Xe=self.Xe, m=self.m - self.n, tag=self.tag)
-        # swap secret and noise
-        # TODO: this is somewhat arbitrary
-        if self.Xe < self.Xs and self.m < 2 * self.n:
+            return LWEParameters(
+                n=self.n, q=self.q, Xs=self.Xe, Xe=self.Xe, m=self.m - self.n, tag=self.tag
+            )
+
+        # swap secret and noise but only if m = n
+        if self.Xe < self.Xs and self.m == self.n:
             return LWEParameters(n=self.n, q=self.q, Xs=self.Xe, Xe=self.Xs, m=self.n, tag=self.tag)
 
         # nothing to do
