@@ -23,7 +23,7 @@ from .reduction import RC
 
 class Estimate:
 
-    def rough(self, params, jobs=1, catch_exceptions=True):
+    def rough(self, params, jobs=1, catch_exceptions=True, verbose=True):
         """
         This function makes the following (non-default) somewhat routine assumptions to evaluate the cost of lattice
         reduction, and to provide comparable numbers with most of the literature:
@@ -44,6 +44,7 @@ class Estimate:
         :param params: LWE parameters.
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
+        :param verbose: If True, prints cost estimates to stdout.
 
         EXAMPLE ::
 
@@ -77,12 +78,13 @@ class Estimate:
             if f_name(attack) == k
         }
 
-        for algorithm in algorithms:
-            if algorithm not in res:
-                continue
-            result = res[algorithm]
-            if result["rop"] != oo:
-                print(f"{algorithm:20s} :: {result!r}")
+        if verbose:
+            for algorithm in algorithms:
+                if algorithm not in res:
+                    continue
+                result = res[algorithm]
+                if result["rop"] != oo:
+                    print(f"{algorithm:20s} :: {result!r}")
 
         return res
 
@@ -95,6 +97,7 @@ class Estimate:
         add_list=tuple(),
         jobs=1,
         catch_exceptions=True,
+        verbose=True
     ):
         """
         Run all estimates, based on the default cost and shape models for lattice reduction.
@@ -106,6 +109,7 @@ class Estimate:
         :param add_list: add these ``(name, function)`` pairs to the list of algorithms to estimate.a
         :param jobs: Use multiple threads in parallel.
         :param catch_exceptions: When an estimate fails, just print a warning.
+        :param verbose: If True, prints cost estimates to stdout.
 
         EXAMPLE ::
 
@@ -163,19 +167,20 @@ class Estimate:
             if f_name(attack) == k
         }
 
-        for algorithm in algorithms:
-            if algorithm not in res:
-                continue
-            result = res[algorithm]
-            if result["rop"] == oo:
-                continue
-            if algorithm == "bdd_hybrid" and res["bdd"]["rop"] <= result["rop"]:
-                continue
-            if algorithm == "bdd_mitm_hybrid" and res["bdd_hybrid"]["rop"] <= result["rop"]:
-                continue
-            if algorithm == "dual_mitm_hybrid" and res["dual_hybrid"]["rop"] < result["rop"]:
-                continue
-            print(f"{algorithm:20s} :: {result!r}")
+        if verbose:
+            for algorithm in algorithms:
+                if algorithm not in res:
+                    continue
+                result = res[algorithm]
+                if result["rop"] == oo:
+                    continue
+                if algorithm == "bdd_hybrid" and res["bdd"]["rop"] <= result["rop"]:
+                    continue
+                if algorithm == "bdd_mitm_hybrid" and res["bdd_hybrid"]["rop"] <= result["rop"]:
+                    continue
+                if algorithm == "dual_mitm_hybrid" and res["dual_hybrid"]["rop"] < result["rop"]:
+                    continue
+                print(f"{algorithm:20s} :: {result!r}")
 
         return res
 
