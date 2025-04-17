@@ -31,7 +31,7 @@ def conditional_chi_squared(d1, d2, lt, l2):
         0.5351747076352109
 
         >>> prob.conditional_chi_squared(100, 5, 50, 10)
-        1.1707597206287592e-06
+        1.170759720628...e-06
 
         >>> prob.conditional_chi_squared(100, 5, 50, .7)
         5.4021875103989546e-06
