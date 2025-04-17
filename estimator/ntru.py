@@ -127,8 +127,8 @@ class Estimate:
             usvp                 :: rop: ≈2^46.0, red: ≈2^46.0, δ: 1.011516, β: 59, d: 221, tag: usvp
             dsd                  :: rop: ≈2^37.8, red: ≈2^37.8, δ: 1.013310, β: 31, d: 226, tag: dsd
             bdd                  :: rop: ≈2^42.4, red: ≈2^40.9, svp: ≈2^41.7, β: 41, η: 70, d: 225, tag: bdd
-            bdd_hybrid           :: rop: ≈2^42.4, red: ≈2^40.9, svp: ≈2^41.7, β: 41, η: 70, ζ: 0, |S|: 1, d: 226, prob: 1, ↻: 1, tag: hybrid
-            bdd_mitm_hybrid      :: rop: ≈2^55.8, red: ≈2^54.8, svp: ≈2^54.7, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, d: 194, prob: ≈2^-12.0, ↻: ≈2^14.2, tag: hybrid
+            bdd_hybrid           :: rop: ≈2^42.4, red: ≈2^40.9, svp: ≈2^41.7, β: 41, η: 70, ζ: 0, |S|: 1, d: 226, ...
+            bdd_mitm_hybrid      :: rop: ≈2^55.8, red: ≈2^54.8, svp: ≈2^54.7, β: 41, η: 2, ζ: 32, |S|: ≈2^50.7, ...
         """
         params = params.normalize()
 
