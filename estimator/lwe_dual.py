@@ -398,9 +398,9 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^116.5, mem: ≈2^73.2, m: 1140, β: 298, d: 2164, ↻: 1, tag: dual
+            rop: ≈2^116.6, mem: ≈2^73.2, m: 1142, β: 299, d: 2166, ↻: 1, tag: dual
             >>> dual_hybrid(params)
-            rop: ≈2^116.2, mem: ≈2^100.4, m: 1137, β: 297, d: 2155, ↻: 1, ζ: 6, tag: dual_hybrid
+            rop: ≈2^116.2, mem: ≈2^105.8, m: 1137, β: 297, d: 2154, ↻: 1, ζ: 7, tag: dual_hybrid
             >>> dual_hybrid(params, mitm_optimization=True)
             rop: ≈2^160.7, mem: ≈2^156.8, m: 1473, k: 25, ↻: 1, β: 456, d: 2472, ζ: 25, tag: dual_mitm_hybrid
 
@@ -408,10 +408,10 @@ class DualHybrid:
             rop: ≈2^136.2, mem: ≈2^127.8, m: 434, β: 356, d: 902, ↻: 35, ζ: 40, h1: 19, tag: dual_hybrid
 
             >>> LWE.dual(schemes.CHHS_4096_67)
-            rop: ≈2^206.9, mem: ≈2^137.5, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
+            rop: ≈2^206.8, mem: ≈2^137.5, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
 
             >>> dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21, fft=True)
-            rop: ≈2^149.8, mem: ≈2^92.1, m: 510, t: 76, β: 399, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
+            rop: ≈2^149.8, mem: ≈2^92.1, m: 510, t: 75, β: 400, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
 
         """
 

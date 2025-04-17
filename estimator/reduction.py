@@ -739,28 +739,30 @@ class Kyber(ReductionCost):
         """
         return max(float(beta * log(4 / 3.0) / log(beta / (2 * pi * e))), 0.0)
 
-    def __call__(self, beta, d, B=None, C=5.46):
+    def __call__(self, beta, d, B=None):
         """
         Runtime estimation from [Kyber20]_ and [AC:AGPS20]_.
 
         :param beta: Block size ≥ 2.
         :param d: Lattice dimension.
         :param B: Bit-size of entries.
-        :param C: Progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{0.292 i + o(i)}/2^{0.292 β + o(β)}.
 
         EXAMPLE::
 
             >>> from math import log
             >>> from estimator.reduction import RC, Kyber
             >>> log(RC.Kyber(500, 1024), 2.0)
-            176.61534319964488
+            176.55419197058822
             >>> log(Kyber(nn="list_decoding-ge19")(500, 1024), 2.0)
-            172.68208507350872
+            172.89020262269491
 
         """
 
         if beta < 20:  # goes haywire
             return CheNgu12()(beta, d, B)
+
+        # C is progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{a ⋅ i + o(i)}/2^{a⋅β + o(β)}.
+        C = 1.0 / (1.0 - 2 ** (-self.NN_AGPS[self.nn]["a"]))
 
         # "The cost of progressive BKZ with sieving up to blocksize b is essentially C · (n − b) ≈
         # 3340 times the cost of sieving for SVP in dimension b." [Kyber20]_
@@ -806,11 +808,11 @@ class Kyber(ReductionCost):
 
             >>> from estimator.reduction import RC
             >>> RC.Kyber.short_vectors(100, 500, 1)
-            (1.0, 2.7367476128136...19, 100, 1)
+            (1.0, 2.62316973939874e19, 100, 1)
             >>> RC.Kyber.short_vectors(100, 500)
-            (1.1547, 2.7367476128136...19, 176584, 84)
+            (1.1547, 2.62316973939874e19, 176584, 84)
             >>> RC.Kyber.short_vectors(100, 500, 1000)
-            (1.1547, 2.7367476128136...19, 176584, 84)
+            (1.1547, 2.62316973939874e19, 176584, 84)
 
         """
         beta_ = beta - floor(self.d4f(beta))
@@ -830,7 +832,7 @@ class Kyber(ReductionCost):
 class GJ21(Kyber):
     __name__ = "GJ21"
 
-    def short_vectors(self, beta, d, N=None, preprocess=True, B=None, C=5.46, sieve_dim=None):
+    def short_vectors(self, beta, d, N=None, preprocess=True, B=None, sieve_dim=None):
         """
         Cost of outputting many somewhat short vectors according to [AC:GuoJoh21]_.
 
@@ -852,7 +854,6 @@ class GJ21(Kyber):
         :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
                If ``False`` we assume the basis is already BKZ-β reduced.
         :param B: Bit-size of entries.
-        :param C: Progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{0.292 i + o(i)}/2^{0.292 β + o(β)}.
         :param sieve_dim: Explicit sieving dimension.
         :return: ``(ρ, c, N, β')``
 
@@ -860,13 +861,17 @@ class GJ21(Kyber):
 
             >>> from estimator.reduction import RC
             >>> RC.GJ21.short_vectors(100, 500, 1)
-            (1.0, 2.7367476128136...19, 1, 100)
+            (1.0, 2.62316973939...e19, 1, 100)
             >>> RC.GJ21.short_vectors(100, 500)
-            (1.04228014727497, 5.56224438...19, 36150192, 121)
+            (1.04228014727497, 5.3894147166...e19, 36150192, 121)
             >>> RC.GJ21.short_vectors(100, 500, 1000)
-            (1.04228014727497, 5.56224438...19, 36150192, 121)
+            (1.04228014727497, 5.3894147166...e19, 36150192, 121)
 
         """
+
+        # C is progressive overhead lim_{β → ∞} ∑_{i ≤ β} 2^{a⋅i + o(i)}/2^{a⋅β + o(β)}.
+        C = 1.0 / (1.0 - 2 ** (-self.NN_AGPS[self.nn]["a"]))
+
         beta_ = beta - floor(self.d4f(beta))
         if sieve_dim is None:
             sieve_dim = beta_
@@ -905,7 +910,9 @@ class GJ21(Kyber):
         c0 = RR(N)
         c1 = RR(2 ** RR(0.2075 * sieve_dim))
         c = c0 / floor(c1)
-        sieve_cost = C * 2 ** RR((self.NN_AGPS[self.nn]["a"] * sieve_dim + self.NN_AGPS[self.nn]["b"]))
+        sieve_cost = C * 2 ** RR(
+            (self.NN_AGPS[self.nn]["a"] * sieve_dim + self.NN_AGPS[self.nn]["b"])
+        )
 
         # arbitrary choice
         if c > 2**1000:

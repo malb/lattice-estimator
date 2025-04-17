@@ -128,12 +128,12 @@ class guess_composition:
             >>> from estimator import *
             >>> from estimator.lwe_guess import guess_composition
             >>> guess_composition(LWE.primal_usvp)(schemes.Kyber512.updated(Xs=ND.SparseTernary(16)))
-            rop: ≈2^102.2, red: ≈2^102.2, δ: 1.008011, β: 132, d: 461, tag: usvp, ↻: ≈2^34.9, ζ: 252, |S|: 1, ...
+            rop: ≈2^102.1, red: ≈2^102.1, δ: 1.008011, β: 132, d: 461, tag: usvp, ↻: ≈2^34.9, ζ: 252, |S|: 1, ...
 
         Compare::
 
             >>> LWE.primal_hybrid(schemes.Kyber512.updated(Xs=ND.SparseTernary(16)))
-            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, prob: ≈2^-23.4, ↻:...
+            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 364, |S|: ≈2^85.0, d: 317, prob: ≈2^-23.4, ↻:...
 
         """
         params = LWEParameters.normalize(params)
@@ -245,7 +245,7 @@ class MITM:
                 # split optimally and compute the probability of this event
                 success_probability_ = params.Xs.split_probability(k)
             else:
-                split_h = (h * k / n).round('down')
+                split_h = (h * k / n).round("down")
                 # Assume each coefficient is sampled i.i.d.:
                 success_probability_ = (
                     binomial(k, split_h) * binomial(n - k, h - split_h) / binomial(n, h)
@@ -293,7 +293,7 @@ class MITM:
                 size_sea = sec_sea.support_size()
             else:
                 # Assume each coefficient is sampled i.i.d.:
-                split_h = (h * k / n).round('down')
+                split_h = (h * k / n).round("down")
                 size_tab = RR((sd_rng - 1) ** split_h * binomial(k, split_h))
                 size_sea = RR((sd_rng - 1) ** (h - split_h) * binomial(n - k, h - split_h))
 
