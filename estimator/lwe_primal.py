@@ -222,7 +222,7 @@ class PrimalUSVP:
             m = params.m
 
         if red_shape_model == "gsa":
-            with local_minimum(40, max(2 * params.n, 41), precision=5) as it:
+            with local_minimum(40, max(min(2 * params.n, m), 41), precision=5) as it:
                 for beta in it:
                     cost = self.cost_gsa(
                         beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds
