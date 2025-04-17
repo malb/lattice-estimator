@@ -91,14 +91,14 @@ class Estimate:
         EXAMPLE ::
             >>> from estimator import *
             >>> _ = SIS.estimate(schemes.Dilithium2_MSIS_StrUnf)
-            lattice  :: rop: ≈2^150.8, red: ≈2^149.6, sieve: ≈2^149.9, β: 421, η: 429, ζ: 0, d: 2304, ...
+            lattice  :: rop: ≈2^150.6, red: ≈2^149.6, sieve: ≈2^149.6, β: 421, η: 428, ζ: 0, d: 2304, ...
 
             >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm=2)
             >>> _ = SIS.estimate(params)
             lattice  :: rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
             >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo), red_shape_model="cn11")
-            lattice  :: rop: ≈2^65.9, red: ≈2^64.9, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, ...
+            lattice  :: rop: ≈2^65.8, red: ≈2^64.8, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, ...
         """
 
         algorithms = {}

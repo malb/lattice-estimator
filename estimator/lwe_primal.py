@@ -191,10 +191,10 @@ class PrimalUSVP:
 
             >>> params = LWE.Parameters(n=200, q=127, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> LWE.primal_usvp(params, red_shape_model="cn11")
-            rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 388, tag: usvp
+            rop: ≈2^87.5, red: ≈2^87.5, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> LWE.primal_usvp(params, red_shape_model=Simulator.CN11)
-            rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 388, tag: usvp
+            rop: ≈2^87.5, red: ≈2^87.5, δ: 1.006114, β: 209, d: 388, tag: usvp
 
             >>> LWE.primal_usvp(params, red_shape_model=Simulator.CN11, optimize_d=False)
             rop: ≈2^87.6, red: ≈2^87.6, δ: 1.006114, β: 209, d: 400, tag: usvp
@@ -573,13 +573,13 @@ class PrimalHybrid:
             rop: ≈2^91.5, red: ≈2^90.7, svp: ≈2^90.2, β: 178, η: 21, ζ: 256, |S|: ≈2^56.6, d: 531, prob: 0.003, ↻: 1...
 
             >>> LWE.primal_hybrid(params, mitm=False, babai=True)
-            rop: ≈2^88.7, red: ≈2^88.0, svp: ≈2^87.2, β: 98, η: 2, ζ: 323, |S|: ≈2^39.7, d: 346, prob: ≈2^-28.4, ↻: ...
+            rop: ≈2^88.6, red: ≈2^88.0, svp: ≈2^87.2, β: 98, η: 2, ζ: 322, |S|: ≈2^39.7, d: 347, prob: ≈2^-28.4, ↻: ...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=False)
-            rop: ≈2^74.1, red: ≈2^73.7, svp: ≈2^71.9, β: 104, η: 16, ζ: 320, |S|: ≈2^77.1, d: 359, prob: ≈2^-12.3, ↻...
+            rop: ≈2^73.7, red: ≈2^72.7, svp: ≈2^72.6, β: 108, η: 18, ζ: 316, |S|: ≈2^82.5, d: 370, prob: 0.001, ↻: ...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=True)
-            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 366, |S|: ≈2^85.1, d: 315, prob: ≈2^-23.4, ↻:...
+            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 364, |S|: ≈2^85.0, d: 317, prob: ≈2^-23.4, ↻:...
 
         TESTS:
 
@@ -587,12 +587,12 @@ class PrimalHybrid:
 
             >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
             >>> LWE.primal_bdd(params)
-            rop: ≈2^43.7, red: ≈2^43.7, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
+            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
 
         We also test a LWE instance with a large error (coming from issue #106)::
 
             >>> LWE.primal_bdd(LWE.Parameters(n=256, q=12289, Xs=ND.UniformMod(2), Xe=ND.UniformMod(1024)))
-            rop: ≈2^116.3, red: ≈2^41.4, svp: ≈2^116.3, β: 40, η: 340, d: 340, tag: bdd
+            rop: ≈2^116.2, red: ≈2^41.3, svp: ≈2^116.2, β: 40, η: 340, d: 340, tag: bdd
 
             >>> LWE.primal_bdd(LWE.Parameters(n=700, q=2**64, Xs=ND.UniformMod(2), Xe=ND.UniformMod(2**59)))
             rop: ≈2^263.2, red: ≈2^42.8, svp: ≈2^263.2, β: 40, η: 867, d: 867, tag: bdd
@@ -629,7 +629,9 @@ class PrimalHybrid:
             # (without guessing).
             usvp_cost = primal_usvp(params, red_cost_model=red_cost_model)["rop"]
             zeta_max = params.n
-            while zeta_max < params.n and sqrt(params.Xs.resize(zeta_max).support_size()) < usvp_cost:
+            while (
+                zeta_max < params.n and sqrt(params.Xs.resize(zeta_max).support_size()) < usvp_cost
+            ):
                 zeta_max += 1
 
             with local_minimum(0, min(zeta_max, params.n), log_level=log_level) as it:
