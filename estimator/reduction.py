@@ -808,7 +808,7 @@ class Kyber(ReductionCost):
 
             >>> from estimator.reduction import RC
             >>> RC.Kyber.short_vectors(100, 500, 1)
-            (1.0, 2.62316973939874e19, 100, 1)
+            (1.0, 2.62316973939874e19, 1, 100)
             >>> RC.Kyber.short_vectors(100, 500)
             (1.1547, 2.62316973939874e19, 176584, 84)
             >>> RC.Kyber.short_vectors(100, 500, 1000)
@@ -819,9 +819,9 @@ class Kyber(ReductionCost):
 
         if N == 1:
             if preprocess:
-                return 1.0, self(beta, d, B=B), beta, 1
+                return 1.0, self(beta, d, B=B), 1, beta
             else:
-                return 1.0, 1, beta, 1
+                return 1.0, 1, 1, beta
         elif N is None:
             N = floor(2 ** (0.2075 * beta_))  # pick something
 
