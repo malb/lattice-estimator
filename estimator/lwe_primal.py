@@ -333,7 +333,7 @@ class PrimalHybrid:
             for i, _ in enumerate(r):
                 # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
                 j = d - 1754 + i
-                if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < stddev**2 * (d - j)) + tau ** 2:
+                if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < stddev**2 * (d - j) + tau ** 2):
                     return ZZ(d - (j - 1))
             return ZZ(1)
 
