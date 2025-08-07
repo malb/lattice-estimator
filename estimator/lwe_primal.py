@@ -296,40 +296,52 @@ class PrimalHybrid:
         return Cost(rop=max(d, 1) ** 2)
 
     @classmethod
-    def svp_dimension(cls, r, D):
+    def svp_dimension(cls, r, D, tau=None):
         """
         Return η for a given lattice shape and distance.
 
         :param r: squared Gram-Schmidt norms
 
         """
+        stddev = D.stddev
+        
+        # if no embedding factor provided, default to matching the target's standard deviation
+        if tau == None:
+            tau = stddev
+        
         from math import lgamma, log, exp, pi
 
         def ball_log_vol(n):
             return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
 
-        def gaussian_heuristic_log_input(r):
-            n = len(list(r))
-            log_vol = sum(r)
+        # If B is a basis with GSO profiles r, this returns an estimate for the shortest vector in the lattice
+        # [ B | * ]
+        # [ 0 |tau]
+        def svp_gaussian_heuristic_log_input(r, tau):
+            n = len(list(r)) + 1
+            log_vol = sum(r) + log(tau)
             log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
             return exp(log_gh)
 
         d = len(r)
         r = [log(x) for x in r]
-
+        
+        # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
+        # [pi_i(B) | * ]
+        # [   0    |tau]
         if d > 4096:
             for i, _ in enumerate(r):
                 # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
                 j = d - 1754 + i
-                if (j < d) and (gaussian_heuristic_log_input(r[j:]) < D.stddev**2 * (d - j)):
+                if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < stddev**2 * (d - j)) + tau ** 2:
                     return ZZ(d - (j - 1))
-            return ZZ(2)
+            return ZZ(1)
 
         else:
             for i, _ in enumerate(r):
-                if gaussian_heuristic_log_input(r[i:]) < D.stddev**2 * (d - i):
+                if svp_gaussian_heuristic_log_input(r[i:], tau) < stddev**2 * (d - i) + tau ** 2:
                     return ZZ(d - (i - 1))
-            return ZZ(2)
+            return ZZ(1)
 
     @staticmethod
     @cached_function
@@ -362,7 +374,7 @@ class PrimalHybrid:
         """
         if d is None:
             delta = deltaf(beta)
-            d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
+            d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         d -= zeta
 
         if d < beta:
@@ -370,30 +382,29 @@ class PrimalHybrid:
             return Cost(rop=oo)
 
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
-        tau = 1
-        # 1. Simulate BKZ-β
-        # TODO: pick τ as non default value
-
-        if params._homogeneous:
-            tau = False
-            d -= 1
-
-        r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=tau, dual=True)
+        
+        # 1. Simulate BKZ-β on the d x d basis B_BKZ, given by
+        # [q I_m |  A_{n - zeta}  ]
+        # [  0   | xi I_{n - zeta}]
+        r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
 
         bkz_cost = costf(red_cost_model, beta, d)
 
-        # 2. Required SVP dimension η
+        # 2. Required SVP dimension η. We select η such that (pi_{d - η + 1}(e | s_{n - zeta}), tau) is the shortest vector in
+        # [pi(B_BKZ) | t ]
+        # [    0     |tau]
         if babai:
             eta = 2
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
             # we scaled the lattice so that χ_e is what we want
-            eta = PrimalHybrid.svp_dimension(r, params.Xe)
+            eta = PrimalHybrid.svp_dimension(r, params.Xe, tau=params.Xe.stddev)
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
                 # A larger `beta` should perhaps be attempted.
                 return Cost(rop=oo)
-            svp_cost = costf(red_cost_model, eta, eta)
+            # we make one svp call on a lattice of rank eta + 1
+            svp_cost = costf(red_cost_model, eta + 1, eta + 1)
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
 
@@ -579,16 +590,16 @@ class PrimalHybrid:
             >>> from estimator import *
             >>> params = schemes.Kyber512.updated(Xs=ND.SparseTernary(16))
             >>> LWE.primal_hybrid(params, mitm=False, babai=False)
-            rop: ≈2^91.5, red: ≈2^90.7, svp: ≈2^90.2, β: 178, η: 21, ζ: 256, |S|: ≈2^56.6, d: 531, prob: 0.003, ↻: 1...
+            rop: ≈2^89.4, red: ≈2^88.6, svp: ≈2^88.1, β: 104, η: 18, ζ: 323, |S|: ≈2^39^7, d: 355, prob: 2^-27.3, ↻: ≈2^29.5...
 
             >>> LWE.primal_hybrid(params, mitm=False, babai=True)
-            rop: ≈2^88.6, red: ≈2^88.0, svp: ≈2^87.2, β: 98, η: 2, ζ: 322, |S|: ≈2^39.7, d: 347, prob: ≈2^-28.4, ↻: ...
+            rop: ≈2^88.4, red: ≈2^87.8, svp: ≈2^86.9, β: 98, η: 2, ζ: 321, |S|: ≈2^39.7, d: 347, prob: ≈2^-28.1, ↻: ≈2^30.3...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=False)
-            rop: ≈2^73.7, red: ≈2^72.7, svp: ≈2^72.6, β: 108, η: 18, ζ: 316, |S|: ≈2^82.5, d: 370, prob: 0.001, ↻: ...
+            rop: ≈2^73.4, red: ≈2^72.5, svp: ≈2^72.3, β: 109, η: 16, ζ: 320, |S|: ≈2^82.8, d: 366, prob: 0.001, ↻: ≈2^12.0...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=True)
-            rop: ≈2^85.8, red: ≈2^84.8, svp: ≈2^84.8, β: 105, η: 2, ζ: 364, |S|: ≈2^85.0, d: 317, prob: ≈2^-23.4, ↻:...
+            rop: ≈2^85.5, red: ≈2^84.5, svp: ≈2^84.5, β: 105, η: 2, ζ: 364, |S|: ≈2^85.0, d: 316, prob: ≈2^-23.2, ↻: ≈2^25.4...
 
         TESTS:
 
@@ -596,15 +607,15 @@ class PrimalHybrid:
 
             >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
             >>> LWE.primal_bdd(params)
-            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^22.1, β: 40, η: 2, d: 1516, tag: bdd
+            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^34.3, β: 40, η: 43, d: 1465, tag: bdd
 
         We also test a LWE instance with a large error (coming from issue #106)::
 
             >>> LWE.primal_bdd(LWE.Parameters(n=256, q=12289, Xs=ND.UniformMod(2), Xe=ND.UniformMod(1024)))
-            rop: ≈2^116.2, red: ≈2^41.3, svp: ≈2^116.2, β: 40, η: 340, d: 340, tag: bdd
+            rop: ≈2^115.7, red: ≈2^41.3, svp: ≈2^115.7, β: 40, η: 337, d: 337, tag: bdd
 
             >>> LWE.primal_bdd(LWE.Parameters(n=700, q=2**64, Xs=ND.UniformMod(2), Xe=ND.UniformMod(2**59)))
-            rop: ≈2^263.2, red: ≈2^42.8, svp: ≈2^263.2, β: 40, η: 867, d: 867, tag: bdd
+            rop: ≈2^261.5, red: ≈2^42.8, svp: ≈2^261.5, β: 40, η: 860, d: 860, tag: bdd
 
 
         """
