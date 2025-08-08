@@ -298,16 +298,11 @@ class PrimalHybrid:
     @classmethod
     def svp_dimension(cls, r, D, tau=None):
         """
-        Return η for a given lattice shape and distance.
+        Return required svp dimension for a given lattice shape and distance.
 
         :param r: squared Gram-Schmidt norms
 
         """
-        stddev = D.stddev
-        
-        # if no embedding factor provided, default to matching the target's standard deviation
-        if tau == None:
-            tau = stddev
         
         from math import lgamma, log, exp, pi
 
@@ -317,11 +312,16 @@ class PrimalHybrid:
         # If B is a basis with GSO profiles r, this returns an estimate for the shortest vector in the lattice
         # [ B | * ]
         # [ 0 |tau]
+        # if the tau is None, the instance is homogeneous, and we omit the final row/column.
         def svp_gaussian_heuristic_log_input(r, tau):
-            n = len(list(r)) + 1
-            log_vol = sum(r) + log(tau)
+            if tau is None:
+                n = len(list(r))
+                log_vol = sum(r)
+            else:
+                n = len(list(r)) + 1
+                log_vol = sum(r) + log(tau)
             log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
-            return exp(log_gh)
+            return log_gh
 
         d = len(r)
         r = [log(x) for x in r]
@@ -329,19 +329,27 @@ class PrimalHybrid:
         # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
         # [pi_i(B) | * ]
         # [   0    |tau]
+        
+        tau_val = 0 if tau is None else tau
         if d > 4096:
             for i, _ in enumerate(r):
                 # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
                 j = d - 1754 + i
-                if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < stddev**2 * (d - j) + tau ** 2):
-                    return ZZ(d - (j - 1))
-            return ZZ(1)
+                if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j) + tau_val ** 2)):
+                    if tau is None:
+                        return ZZ(d - (j - 1))
+                    else:
+                        return ZZ(d - (j - 1) + 1)
+            return ZZ(1) if tau is None else ZZ(2)
 
         else:
             for i, _ in enumerate(r):
-                if svp_gaussian_heuristic_log_input(r[i:], tau) < stddev**2 * (d - i) + tau ** 2:
-                    return ZZ(d - (i - 1))
-            return ZZ(1)
+                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau_val ** 2):
+                    if tau is None:
+                        return ZZ(d - (i - 1))
+                    else:
+                        return ZZ(d - (i - 1) + 1)
+            return ZZ(1) if tau is None else ZZ(2)
 
     @staticmethod
     @cached_function
@@ -390,21 +398,26 @@ class PrimalHybrid:
 
         bkz_cost = costf(red_cost_model, beta, d)
 
-        # 2. Required SVP dimension η. We select η such that (pi_{d - η + 1}(e | s_{n - zeta}), tau) is the shortest vector in
+        # 2. Required SVP dimension η + 1. We select η such that (pi_{d - η + 1}(e | s_{n - zeta}), tau) is the shortest vector in
         # [pi(B_BKZ) | t ]
         # [    0     |tau]
         if babai:
             eta = 2
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
+            if params._homogeneous:
+                tau = None
+            else:
+                tau = params.Xe.stddev
             # we scaled the lattice so that χ_e is what we want
-            eta = PrimalHybrid.svp_dimension(r, params.Xe, tau=params.Xe.stddev)
+            svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, tau=tau)
+            eta = svp_dim if params._homogeneous else svp_dim - 1
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
                 # A larger `beta` should perhaps be attempted.
                 return Cost(rop=oo)
             # we make one svp call on a lattice of rank eta + 1
-            svp_cost = costf(red_cost_model, eta + 1, eta + 1)
+            svp_cost = costf(red_cost_model, svp_dim, svp_dim)
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
 
