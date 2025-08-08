@@ -303,8 +303,8 @@ class PrimalHybrid:
         :param r: squared Gram-Schmidt norms
 
         """
-        
-        from math import lgamma, log, exp, pi
+
+        from math import lgamma, log, pi
 
         def ball_log_vol(n):
             return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
@@ -325,17 +325,17 @@ class PrimalHybrid:
 
         d = len(r)
         r = [log(x) for x in r]
-        
+
         # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
         # [pi_i(B) | * ]
         # [   0    |tau]
-        
+
         tau_val = 0 if tau is None else tau
         if d > 4096:
             for i, _ in enumerate(r):
                 # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
                 j = d - 1754 + i
-                if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j) + tau_val ** 2)):
+                if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j) + tau_val**2)):
                     if tau is None:
                         return ZZ(d - (j - 1))
                     else:
@@ -344,7 +344,7 @@ class PrimalHybrid:
 
         else:
             for i, _ in enumerate(r):
-                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau_val ** 2):
+                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau_val**2):
                     if tau is None:
                         return ZZ(d - (i - 1))
                     else:
@@ -390,15 +390,17 @@ class PrimalHybrid:
             return Cost(rop=oo)
 
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
-        
-        # 1. Simulate BKZ-β on the d x d basis B_BKZ, given by
+
+        # 1. Simulate BKZ-β
+        # We simulate BKZ-β on the dxd basis B_BKZ:
         # [q I_m |  A_{n - zeta}  ]
         # [  0   | xi I_{n - zeta}]
         r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
 
         bkz_cost = costf(red_cost_model, beta, d)
 
-        # 2. Required SVP dimension η + 1. We select η such that (pi_{d - η + 1}(e | s_{n - zeta}), tau) is the shortest vector in
+        # 2. Required SVP dimension η + 1
+        # We select η such that (pi_{d - η + 1}(e | s_{n - zeta}), tau) is the shortest vector in
         # [pi(B_BKZ) | t ]
         # [    0     |tau]
         if babai:
@@ -603,16 +605,16 @@ class PrimalHybrid:
             >>> from estimator import *
             >>> params = schemes.Kyber512.updated(Xs=ND.SparseTernary(16))
             >>> LWE.primal_hybrid(params, mitm=False, babai=False)
-            rop: ≈2^89.4, red: ≈2^88.6, svp: ≈2^88.1, β: 104, η: 18, ζ: 323, |S|: ≈2^39^7, d: 355, prob: 2^-27.3, ↻: ≈2^29.5...
+            rop: ≈2^89.4, red: ≈2^88.6, svp: ≈2^88.1, β: 104, η: 18, ζ: 323, |S|: ≈2^39^7, d: 355, prob: 2^-27.3, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=False, babai=True)
-            rop: ≈2^88.4, red: ≈2^87.8, svp: ≈2^86.9, β: 98, η: 2, ζ: 321, |S|: ≈2^39.7, d: 347, prob: ≈2^-28.1, ↻: ≈2^30.3...
+            rop: ≈2^88.4, red: ≈2^87.8, svp: ≈2^86.9, β: 98, η: 2, ζ: 321, |S|: ≈2^39.7, d: 347, prob: ≈2^-28.1, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=False)
-            rop: ≈2^73.4, red: ≈2^72.5, svp: ≈2^72.3, β: 109, η: 16, ζ: 320, |S|: ≈2^82.8, d: 366, prob: 0.001, ↻: ≈2^12.0...
+            rop: ≈2^73.4, red: ≈2^72.5, svp: ≈2^72.3, β: 109, η: 16, ζ: 320, |S|: ≈2^82.8, d: 366, prob: 0.001, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=True)
-            rop: ≈2^85.5, red: ≈2^84.5, svp: ≈2^84.5, β: 105, η: 2, ζ: 364, |S|: ≈2^85.0, d: 316, prob: ≈2^-23.2, ↻: ≈2^25.4...
+            rop: ≈2^85.5, red: ≈2^84.5, svp: ≈2^84.5, β: 105, η: 2, ζ: 364, |S|: ≈2^85.0, d: 316, prob: ≈2^-23.2, ↻...
 
         TESTS:
 
