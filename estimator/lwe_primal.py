@@ -296,14 +296,13 @@ class PrimalHybrid:
         return Cost(rop=max(d, 1) ** 2)
 
     @classmethod
-    def svp_dimension(cls, r, D, tau=None):
+    def svp_dimension(cls, r, D, is_homogeneous=False):
         """
         Return required svp dimension for a given lattice shape and distance.
 
         :param r: squared Gram-Schmidt norms
 
         """
-
         from math import lgamma, log, pi
 
         def ball_log_vol(n):
@@ -325,31 +324,41 @@ class PrimalHybrid:
 
         d = len(r)
         r = [log(x) for x in r]
+        if is_homogeneous:
+            # we look for the largest i such that pi_i is shortest in the embedding lattice pi_i(B)
+            tau = None
+            if d > 4096:
+                for i, _ in enumerate(r):
+                    # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
+                    j = d - 1754 + i
+                    if (j < d) and svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j)):
+                            return ZZ(d - (j - 1))
+                return ZZ(1)
 
-        # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
-        # [pi_i(B) | * ]
-        # [   0    |tau]
-
-        tau_val = 0 if tau is None else tau
-        if d > 4096:
-            for i, _ in enumerate(r):
-                # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
-                j = d - 1754 + i
-                if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j) + tau_val**2)):
-                    if tau is None:
-                        return ZZ(d - (j - 1))
-                    else:
-                        return ZZ(d - (j - 1) + 1)
-            return ZZ(1) if tau is None else ZZ(2)
-
-        else:
-            for i, _ in enumerate(r):
-                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau_val**2):
-                    if tau is None:
+            else:
+                for i, _ in enumerate(r):
+                    if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i)):
                         return ZZ(d - (i - 1))
-                    else:
+                return ZZ(1)
+        
+        else:
+            tau = D.stddev
+            # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
+            # [pi_i(B) | * ]
+            # [   0    |tau]
+            if d > 4096:
+                for i, _ in enumerate(r):
+                    # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
+                    j = d - 1754 + i
+                    if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j) + tau**2)):
+                        return ZZ(d - (j - 1) + 1)
+                return ZZ(2)
+
+            else:
+                for i, _ in enumerate(r):
+                    if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau**2):
                         return ZZ(d - (i - 1) + 1)
-            return ZZ(1) if tau is None else ZZ(2)
+                return ZZ(2)
 
     @staticmethod
     @cached_function
@@ -412,7 +421,7 @@ class PrimalHybrid:
             else:
                 tau = params.Xe.stddev
             # we scaled the lattice so that χ_e is what we want
-            svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, tau=tau)
+            svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, is_homogeneous=params._homogeneous)
             eta = svp_dim if params._homogeneous else svp_dim - 1
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
@@ -605,7 +614,7 @@ class PrimalHybrid:
             >>> from estimator import *
             >>> params = schemes.Kyber512.updated(Xs=ND.SparseTernary(16))
             >>> LWE.primal_hybrid(params, mitm=False, babai=False)
-            rop: ≈2^89.4, red: ≈2^88.6, svp: ≈2^88.1, β: 104, η: 18, ζ: 323, |S|: ≈2^39^7, d: 355, prob: 2^-27.3, ↻...
+            rop: ≈2^89.4, red: ≈2^88.6, svp: ≈2^88.1, β: 104, η: 18, ζ: 323, |S|: ≈2^39.7, d: 355, prob: ≈2^-27.3, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=False, babai=True)
             rop: ≈2^88.4, red: ≈2^87.8, svp: ≈2^86.9, β: 98, η: 2, ζ: 321, |S|: ≈2^39.7, d: 347, prob: ≈2^-28.1, ↻...
