@@ -332,15 +332,15 @@ class PrimalHybrid:
                     # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
                     j = d - 1754 + i
                     if (j < d) and svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j)):
-                            return ZZ(d - (j - 1))
-                return ZZ(1)
+                        return ZZ(d - (j - 1))
+                return ZZ(2)
 
             else:
                 for i, _ in enumerate(r):
                     if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i)):
                         return ZZ(d - (i - 1))
-                return ZZ(1)
-        
+                return ZZ(2)
+
         else:
             tau = D.stddev
             # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
@@ -416,10 +416,6 @@ class PrimalHybrid:
             eta = 2
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
-            if params._homogeneous:
-                tau = None
-            else:
-                tau = params.Xe.stddev
             # we scaled the lattice so that χ_e is what we want
             svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, is_homogeneous=params._homogeneous)
             eta = svp_dim if params._homogeneous else svp_dim - 1
