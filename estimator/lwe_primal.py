@@ -318,7 +318,7 @@ class PrimalHybrid:
                 log_vol = sum(r)
             else:
                 n = len(list(r)) + 1
-                log_vol = sum(r) + log(tau)
+                log_vol = sum(r) + 2 * log(tau)
             log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
             return log_gh
 
@@ -610,13 +610,13 @@ class PrimalHybrid:
             >>> from estimator import *
             >>> params = schemes.Kyber512.updated(Xs=ND.SparseTernary(16))
             >>> LWE.primal_hybrid(params, mitm=False, babai=False)
-            rop: ≈2^89.4, red: ≈2^88.6, svp: ≈2^88.1, β: 104, η: 18, ζ: 323, |S|: ≈2^39.7, d: 355, prob: ≈2^-27.3, ↻...
+            rop: ≈2^89.3, red: ≈2^88.8, svp: ≈2^87.7, β: 106, η: 18, ζ: 321, |S|: ≈2^39.7, d: 360, prob: ≈2^-26.9, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=False, babai=True)
             rop: ≈2^88.4, red: ≈2^87.8, svp: ≈2^86.9, β: 98, η: 2, ζ: 321, |S|: ≈2^39.7, d: 347, prob: ≈2^-28.1, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=False)
-            rop: ≈2^73.4, red: ≈2^72.5, svp: ≈2^72.3, β: 109, η: 16, ζ: 320, |S|: ≈2^82.8, d: 366, prob: 0.001, ↻...
+            rop: ≈2^73.4, red: ≈2^72.5, svp: ≈2^72.3, β: 109, η: 15, ζ: 320, |S|: ≈2^82.8, d: 366, prob: 0.001, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=True)
             rop: ≈2^85.5, red: ≈2^84.5, svp: ≈2^84.5, β: 105, η: 2, ζ: 364, |S|: ≈2^85.0, d: 316, prob: ≈2^-23.2, ↻...
@@ -627,15 +627,15 @@ class PrimalHybrid:
 
             >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
             >>> LWE.primal_bdd(params)
-            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^34.3, β: 40, η: 43, d: 1465, tag: bdd
+            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^21.9, β: 40, η: 2, d: 1514, tag: bdd
 
         We also test a LWE instance with a large error (coming from issue #106)::
 
             >>> LWE.primal_bdd(LWE.Parameters(n=256, q=12289, Xs=ND.UniformMod(2), Xe=ND.UniformMod(1024)))
-            rop: ≈2^115.7, red: ≈2^41.3, svp: ≈2^115.7, β: 40, η: 337, d: 337, tag: bdd
+            rop: ≈2^115.4, red: ≈2^41.3, svp: ≈2^115.4, β: 40, η: 336, d: 336, tag: bdd
 
             >>> LWE.primal_bdd(LWE.Parameters(n=700, q=2**64, Xs=ND.UniformMod(2), Xe=ND.UniformMod(2**59)))
-            rop: ≈2^261.5, red: ≈2^42.8, svp: ≈2^261.5, β: 40, η: 860, d: 860, tag: bdd
+            rop: ≈2^259.8, red: ≈2^42.8, svp: ≈2^259.8, β: 40, η: 854, d: 854, tag: bdd
 
 
         """
