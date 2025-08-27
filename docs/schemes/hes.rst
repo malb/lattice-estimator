@@ -8,7 +8,7 @@ Homomorphic Encryption Parameters
     >>> HESv111024128error
     LWEParameters(n=1024, q=134217728, Xs=D(σ=3.00), Xe=D(σ=3.00), m=1024, tag='HESv11error')
     >>> LWE.primal_bdd(HESv111024128error)
-    rop: ≈2^136.7, red: ≈2^136.4, svp: ≈2^134.3, β: 374, η: 404, d: 2047, tag: bdd
+    rop: ≈2^136.7, red: ≈2^136.4, svp: ≈2^134.3, β: 374, η: 404, d: 2044, tag: bdd
 
 ::
 

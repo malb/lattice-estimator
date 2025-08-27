@@ -9,7 +9,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.Kyber512
     LWEParameters(n=512, q=3329, Xs=D(σ=1.22), Xe=D(σ=1.22), m=512, tag='Kyber 512')
     >>> LWE.primal_bdd(schemes.Kyber512)
-    rop: ≈2^140.2, red: ≈2^139.4, svp: ≈2^139.0, β: 390, η: 421, d: 1007, tag: bdd
+    rop: ≈2^140.2, red: ≈2^139.1, svp: ≈2^139.3, β: 389, η: 422, d: 1005, tag: bdd
 
 ::
 
@@ -35,7 +35,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.LightSaber
     LWEParameters(n=512, q=8192, Xs=D(σ=1.58), Xe=D(σ=2.29, μ=-0.50), m=512, tag='LightSaber')
     >>> LWE.primal_bdd(schemes.LightSaber)
-    rop: ≈2^140.0, red: ≈2^139.4, svp: ≈2^138.5, β: 390, η: 419, d: 1023, tag: bdd
+    rop: ≈2^139.9, red: ≈2^138.9, svp: ≈2^139.0, β: 388, η: 421, d: 1021, tag: bdd
 
 ::
 
@@ -43,7 +43,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.Saber
     LWEParameters(n=768, q=8192, Xs=D(σ=1.41), Xe=D(σ=2.29, μ=-0.50), m=768, tag='Saber')
     >>> LWE.primal_bdd(schemes.Saber)
-    rop: ≈2^208.1, red: ≈2^206.9, svp: ≈2^207.3, β: 631, η: 666, d: 1475, tag: bdd
+    rop: ≈2^208.1, red: ≈2^206.9, svp: ≈2^207.3, β: 631, η: 666, d: 1471, tag: bdd
 
 ::
 
@@ -51,7 +51,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.FireSaber
     LWEParameters(n=1024, q=8192, Xs=D(σ=1.22), Xe=D(σ=2.29, μ=-0.50), m=1024, tag='FireSaber')
     >>> LWE.primal_bdd(schemes.FireSaber)
-    rop: ≈2^275.8, red: ≈2^274.9, svp: ≈2^274.7, β: 873, η: 907, d: 1891, tag: bdd
+    rop: ≈2^275.8, red: ≈2^274.9, svp: ≈2^274.7, β: 873, η: 907, d: 1888, tag: bdd
 
 
 `NTRU <https://ntru.org/f/ntru-20190330.pdf>`__
@@ -62,7 +62,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.NTRUHPS2048509Enc
     NTRUParameters(n=508, q=2048, Xs=D(σ=0.82), Xe=T(p=127, m=127, n=508), m=508, tag='NTRUHPS2048509Enc', ntru_type='matrix')
     >>> NTRU.primal_bdd(schemes.NTRUHPS2048509Enc)
-    rop: ≈2^131.1, red: ≈2^130.1, svp: ≈2^130.1, β: 357, η: 389, d: 913, tag: bdd
+    rop: ≈2^131.1, red: ≈2^130.1, svp: ≈2^130.1, β: 357, η: 389, d: 914, tag: bdd
 
 ::
 
@@ -70,7 +70,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.NTRUHPS2048677Enc
     NTRUParameters(n=676, q=2048, Xs=D(σ=0.82), Xe=T(p=127, m=127, n=676), m=676, tag='NTRUHPS2048677Enc', ntru_type='matrix')
     >>> NTRU.primal_bdd(schemes.NTRUHPS2048677Enc)
-    rop: ≈2^170.7, red: ≈2^169.5, svp: ≈2^169.9, β: 498, η: 532, d: 1176, tag: bdd
+    rop: ≈2^170.7, red: ≈2^169.6, svp: ≈2^169.9, β: 498, η: 532, d: 1177, tag: bdd
 
 ::
 
@@ -78,7 +78,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.NTRUHPS4096821Enc
     NTRUParameters(n=820, q=4096, Xs=D(σ=0.82), Xe=T(p=255, m=255, n=820), m=820, tag='NTRUHPS4096821Enc', ntru_type='matrix')
     >>> NTRU.primal_bdd(schemes.NTRUHPS4096821Enc)
-    rop: ≈2^199.6, red: ≈2^198.6, svp: ≈2^198.6, β: 601, η: 635, d: 1480, tag: bdd
+    rop: ≈2^199.6, red: ≈2^198.6, svp: ≈2^198.6, β: 601, η: 635, d: 1482, tag: bdd
 
 ::
 
