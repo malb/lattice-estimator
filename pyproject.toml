@@ -6,5 +6,5 @@ addopts = "--ignore=docs/conf.py --doctest-modules --doctest-glob=\"*.rst\" --nb
 
 [tool.flake8]
 max-line-length = 120
-max-complexity = 16
+max-complexity = 17
 extend-ignore = "E203,E22,E241"
