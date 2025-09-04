@@ -21,7 +21,6 @@ from .prob import mitm_babai_probability
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
-from .conf import red_simulator as red_simulator_default
 
 
 class PrimalUSVP:
@@ -324,41 +323,82 @@ class PrimalHybrid:
 
         d = len(r)
         r = [log(x) for x in r]
-        if is_homogeneous:
-            # we look for the largest i such that pi_i is shortest in the embedding lattice pi_i(B)
-            tau = None
-            if d > 4096:
-                for i, _ in enumerate(r):
-                    # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
-                    j = d - 1754 + i
-                    if (j < d) and svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j)):
-                        return ZZ(d - (j - 1))
-                return ZZ(2)
 
-            else:
-                for i, _ in enumerate(r):
-                    if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i)):
-                        return ZZ(d - (i - 1))
-                return ZZ(2)
+        if d > 4096:
+            # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
+            min_i = d - 1754
+        else:
+            min_i = 0
+
+        if is_homogeneous:
+            tau = None
+            for i in range(min_i, d):
+                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i)):
+                    return ZZ(d - (i - 1))
+            return ZZ(2)
 
         else:
-            tau = D.stddev
             # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
             # [pi_i(B) | * ]
             # [   0    |tau]
-            if d > 4096:
-                for i, _ in enumerate(r):
-                    # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
-                    j = d - 1754 + i
-                    if (j < d) and (svp_gaussian_heuristic_log_input(r[j:], tau) < log(D.stddev**2 * (d - j) + tau**2)):
-                        return ZZ(d - (j - 1) + 1)
-                return ZZ(2)
+            tau = D.stddev
+            for i in range(min_i, d):
+                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau ** 2):
+                    return ZZ(d - (i - 1) + 1)
+            return ZZ(2)
 
+    @classmethod
+    def svp_dimension_gsa(cls, d, log_total_vol, log_delta, D, is_homogeneous=False):
+        """
+        Return required svp dimension for a given lattice shape and distance.
+
+        :param r: squared Gram-Schmidt norms
+
+        """
+        from math import lgamma, log, pi
+
+        def log_projected_vol(i):
+            return (d - i) / d * log_total_vol - i * (d - i) * log_delta
+
+        def ball_log_vol(n):
+            return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
+
+        # If B is a BKZ reduced basis, this returns an estimate for the shortest vector in the lattice
+        # [ B | * ]
+        # [ 0 |tau]
+        # under the GSA assumption, where total_vol is the volume of B, and delta is the root Hermite factor.
+        # if the tau is None, the instance is homogeneous, and we omit the final row/column.
+        def svp_gaussian_heuristic_gsa(i, tau):
+            if tau is None:
+                n = d - i
+                log_vol = 2 * log_projected_vol(i)
             else:
-                for i, _ in enumerate(r):
-                    if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau**2):
-                        return ZZ(d - (i - 1) + 1)
-                return ZZ(2)
+                n = d - i + 1
+                log_vol = 2 * log_projected_vol(i) + 2 * log(tau)
+            log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
+            return log_gh
+
+        if d > 4096:
+            # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
+            min_i = d - 1754
+        else:
+            min_i = 0
+
+        if is_homogeneous:
+            tau = None
+            for i in range(min_i, d):
+                if svp_gaussian_heuristic_gsa(i, tau) < log(D.stddev**2 * (d - i)):
+                    return ZZ(d - (i - 1))
+            return ZZ(2)
+        else:
+            # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
+            # [pi_i(B) | * ]
+            # [   0    |tau]
+            tau = D.stddev
+            for i in range(min_i, d):
+                if svp_gaussian_heuristic_gsa(i, tau) < log(D.stddev**2 * (d - i) + tau ** 2):
+                    return ZZ(d - (i - 1) + 1)
+            return ZZ(2)
 
     @staticmethod
     @cached_function
@@ -370,7 +410,7 @@ class PrimalHybrid:
         mitm=False,
         m: int = oo,
         d: int = None,
-        simulator=red_simulator_default,
+        red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         log_level=5,
     ):
@@ -389,6 +429,7 @@ class PrimalHybrid:
            costs.
 
         """
+        simulator = simulator_normalize(red_shape_model)
         if d is None:
             delta = deltaf(beta)
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
@@ -404,8 +445,8 @@ class PrimalHybrid:
         # We simulate BKZ-β on the dxd basis B_BKZ:
         # [q I_m |  A_{n - zeta}  ]
         # [  0   | xi I_{n - zeta}]
-        r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
-
+        # if we need to set it, r holds the simulated squared GSO norms after BKZ-β
+        r = None
         bkz_cost = costf(red_cost_model, beta, d)
 
         # 2. Required SVP dimension η + 1
@@ -417,7 +458,13 @@ class PrimalHybrid:
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
             # we scaled the lattice so that χ_e is what we want
-            svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, is_homogeneous=params._homogeneous)
+            if red_shape_model == "gsa":
+                log_vol = RR((d - (params.n - zeta)) * log(params.q) + (params.n - zeta) * log(xi))
+                log_delta = RR(log(deltaf(beta)))
+                svp_dim = PrimalHybrid.svp_dimension_gsa(d, log_vol, log_delta, params.Xe, params._homogeneous)
+            else:
+                r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
+                svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, is_homogeneous=params._homogeneous)
             eta = svp_dim if params._homogeneous else svp_dim - 1
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
@@ -460,12 +507,16 @@ class PrimalHybrid:
 
         if mitm and zeta > 0:
             if babai:
+                if r is None:
+                    r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
                 probability *= mitm_babai_probability(r, params.Xe.stddev)
             else:
                 # TODO: the probability in this case needs to be analysed
                 probability *= 1
 
         if eta <= 20 and d >= 0:  # NOTE: η: somewhat arbitrary bound, d: we may guess it all
+            if r is None:
+                r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
             probability *= RR(prob_babai(r, sqrt(d) * params.Xe.stddev))
 
         ret = Cost()
@@ -504,7 +555,7 @@ class PrimalHybrid:
         cls,
         zeta: int,
         params: LWEParameters,
-        red_shape_model=red_simulator_default,
+        red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         m: int = oo,
         babai: bool = True,
@@ -520,7 +571,7 @@ class PrimalHybrid:
         # step 0. establish baseline
         baseline_cost = primal_usvp(
             params,
-            red_shape_model=red_shape_model,
+            red_shape_model=simulator_normalize(red_shape_model),
             red_cost_model=red_cost_model,
             optimize_d=False,
             log_level=log_level + 1,
@@ -534,7 +585,7 @@ class PrimalHybrid:
             zeta=zeta,
             babai=babai,
             mitm=mitm,
-            simulator=red_shape_model,
+            red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
             m=m,
             **kwds,
@@ -649,8 +700,6 @@ class PrimalHybrid:
 
         # allow for a larger embedding lattice dimension: Bai and Galbraith
         m = params.m + params.n if params.Xs <= params.Xe else params.m
-
-        red_shape_model = simulator_normalize(red_shape_model)
 
         f = partial(
             self.cost_zeta,
