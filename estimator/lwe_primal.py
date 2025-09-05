@@ -10,7 +10,7 @@ from functools import partial
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, binomial, cached_function
 from .reduction import delta as deltaf
 from .reduction import cost as costf
-from .util import local_minimum
+from .util import local_minimum, ternary_search
 from .cost import Cost
 from .lwe_parameters import LWEParameters
 from .simulator import normalize as simulator_normalize
@@ -723,11 +723,19 @@ class PrimalHybrid:
             ):
                 zeta_max += 1
 
-            with local_minimum(0, min(zeta_max, params.n), log_level=log_level) as it:
-                for zeta in it:
-                    it.update(f(zeta=zeta, optimize_d=False, **kwds))
-            # TODO: this should not be required
-            cost = min(it.y, f(0, optimize_d=False, **kwds))
+            if params.n >= 2 ** 15:
+                with ternary_search(0, min(zeta_max, params.n), log_level=log_level) as it:
+                    for zeta in it:
+                        it.update(f(zeta=zeta, optimize_d=False, **kwds))
+                # TODO: this should not be required
+                cost = min(it.y, f(0, optimize_d=False, **kwds))
+            else:
+                with local_minimum(0, min(zeta_max, params.n), log_level=log_level) as it:
+                    for zeta in it:
+                        it.update(f(zeta=zeta, optimize_d=False, **kwds))
+                # TODO: this should not be required
+                cost = min(it.y, f(0, optimize_d=False, **kwds))
+
         else:
             cost = f(zeta=zeta)
 
