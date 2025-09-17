@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, pi
+from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, RDF
 from sage.all import RealDistribution, RR, sqrt, prod, erf
 from .conf import max_n_cache
 
@@ -94,7 +94,9 @@ def mitm_babai_probability(r, stddev, fast=False):
     # Note: `r` contains *square norms*, so convert to non-square norms.
     # Follow the proof of Lemma 4.2 [WAHC:SonChe19]_, because that one uses standard deviation.
     xs = [sqrt(.5 * ri) / stddev for ri in r]
-    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(pi))) for x in xs)
+    # Using RDF.pi() to prevent memory leakage:
+    # see https://ask.sagemath.org/question/45863/memory-usage-strictly-increasing-on-sage-interactive-shell/
+    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(RDF.pi()))) for x in xs)
     assert 0.0 <= p <= 1.0
     return p
 
@@ -191,5 +193,7 @@ def amplify_sigma(target_advantage, sigma, q):
     if sigma > 16 * q:
         return oo
 
-    advantage = float(exp(-float(pi) * (float(sigma / q) ** 2)))
+    # Using RDF.pi() to prevent memory leakage:
+    # see https://ask.sagemath.org/question/45863/memory-usage-strictly-increasing-on-sage-interactive-shell/
+    advantage = float(exp(-float(RDF.pi()) * (float(sigma / q) ** 2)))
     return amplify(target_advantage, advantage, majority=True)
