@@ -289,6 +289,11 @@ class PrimalUSVP:
 primal_usvp = PrimalUSVP()
 
 
+
+
+
+
+
 class PrimalHybrid:
     @classmethod
     def babai_cost(cls, d):
@@ -414,6 +419,7 @@ class PrimalHybrid:
         red_cost_model=red_cost_model_default,
         log_level=5,
     ):
+        
         """
         Cost of the hybrid attack.
 
@@ -564,6 +570,8 @@ class PrimalHybrid:
         log_level=5,
         **kwds,
     ):
+        
+
         """
         This function optimizes costs for a fixed guessing dimension ζ.
         """
@@ -616,16 +624,88 @@ class PrimalHybrid:
         if cost is None:
             return Cost(rop=oo)
         return cost
+    
+    @classmethod
+    def cost_beta(
+        cls,
+        beta: int,
+        params: LWEParameters,
+        red_shape_model=red_shape_model_default,
+        red_cost_model=red_cost_model_default,
+        m: int = oo,
+        babai: bool = True,
+        mitm: bool = True,
+        optimize_d=True,
+        log_level=5,
+        hybrid_mode = True,
+        **kwds,
+    ):
+        """
+        This function optimizes costs for a fixed guessing dimension beta.
+        """
+
+        print("in cost_beta, hybrid_mode = {}".format(hybrid_mode))
+
+
+        f = partial(
+            cls.cost,
+            params=params,
+            beta=beta,
+            babai=babai,
+            mitm=mitm,
+            red_shape_model=red_shape_model,
+            red_cost_model=red_cost_model,
+            m=m,
+            **kwds,
+        )
+
+
+        if not hybrid_mode:
+            print("we here")
+            # we dont guess, so no zeta
+            cost = f(zeta = 0, **kwds)
+            Logging.log("bdd", log_level, f"H1: {cost!r}")
+            return cost
+
+        # step 1. optimize zeta
+        usvp_cost = primal_usvp(params, red_cost_model=red_cost_model)["rop"]
+
+        zeta_max = params.n
+        while (
+            zeta_max < params.n and sqrt(params.Xs.resize(zeta_max).support_size()) < usvp_cost
+        ):
+            zeta_max += 1
+
+        if params.n > 2048:
+            precision = 64
+        else:
+            precision = 1
+
+
+        with local_minimum(0, min(zeta_max, params.n), precision=precision, log_level=log_level) as it:
+            for zeta in it:
+                it.update(f(zeta=zeta, **kwds))
+        # TODO: this should not be required
+
+        cost = min(it.y, f(zeta=0,**kwds))
+
+        Logging.log("bdd", log_level, f"H1: {cost!r}")
+
+        if cost is None:
+            return Cost(rop=oo)
+        return cost
 
     def __call__(
         self,
         params: LWEParameters,
         babai: bool = True,
-        zeta: int = None,
+        beta: int = None,
         mitm: bool = True,
         red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
-        log_level=1,
+        log_level=5,
+        optimize_d=True,
+        hybrid_mode = True,
         **kwds,
     ):
         """
@@ -691,10 +771,10 @@ class PrimalHybrid:
 
         """
 
-        if zeta == 0:
-            tag = "bdd"
-        else:
-            tag = "hybrid"
+        print("in call, hybrid_mode = {}".format(hybrid_mode))
+
+
+        tag = "hybrid"
 
         params = LWEParameters.normalize(params)
 
@@ -702,34 +782,57 @@ class PrimalHybrid:
         m = params.m + params.n if params.Xs <= params.Xe else params.m
 
         f = partial(
-            self.cost_zeta,
+            self.cost_beta,
             params=params,
             red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
             babai=babai,
             mitm=mitm,
             m=m,
+            hybrid_mode=hybrid_mode,
             log_level=log_level + 1,
         )
 
-        if zeta is None:
-            # Find the smallest value for zeta such that the square root of the search space for
-            # zeta is larger than the number of operations to solve uSVP on the whole LWE instance
-            # (without guessing).
-            usvp_cost = primal_usvp(params, red_cost_model=red_cost_model)["rop"]
-            zeta_max = params.n
-            while (
-                zeta_max < params.n and sqrt(params.Xs.resize(zeta_max).support_size()) < usvp_cost
-            ):
-                zeta_max += 1
+        # step 0. establish baseline
+        baseline_cost = primal_usvp(
+            params,
+            red_shape_model=simulator_normalize(red_shape_model),
+            red_cost_model=red_cost_model,
+            optimize_d=False,
+            log_level=log_level + 1,
+            **kwds,
+        )
+        Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
 
-            with local_minimum(0, min(zeta_max, params.n), log_level=log_level) as it:
-                for zeta in it:
-                    it.update(f(zeta=zeta, optimize_d=False, **kwds))
-            # TODO: this should not be required
-            cost = min(it.y, f(0, optimize_d=False, **kwds))
+ 
+        # step 1. optimize β
+        with local_minimum(
+            40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
+        ) as it:
+            for beta in it:
+                it.update(f(beta))
+            for beta in it.neighborhood:
+                it.update(f(beta))
+            cost = it.y
+
+        Logging.log("bdd", log_level, f"H1: {cost!r}")  
+
+        # step 2. optimize d
+
+        if params.n > 2048:
+            precision = 64
         else:
-            cost = f(zeta=zeta)
+            precision = 1
+
+        if cost and cost.get("tag", "XXX") != "usvp" and optimize_d:
+            with local_minimum(
+                params.n, cost["d"] + cost["zeta"] + 1, precision=precision, log_level=log_level + 1
+            ) as it:
+                for d in it:
+                    it.update(f(beta=cost["beta"], d=d))
+                cost = it.y
+            Logging.log("bdd", log_level, f"H2: {cost!r}")
+           
 
         cost["tag"] = tag
         cost["problem"] = params
@@ -765,13 +868,14 @@ def primal_bdd(
 
     """
 
+
     return primal_hybrid(
         params,
-        zeta=0,
         mitm=False,
         babai=False,
         red_shape_model=red_shape_model,
         red_cost_model=red_cost_model,
         log_level=log_level,
+        hybrid_mode=False,
         **kwds,
     )
