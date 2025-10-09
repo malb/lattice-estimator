@@ -429,6 +429,7 @@ class PrimalHybrid:
            costs.
 
         """
+
         simulator = simulator_normalize(red_shape_model)
         if d is None:
             delta = deltaf(beta)
@@ -723,7 +724,13 @@ class PrimalHybrid:
             ):
                 zeta_max += 1
 
-            with local_minimum(0, min(zeta_max, params.n), log_level=log_level) as it:
+            if params.n > 2**12:
+                # FHE sized-parameters, set precision higher
+                precision = round(params.n/1000)
+            else:
+                precision = 1
+
+            with local_minimum(0, min(zeta_max, params.n), precision=precision, log_level=log_level) as it:
                 for zeta in it:
                     it.update(f(zeta=zeta, optimize_d=False, **kwds))
             # TODO: this should not be required
