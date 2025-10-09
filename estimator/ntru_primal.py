@@ -342,11 +342,12 @@ class NTRUPrimalHybrid(PrimalHybrid):
         self,
         params: NTRUParameters,
         babai: bool = True,
-        zeta: int = None,
+        beta: int = None,
         mitm: bool = True,
         red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         log_level=1,
+        hybrid_mode=True,
         **kwds,
     ):
         """
@@ -405,11 +406,12 @@ class NTRUPrimalHybrid(PrimalHybrid):
         return super().__call__(
             params,
             babai=babai,
-            zeta=zeta,
+            beta=beta,
             mitm=mitm,
             red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
             log_level=log_level,
+            hybrid_mode=hybrid_mode,
             **kwds,
         )
 
@@ -435,11 +437,11 @@ def primal_bdd(
 
     return primal_hybrid(
         params,
-        zeta=0,
         mitm=False,
         babai=False,
         red_shape_model=red_shape_model,
         red_cost_model=red_cost_model,
         log_level=log_level,
+        hybrid_mode=False,
         **kwds,
     )

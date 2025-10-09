@@ -568,6 +568,7 @@ class PrimalHybrid:
 
         """
         This function optimizes costs for a fixed guessing dimension ζ.
+        No longer used in the function optimization, but might be useful for debugging/comparison.
         """
 
         # step 0. establish baseline
