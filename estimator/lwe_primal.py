@@ -289,11 +289,6 @@ class PrimalUSVP:
 primal_usvp = PrimalUSVP()
 
 
-
-
-
-
-
 class PrimalHybrid:
     @classmethod
     def babai_cost(cls, d):
@@ -419,7 +414,7 @@ class PrimalHybrid:
         red_cost_model=red_cost_model_default,
         log_level=5,
     ):
-        
+
         """
         Cost of the hybrid attack.
 
@@ -570,7 +565,6 @@ class PrimalHybrid:
         log_level=5,
         **kwds,
     ):
-        
 
         """
         This function optimizes costs for a fixed guessing dimension ζ.
@@ -624,7 +618,7 @@ class PrimalHybrid:
         if cost is None:
             return Cost(rop=oo)
         return cost
-    
+
     @classmethod
     def cost_beta(
         cls,
@@ -637,15 +631,12 @@ class PrimalHybrid:
         mitm: bool = True,
         optimize_d=True,
         log_level=5,
-        hybrid_mode = True,
+        hybrid_mode=True,
         **kwds,
     ):
         """
         This function optimizes costs for a fixed guessing dimension beta.
         """
-
-        print("in cost_beta, hybrid_mode = {}".format(hybrid_mode))
-
 
         f = partial(
             cls.cost,
@@ -659,11 +650,9 @@ class PrimalHybrid:
             **kwds,
         )
 
-
         if not hybrid_mode:
-            print("we here")
             # we dont guess, so no zeta
-            cost = f(zeta = 0, **kwds)
+            cost = f(zeta=0, **kwds)
             Logging.log("bdd", log_level, f"H1: {cost!r}")
             return cost
 
@@ -681,13 +670,11 @@ class PrimalHybrid:
         else:
             precision = 1
 
-
         with local_minimum(0, min(zeta_max, params.n), precision=precision, log_level=log_level) as it:
             for zeta in it:
                 it.update(f(zeta=zeta, **kwds))
         # TODO: this should not be required
-
-        cost = min(it.y, f(zeta=0,**kwds))
+        cost = min(it.y, f(zeta=0, **kwds))
 
         Logging.log("bdd", log_level, f"H1: {cost!r}")
 
@@ -705,7 +692,7 @@ class PrimalHybrid:
         red_cost_model=red_cost_model_default,
         log_level=5,
         optimize_d=True,
-        hybrid_mode = True,
+        hybrid_mode=True,
         **kwds,
     ):
         """
@@ -771,10 +758,10 @@ class PrimalHybrid:
 
         """
 
-        print("in call, hybrid_mode = {}".format(hybrid_mode))
-
-
-        tag = "hybrid"
+        if hybrid_mode is True:
+            tag = "hybrid_bdd"
+        else:
+            tag = "bdd"
 
         params = LWEParameters.normalize(params)
 
@@ -804,7 +791,6 @@ class PrimalHybrid:
         )
         Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
 
- 
         # step 1. optimize β
         with local_minimum(
             40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
@@ -815,10 +801,9 @@ class PrimalHybrid:
                 it.update(f(beta))
             cost = it.y
 
-        Logging.log("bdd", log_level, f"H1: {cost!r}")  
+        Logging.log("bdd", log_level, f"H1: {cost!r}")
 
         # step 2. optimize d
-
         if params.n > 2048:
             precision = 64
         else:
@@ -832,7 +817,6 @@ class PrimalHybrid:
                     it.update(f(beta=cost["beta"], d=d))
                 cost = it.y
             Logging.log("bdd", log_level, f"H2: {cost!r}")
-           
 
         cost["tag"] = tag
         cost["problem"] = params
@@ -867,7 +851,6 @@ def primal_bdd(
     :param red_shape_model: How to model the shape of a reduced basis
 
     """
-
 
     return primal_hybrid(
         params,
