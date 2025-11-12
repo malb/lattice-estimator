@@ -190,7 +190,7 @@ class Cost(UserDict):
         return Cost(**cost)
 
     def __bool__(self):
-        return self.get("rop", oo) < oo
+        return bool(self.get("rop", oo) < oo)
 
     def __add__(self, other):
         return self.combine(self, other)
