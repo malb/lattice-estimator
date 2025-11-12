@@ -994,7 +994,7 @@ def cost(cost_model, beta, d, B=None, predicate=True, **kwds):
     delta_ = ReductionCost.delta(beta)
     cost = Cost(rop=cost, red=cost, delta=delta_, beta=beta, d=d, **kwds)
     cost.register_impermanent(rop=True, red=True, delta=False, beta=False, d=False)
-    if predicate is False:
+    if not predicate:
         cost["red"] = oo
         cost["rop"] = oo
     return cost
