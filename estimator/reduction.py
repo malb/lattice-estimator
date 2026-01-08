@@ -467,11 +467,7 @@ class BDGL16(ReductionCost):
             175.4
 
         """
-        # TODO this is somewhat arbitrary
-        if beta <= 90:
-            return self._small(beta, d, B)
-        else:
-            return self._asymptotic(beta, d, B)
+        return self._asymptotic(beta, d, B)
 
 
 class LaaMosPol14(ReductionCost):

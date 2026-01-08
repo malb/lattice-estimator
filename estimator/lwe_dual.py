@@ -16,7 +16,7 @@ from .cost import Cost
 from .lwe_parameters import LWEParameters
 from .prob import drop as prob_drop, amplify as prob_amplify
 from .io import Logging
-from .conf import red_cost_model as red_cost_model_default, mitm_opt as mitm_opt_default
+from .conf import red_cost_model as red_cost_model_default, mitm_opt as mitm_opt_default, max_beta as max_beta_global
 from .errors import OutOfBoundsError, InsufficientSamplesError
 from .nd import DiscreteGaussian, SparseTernary
 from .lwe_guess import exhaustive_search, mitm, distinguish
@@ -654,8 +654,7 @@ class MATZOV:
         for p in early_abort_range(2, params.q):
             for k_enum in early_abort_range(0, params.n, 10):
                 for k_fft in early_abort_range(0, params.n - k_enum[0], 10):
-                    # RC.ADPS16(1754, 1754) ~ 2^(512)
-                    with local_minimum(40, min(params.n, 1754), log_level=log_level + 4) as it:
+                    with local_minimum(40, min(params.n, max_beta_global), log_level=log_level + 4) as it:
                         for beta in it:
                             cost = self.cost(
                                 beta,

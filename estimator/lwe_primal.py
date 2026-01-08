@@ -21,6 +21,7 @@ from .prob import mitm_babai_probability
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
+from .conf import max_beta as max_beta_global
 
 
 class PrimalUSVP:
@@ -40,7 +41,7 @@ class PrimalUSVP:
         """
         Find smallest d ∈ [n,m] to satisfy uSVP condition.
 
-        If no such d exists, return the upper bound m.
+        If no such d exists, return oo.
         """
         # Find the smallest d ∈ [n,m] s.t. a*d^2 + b*d + c >= 0
         delta = deltaf(beta)
@@ -61,8 +62,8 @@ class PrimalUSVP:
 
         # solve for ad^2 + bd + c == 0
         disc = b * b - 4 * a * c  # the discriminant
-        if disc < 0:  # no solution, return m
-            return m
+        if disc < 0:  # no solution, return oo
+            return oo
 
         # compute the two solutions
         d1 = (-b + sqrt(disc)) / (2 * a)
@@ -76,7 +77,7 @@ class PrimalUSVP:
             return min(m, ceil(d1))
 
         # otherwise, n must be larger than d2 (since an^2+bn+c<0) so no solution
-        return m
+        return oo
 
     @staticmethod
     @cached_function
@@ -91,13 +92,15 @@ class PrimalUSVP:
     ):
         delta = deltaf(beta)
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
-        m = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
         tau = params.Xe.stddev if tau is None else tau
         # Account for homogeneous instances
         if params._homogeneous:
             tau = False  # Tau false ==> instance is homogeneous
 
         d = PrimalUSVP._solve_for_d(params, m, beta, tau, xi) if d is None else d
+        # this beta is not sufficient to reveal the solution with the number of samples m
+        if d == oo:
+            return Cost(rop=oo)
         if d < beta:
             d = beta
         # if d == β we assume one SVP call, otherwise poly calls. This makes the cost curve jump, so
@@ -137,6 +140,7 @@ class PrimalUSVP:
         delta = deltaf(beta)
         if d is None:
             d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m) + 1
+            d = max(d, beta)
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
         tau = params.Xe.stddev if tau is None else tau
 
@@ -204,8 +208,15 @@ class PrimalUSVP:
 
             >>> Xe=ND.DiscreteGaussian(stddev=3.19)
             >>> params = LWE.Parameters(n=1030, m=2060, q=2**64, Xs=ND.Uniform(0, 1), Xe=Xe)
-            >>> LWE.primal_usvp(params, red_cost_model=RC.BDGL16)  # Issue 95
-            rop: ≈2^56.6, red: ≈2^56.6, δ: 1.009686, β: 91, d: 1618, tag: usvp
+            >>> LWE.primal_usvp(params, red_cost_model=RC.BDGL16)  # Issue #95
+            rop: ≈2^53.1, red: ≈2^53.1, δ: 1.010374, β: 78, d: 1933, tag: usvp
+
+            # small n examples (Issue #181)
+            >>> params = LWE.Parameters(n=11, q = 2**128, Xs=ND.UniformMod(2**128), Xe=ND.UniformMod(2**124))
+            >>> LWE.primal_usvp(params)
+            rop: ≈2^126.0, red: ≈2^126.0, δ: 1.004356, β: 351, d: 455, tag: usvp
+            >>> LWE.primal_usvp(params, red_shape_model=Simulator.CN11)
+            rop: ≈2^127.1, red: ≈2^127.1, δ: 1.004315, β: 356, d: 443, tag: usvp
 
         The success condition was formulated in [USENIX:ADPS16]_ and studied/verified in
         [AC:AGVW17]_, [C:DDGR20]_, [PKC:PosVir21]_. The treatment of small secrets is from
@@ -219,9 +230,10 @@ class PrimalUSVP:
             m = params.m + params.n
         else:
             m = params.m
-
         if red_shape_model == "gsa":
-            with local_minimum(40, max(min(2 * params.n, m), 41), precision=5) as it:
+            precision = 5
+            max_beta = max(min(max_beta_global, m), 40 + precision)
+            with local_minimum(40, max_beta, precision=precision) as it:
                 for beta in it:
                     cost = self.cost_gsa(
                         beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds
@@ -248,7 +260,6 @@ class PrimalUSVP:
             red_cost_model=red_cost_model,
             red_shape_model="gsa",
         )
-
         Logging.log("usvp", log_level + 1, f"GSA: {repr(cost_gsa)}")
 
         f = partial(
@@ -268,12 +279,11 @@ class PrimalUSVP:
             for beta in it:
                 it.update(f(beta=beta, **kwds))
             cost = it.y
-
         Logging.log("usvp", log_level, f"Opt-β: {repr(cost)}")
 
         if cost and optimize_d:
             # step 2. find d
-            with local_minimum(params.n, stop=cost["d"] + 1) as it:
+            with local_minimum(max(params.n, cost["beta"]), stop=cost["d"] + 1) as it:
                 for d in it:
                     it.update(f(d=d, beta=cost["beta"], **kwds))
                 cost = it.y
@@ -429,15 +439,15 @@ class PrimalHybrid:
            costs.
 
         """
+        if m - zeta < beta:
+            # cannot BKZ-β on a basis of dimension < β
+            return Cost(rop=oo)
+
         simulator = simulator_normalize(red_shape_model)
         if d is None:
             delta = deltaf(beta)
-            d = min(ceil(sqrt(params.n * log(params.q) / log(delta))), m)
+            d = max(beta + zeta, min(ceil(sqrt(params.n * log(params.q) / log(delta))), m))
         d -= zeta
-
-        if d < beta:
-            # cannot BKZ-β on a basis of dimension < β
-            return Cost(rop=oo)
 
         xi = PrimalUSVP._xi_factor(params.Xs, params.Xe)
 
@@ -567,11 +577,10 @@ class PrimalHybrid:
         """
         This function optimizes costs for a fixed guessing dimension ζ.
         """
-
         # step 0. establish baseline
         baseline_cost = primal_usvp(
             params,
-            red_shape_model=simulator_normalize(red_shape_model),
+            red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
             optimize_d=False,
             log_level=log_level + 1,
@@ -592,8 +601,9 @@ class PrimalHybrid:
         )
 
         # step 1. optimize β
+        precision = 2
         with local_minimum(
-            40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
+            40, baseline_cost["beta"] + precision, precision=precision, log_level=log_level + 1
         ) as it:
             for beta in it:
                 it.update(f(beta))
@@ -688,7 +698,9 @@ class PrimalHybrid:
             >>> LWE.primal_bdd(LWE.Parameters(n=700, q=2**64, Xs=ND.UniformMod(2), Xe=ND.UniformMod(2**59)))
             rop: ≈2^259.8, red: ≈2^42.8, svp: ≈2^259.8, β: 40, η: 854, d: 854, tag: bdd
 
-
+            # small n example (Issue #182)
+            >>> LWE.primal_bdd(LWE.Parameters(n=8, q = 2**128, Xs=ND.UniformMod(2**128), Xe=ND.UniformMod(2**(126))))
+            rop: ≈2^185.5, red: ≈2^184.4, svp: ≈2^184.7, β: 585, η: 585, d: 585, tag: bdd
         """
 
         if zeta == 0:
