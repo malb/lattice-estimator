@@ -300,20 +300,15 @@ class DualHybrid:
         else:
             f = f_t
 
-        # don't have a reliable upper bound for beta
-        # we choose n - k arbitrarily and adjust later if
-        # necessary
-        beta_upper = min(max(params.n - zeta, 40), 1024)
-        beta = beta_upper
-        while beta == beta_upper:
-            beta_upper *= 2
-            with local_minimum(40, beta_upper, opt_step) as it:
-                for beta in it:
-                    it.update(f(beta=beta))
-                for beta in it.neighborhood:
-                    it.update(f(beta=beta))
-                cost = it.y
-            beta = cost["beta"]
+        max_beta = max(min(params.m - zeta, max_beta_global), 40 + opt_step)
+        with local_minimum(40, max_beta, opt_step) as it:
+            for beta in it:
+                cost = f(beta=beta)
+                it.update(cost)
+            for beta in it.neighborhood:
+                it.update(f(beta=beta))
+            cost = it.y
+        beta = cost["beta"]
 
         cost["zeta"] = zeta
         if params.Xs.is_sparse:
@@ -413,6 +408,14 @@ class DualHybrid:
             >>> dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21, fft=True)
             rop: ≈2^149.8, mem: ≈2^92.1, m: 510, t: 75, β: 400, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
 
+            # small n examples (Issue #178)
+            >>> params = LWE.Parameters(n=8, q=2**128, Xs=ND.UniformMod(2**128), Xe=ND.UniformMod(2**124))
+            >>> LWE.dual(params)
+            rop: ≈2^105.9, mem: ≈2^65.6, m: 371, β: 275, d: 379, ↻: 1, tag: dual
+            >>> dual_hybrid(params)
+            rop: ≈2^104.5, mem: ≈2^64.5, m: 363, β: 270, d: 371, ↻: 1, ζ: 0, tag: dual_hybrid
+            >>> dual_hybrid(params, fft=True)
+            rop: ≈2^103.7, mem: ≈2^64.1, m: 361, t: 7, β: 267, d: 369, ↻: 1, ζ: 0, tag: dual_hybrid
         """
 
         Cost.register_impermanent(
@@ -476,8 +479,7 @@ class DualHybrid:
             log_level=log_level + 1,
             fft=fft,
         )
-
-        with local_minimum(1, params.n - 1, opt_step) as it:
+        with local_minimum(0, params.n, opt_step) as it:
             for zeta in it:
                 it.update(f(zeta=zeta))
             for zeta in it.neighborhood:
@@ -654,7 +656,9 @@ class MATZOV:
         for p in early_abort_range(2, params.q):
             for k_enum in early_abort_range(0, params.n, 10):
                 for k_fft in early_abort_range(0, params.n - k_enum[0], 10):
-                    with local_minimum(40, min(params.n, max_beta_global), log_level=log_level + 4) as it:
+                    precision = 1
+                    max_beta = max(min(params.m - k_enum[0] - k_fft[0], max_beta_global), 40 + precision)
+                    with local_minimum(40, max_beta, precision=precision, log_level=log_level + 4) as it:
                         for beta in it:
                             cost = self.cost(
                                 beta,
