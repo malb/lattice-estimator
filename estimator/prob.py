@@ -230,8 +230,3 @@ def guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int
             probability += prev_probability
             
         return search_space, probability
-
-        
-        
-        
-    

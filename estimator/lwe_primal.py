@@ -465,7 +465,6 @@ class PrimalHybrid:
         # [  0   | xi I_{n - zeta}]
         # r holds the simulated squared GSO norms after BKZ-β
         r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
-        print(f"{r[:10]=}")
         bkz_cost = costf(red_cost_model, beta, d)
 
         # 2. Required SVP dimension η + 1
@@ -494,9 +493,7 @@ class PrimalHybrid:
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
         
         if babai:
-            print(f"{r[:10]=}, {(sqrt(d) * params.Xe.stddev).n()=}")
             babai_probability = prob_babai(r, sqrt(d) * params.Xe.stddev)
-            print(f"{babai_probability=}")
         else:
             babai_probability = prob_babai(r[:d-eta], sqrt(d - eta) * params.Xe.stddev)
             
@@ -545,7 +542,8 @@ class PrimalHybrid:
 
         """
         beta_params = PrimalHybrid.beta_params(beta=beta, params=params, zeta=zeta, babai=babai, mitm=mitm, m=m, d=d, red_shape_model=red_shape_model, red_cost_model=red_cost_model)
-        print(f"{beta_params=}")
+        # print(beta_params.keys())
+        # print(f"{beta_params=}")
         if len(beta_params.keys()) == 1:
             # this beta is not sufficient to reveal the error for these params: either due to insufficient samples or projection dim > d. 
             return Cost(rop=oo)
@@ -586,6 +584,10 @@ class PrimalHybrid:
             return cost
         
         else:
+            # if search_space == 1:
+            #     print(f"search_space = 2^{log(search_space, 2)}, hit_probability = 2^{log(hit_probability, 2).n()}")
+            # else:
+            #     print(f"search_space = 2^{log(search_space, 2)}, hit_probability = 2^{log(hit_probability, 2).n()}")
             # we have the search_space and hit probability
             svp_cost = beta_params["svp_cost"].repeat(ssf(search_space))
             probability = hit_probability
@@ -687,10 +689,10 @@ class PrimalHybrid:
                 for beta in it.neighborhood:
                     it.update(f(beta, search_space=search_space, hit_probability=hit_probability))
                 new_cost = it.y
-            if hw == 0:
-                print(f"{hw=}, search_space = 2^{log(search_space, 2)}, hit_probability = 2^{log(hit_probability, 2).n()}, {new_cost=}")
-            else:
-                print(f"{hw=}, search_space = 2^{log(search_space, 2).n()}, hit_probability = 2^{log(hit_probability, 2).n()}, {new_cost=}")
+            # if hw == 0:
+            #     print(f"{hw=}, search_space = 2^{log(search_space, 2)}, hit_probability = 2^{log(hit_probability, 2).n()}, {new_cost=}")
+            # else:
+            #     print(f"{hw=}, search_space = 2^{log(search_space, 2).n()}, hit_probability = 2^{log(hit_probability, 2).n()}, {new_cost=}")
             if new_cost["rop"] > cost["rop"]:
                 # cost has started increasing, time to stop
                 break
@@ -711,7 +713,6 @@ class PrimalHybrid:
         
         if cost is None:
             return Cost(rop=oo)
-
         return cost
 
     def __call__(
