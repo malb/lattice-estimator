@@ -76,6 +76,7 @@ def gaussian_cdf(mu, sigma, t):
     """
     return RR((1/2)*(1 + erf((t - mu)/(sqrt(2)*sigma))))
 
+
 def mitm_babai_probability(r, stddev, fast=False):
     """
     Compute the "e-admissibility" probability associated to the mitm step, according to
@@ -98,6 +99,7 @@ def mitm_babai_probability(r, stddev, fast=False):
     p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(RDF.pi()))) for x in xs)
     assert 0.0 <= p <= 1.0
     return p
+
 
 def babai(r, norm):
     """
@@ -196,6 +198,7 @@ def amplify_sigma(target_advantage, sigma, q):
     advantage = float(exp(-float(RDF.pi()) * (float(sigma / q) ** 2)))
     return amplify(target_advantage, advantage, majority=True)
 
+
 @cached_function
 def guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int):
     if zeta == 0:
@@ -203,7 +206,7 @@ def guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int
         search_space = 1
         hit_probability = 1.0
         return search_space, hit_probability
-    
+
     else:
         # we form the set of all vectors of weight hw when drawing from dist
         # the total number of non-zero entries
@@ -213,20 +216,26 @@ def guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int
         # our starting hw
         min_hw = max(0, zeta - dist.n + h)
         max_hw = min(zeta, h)
-        
+
         if hw < min_hw:
             raise ValueError(f"{hw=} < min feasible hw={min_hw}")
         if hw > max_hw:
             raise ValueError(f"{hw=} > max feasible hw={max_hw}")
-        
+
         # calculate the number of elements of exactly hw and the probability this segment has weight exactly hw
-        search_space = binomial(zeta, hw) * base ** hw
+        if hw == 0:
+            search_space = binomial(zeta, hw)
+        elif base == oo:
+            search_space = oo
+        else:
+            search_space = binomial(zeta, hw) * base ** hw
+
         probability = RR(drop(dist.n, h, zeta, fail=hw))
-        
+
         if hw > min_hw:
             # recurse
             prev_search_space, prev_probability = guessing_set_and_hit_probability(zeta, dist, hw - 1)
             search_space += prev_search_space
             probability += prev_probability
-            
+
         return search_space, probability

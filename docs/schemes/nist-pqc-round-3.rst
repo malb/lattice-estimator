@@ -43,7 +43,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.Saber
     LWEParameters(n=768, q=8192, Xs=D(σ=1.41), Xe=D(σ=2.29, μ=-0.50), m=768, tag='Saber')
     >>> LWE.primal_bdd(schemes.Saber)
-    rop: ≈2^208.1, red: ≈2^206.9, svp: ≈2^207.3, β: 631, η: 666, d: 1471, tag: bdd
+    rop: ≈2^208.0, red: ≈2^207.0, svp: ≈2^207.0, β: 631, η: 665, d: 1500, tag: bdd
 
 ::
 
@@ -51,7 +51,7 @@ NIST PQC Round 3 Finalists
     >>> schemes.FireSaber
     LWEParameters(n=1024, q=8192, Xs=D(σ=1.22), Xe=D(σ=2.29, μ=-0.50), m=1024, tag='FireSaber')
     >>> LWE.primal_bdd(schemes.FireSaber)
-    rop: ≈2^275.8, red: ≈2^274.9, svp: ≈2^274.7, β: 873, η: 907, d: 1888, tag: bdd
+    rop: ≈2^275.5, red: ≈2^274.6, svp: ≈2^274.4, β: 872, η: 906, d: 1934, tag: bdd
 
 
 `NTRU <https://ntru.org/f/ntru-20190330.pdf>`__

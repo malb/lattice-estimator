@@ -75,7 +75,7 @@ Usage examples:
     >>> r = NTRU.estimate(schemes.Falcon512_SKR)
     usvp                 :: rop: ≈2^165.0, red: ≈2^165.0, δ: 1.003489, β: 483, d: 1020, tag: usvp
     bdd                  :: rop: ≈2^160.6, red: ≈2^159.5, svp: ≈2^159.6, β: 463, η: 496, d: 1022, tag: bdd
-    bdd_hybrid           :: rop: ≈2^160.6, red: ≈2^159.5, svp: ≈2^159.6, β: 463, η: 496, ζ: 0, |S|: 1, d: 1024, prob: 1, ↻: 1, tag: hybrid
+    bdd_hybrid           :: rop: ≈2^160.6, red: ≈2^159.5, svp: ≈2^159.6, β: 463, η: 496, ζ: 0, |S|: 1, d: 1024, prob: 1.0, ↻: 1, tag: hybrid
     bdd_mitm_hybrid      :: rop: ≈2^347.8, red: ≈2^347.8, svp: ≈2^202.7, β: 483, η: 2, ζ: 0, |S|: 1, d: 1024, prob: ≈2^-180.5, ↻: ≈2^182.7, tag: hybrid
 
     >>> schemes.Falcon512_Unf
