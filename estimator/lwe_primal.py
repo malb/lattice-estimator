@@ -8,6 +8,7 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 from functools import partial
 
 from sage.all import oo, ceil, floor, sqrt, log, RR, ZZ, binomial, cached_function
+from sage.rings.infinity import SignError
 from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .util import local_minimum
@@ -439,7 +440,7 @@ class PrimalHybrid:
         
         - bkz_cost: the cost of BKZ-β according to the cost model
         - d: the lattice rank.
-        - svp_cost: the cost of the CVP subroutine when we use this β, according to babai=True/False.
+        - svp_cost: the cost of the CVP call when we use this β, according to babai=True/False.
         - eta: the projection dimension.
         - babai_probability: the probability the Babai lift in the CVP subroutine succeeds.
         - mitm_probability: the probability a mitm speedup succeeds. If mitm=False, returns 1.
@@ -542,8 +543,6 @@ class PrimalHybrid:
 
         """
         beta_params = PrimalHybrid.beta_params(beta=beta, params=params, zeta=zeta, babai=babai, mitm=mitm, m=m, d=d, red_shape_model=red_shape_model, red_cost_model=red_cost_model)
-        # print(beta_params.keys())
-        # print(f"{beta_params=}")
         if len(beta_params.keys()) == 1:
             # this beta is not sufficient to reveal the error for these params: either due to insufficient samples or projection dim > d. 
             return Cost(rop=oo)
@@ -584,10 +583,6 @@ class PrimalHybrid:
             return cost
         
         else:
-            # if search_space == 1:
-            #     print(f"search_space = 2^{log(search_space, 2)}, hit_probability = 2^{log(hit_probability, 2).n()}")
-            # else:
-            #     print(f"search_space = 2^{log(search_space, 2)}, hit_probability = 2^{log(hit_probability, 2).n()}")
             # we have the search_space and hit probability
             svp_cost = beta_params["svp_cost"].repeat(ssf(search_space))
             probability = hit_probability
@@ -667,6 +662,7 @@ class PrimalHybrid:
         )
         
         if baseline_cost["rop"] == oo:
+            # these parameters mean usvp does not succeed for any beta < max_beta_global, so we search over the full beta range
             max_beta = max_beta_global
         else:
             max_beta = baseline_cost["beta"]
@@ -675,30 +671,26 @@ class PrimalHybrid:
         # the cost curve with beta is non-smooth, with sudden jumps due to the search space changing.
         # We eliminate these jumps by instead fixing the search space, and finding the best attack for that search space.
         # we then loop over increasing search spaces to find the best overall attack.
-        
         # our search space is formed of all zeta length strings of weight at most hw for some hw.
         # the smallest admissable hw
         min_hw = max(0, zeta - params.Xs.n + params.Xs.hamming_weight)
-        precision = 2
+        # the largest admissable hw
+        max_hw = min(zeta, params.Xs.hamming_weight)
         cost = Cost(rop=oo)
-        for hw in range(min_hw, min(zeta, params.Xs.hamming_weight) + 1):
+        for hw in range(min_hw, max_hw + 1):
             search_space, hit_probability = guessing_set_and_hit_probability(zeta, params.Xs, hw)
+            precision = 2
             with local_minimum(40, max_beta + precision, precision=precision, log_level=log_level + 1) as it:
                 for beta in it:
                     it.update(f(beta, search_space=search_space, hit_probability=hit_probability))
                 for beta in it.neighborhood:
                     it.update(f(beta, search_space=search_space, hit_probability=hit_probability))
                 new_cost = it.y
-            # if hw == 0:
-            #     print(f"{hw=}, search_space = 2^{log(search_space, 2)}, hit_probability = 2^{log(hit_probability, 2).n()}, {new_cost=}")
-            # else:
-            #     print(f"{hw=}, search_space = 2^{log(search_space, 2).n()}, hit_probability = 2^{log(hit_probability, 2).n()}, {new_cost=}")
             if new_cost["rop"] > cost["rop"]:
                 # cost has started increasing, time to stop
                 break
             else:
                 cost = new_cost
-        print(f"{zeta=}, {cost=}")
         Logging.log("bdd", log_level, f"H1: {cost!r}")
 
         # step 2. optimize d
@@ -813,17 +805,22 @@ class PrimalHybrid:
         )
 
         if zeta is None:
-            ret = minimize_scalar(lambda x: f(zeta=round(x), optimize_d=False, **kwds)["rop"],
-                                   bounds=(0, params.n), method="bounded")
+            try:
+                ret = minimize_scalar(lambda x: f(zeta=round(x), optimize_d=False, **kwds)["rop"],
+                                    bounds=(0, params.n), method="bounded")
+                
+                zeta = int(ret.x)
+                cost = f(zeta=zeta, optimize_d=False, **kwds)
+                # check a small neighborhood of this zeta
+                precision = 3
+                for zeta in range(max(0, zeta - precision), min(params.n, zeta + precision) + 1):
+                    cost = min(cost, f(zeta=zeta, optimize_d=False, **kwds))
+                # minimize_scalar fits to a parabola. This can cause this search to miss minima at extrema
+                cost = min(cost, f(0, optimize_d=False, **kwds))
+            except SignError:
+                # there are values of zeta in [0, n] with cost_zeta infinite. Smaller range for zeta needed.
+                raise ValueError("Cannot optimize for zeta over [0, n]. Infinite costs encountered.")
             
-            zeta = int(ret.x)
-            cost = f(zeta=zeta, optimize_d=False, **kwds)
-            # check a small neighborhood of this zeta
-            precision = 3
-            for zeta in range(max(0, zeta - precision), min(params.n, zeta + precision) + 1):
-                cost = min(cost, f(zeta=zeta, optimize_d=False, **kwds))
-            
-            cost = min(cost, f(0, optimize_d=False, **kwds))
         else:
             cost = f(zeta=zeta)
 
