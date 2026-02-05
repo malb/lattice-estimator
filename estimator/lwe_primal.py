@@ -853,8 +853,8 @@ class PrimalHybrid:
                         max_zeta_upper = max_zeta
                     max_zeta = (max_zeta_upper + max_zeta_lower) // 2
 
-            ret = minimize_scalar(lambda x: log(f(zeta=round(x), optimize_d=False, **kwds)["rop"]),
-                                bounds=(min_zeta, max_zeta), method="bounded")
+            ret = minimize_scalar(lambda x: log(f(zeta=round(x), optimize_d=False,
+                                                  **kwds)["rop"]), bounds=(min_zeta, max_zeta), method="bounded")
 
             zeta = int(ret.x)
             cost = f(zeta=zeta, optimize_d=False, **kwds)
