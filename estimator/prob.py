@@ -203,7 +203,7 @@ def amplify_sigma(target_advantage, sigma, q):
 def _guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int):
     if zeta > dist.n:
         raise ValueError(f"Trying to guess {zeta} coordinates of a vector of length {dist.n}")
-    
+
     if zeta == 0:
         # no guessing to do: we will do one call, and hit with probability 1
         search_space = 1
@@ -242,7 +242,8 @@ def _guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: in
             probability += prev_probability
 
         return search_space, probability
-    
+
+
 def guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int):
     """
     Guessing set and corresponding hit probability for guessing ζ coordinates from a vector drawn from `dist`.
