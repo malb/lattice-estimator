@@ -199,8 +199,32 @@ def amplify_sigma(target_advantage, sigma, q):
     return amplify(target_advantage, advantage, majority=True)
 
 
-@cached_function
 def _guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int):
+    """
+    Guessing set and corresponding hit probability for guessing ζ coordinates from a vector drawn from `dist`.
+    We guess all such subvectors up to Hamming weight `hw`, and compute the probability that at least one of
+    these guesses is correct. We return the raw guessing set size, i.e., no MitM speedup.
+
+    :param zeta: the length of the subvector we guess
+    :param dist: the distribution from which the entire vector is drawn
+    :param hw: the maximum Hamming weight of the subvectors we guess
+
+    :returns: a tuple (search_space, hit_probability) where `search_space` is the number of guesses, and
+    `hit_probability` is the probability that at least one of these guesses is correct.
+
+        >>> from estimator import prob
+        >>> from estimator.nd import SparseTernary
+        >>> # guess no coordinates: we will do one guess, and hit with probability 1
+        >>> prob.guessing_set_and_hit_probability(0, SparseTernary(16, 16, 512), 0)
+        (1, 1.0)
+        >>> # guess 16 coordinates are all zero
+        >>> prob.guessing_set_and_hit_probability(16, SparseTernary(16, 16, 512), 0)
+        (1, 0.350436753852275)
+        >>> # guess 16 coordinates have total Hamming weight at most 1
+        >>> prob.guessing_set_and_hit_probability(16, SparseTernary(16, 16, 512), 1)
+        (33, 0.736293996803598)
+
+    """
     if zeta > dist.n:
         raise ValueError(f"Trying to guess {zeta} coordinates of a vector of length {dist.n}")
 
@@ -236,38 +260,13 @@ def _guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: in
         probability = RR(drop(dist.n, h, zeta, fail=hw))
 
         if hw > min_hw:
-            # recurse
-            prev_search_space, prev_probability = _guessing_set_and_hit_probability(zeta, dist, hw - 1)
+            # recurse using cached values for smaller hw
+            prev_search_space, prev_probability = guessing_set_and_hit_probability(zeta, dist, hw - 1)
             search_space += prev_search_space
             probability += prev_probability
 
         return search_space, probability
 
 
-def guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int):
-    """
-    Guessing set and corresponding hit probability for guessing ζ coordinates from a vector drawn from `dist`.
-    We guess all such subvectors up to Hamming weight `hw`, and compute the probability that at least one of
-    these guesses is correct. We return the raw guessing set size, i.e., no MitM speedup.
-
-    :param zeta: the length of the subvector we guess
-    :param dist: the distribution from which the entire vector is drawn
-    :param hw: the maximum Hamming weight of the subvectors we guess
-
-    :returns: a tuple (search_space, hit_probability) where `search_space` is the number of guesses, and
-    `hit_probability` is the probability that at least one of these guesses is correct.
-
-        >>> from estimator import prob
-        >>> from estimator.nd import SparseTernary
-        >>> # guess no coordinates: we will do one guess, and hit with probability 1
-        >>> prob.guessing_set_and_hit_probability(0, SparseTernary(16, 16, 512), 0)
-        (1, 1.0)
-        >>> # guess 16 coordinates are all zero
-        >>> prob.guessing_set_and_hit_probability(16, SparseTernary(16, 16, 512), 0)
-        (1, 0.350436753852275)
-        >>> # guess 16 coordinates have total Hamming weight at most 1
-        >>> prob.guessing_set_and_hit_probability(16, SparseTernary(16, 16, 512), 1)
-        (33, 0.736293996803598)
-
-    """
-    return _guessing_set_and_hit_probability(zeta, dist, hw)
+# we cache this function for faster recursion and because its called many times with the same input.
+guessing_set_and_hit_probability = cached_function(_guessing_set_and_hit_probability)
