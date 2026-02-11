@@ -1,4 +1,20 @@
 # -*- coding: utf-8 -*-
+"""
+EXAMPLES::
+        >>> from estimator import prob
+    >>> from estimator.nd import SparseTernary
+    >>> # guess no coordinates: we will do one guess, and hit with probability 1
+    >>> prob.guessing_set_and_hit_probability(0, SparseTernary(16, 16, 512), 0)
+    (1, 1.0)
+    >>> # guess 16 coordinates are all zero
+    >>> prob.guessing_set_and_hit_probability(16, SparseTernary(16, 16, 512), 0)
+    (1, 0.350436753852275)
+    >>> # guess 16 coordinates have total Hamming weight at most 1
+    >>> prob.guessing_set_and_hit_probability(16, SparseTernary(16, 16, 512), 1)
+    (33, 0.736293996803598)
+
+"""
+
 from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, RDF, cached_function
 from sage.all import RealDistribution, RR, sqrt, prod, erf
 from .conf import max_n_cache
@@ -199,7 +215,8 @@ def amplify_sigma(target_advantage, sigma, q):
     return amplify(target_advantage, advantage, majority=True)
 
 
-def _guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int):
+@cached_function
+def guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int):
     """
     Guessing set and corresponding hit probability for guessing ζ coordinates from a vector drawn from `dist`.
     We guess all such subvectors up to Hamming weight `hw`, and compute the probability that at least one of
@@ -211,18 +228,6 @@ def _guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: in
 
     :returns: a tuple (search_space, hit_probability) where `search_space` is the number of guesses, and
     `hit_probability` is the probability that at least one of these guesses is correct.
-
-        >>> from estimator import prob
-        >>> from estimator.nd import SparseTernary
-        >>> # guess no coordinates: we will do one guess, and hit with probability 1
-        >>> prob.guessing_set_and_hit_probability(0, SparseTernary(16, 16, 512), 0)
-        (1, 1.0)
-        >>> # guess 16 coordinates are all zero
-        >>> prob.guessing_set_and_hit_probability(16, SparseTernary(16, 16, 512), 0)
-        (1, 0.350436753852275)
-        >>> # guess 16 coordinates have total Hamming weight at most 1
-        >>> prob.guessing_set_and_hit_probability(16, SparseTernary(16, 16, 512), 1)
-        (33, 0.736293996803598)
 
     """
     if zeta > dist.n:
@@ -255,18 +260,16 @@ def _guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: in
         elif base == oo:
             search_space = oo
         else:
-            search_space = binomial(zeta, hw) * base ** hw
+            search_space = binomial(zeta, hw) * base**hw
 
         probability = RR(drop(dist.n, h, zeta, fail=hw))
 
         if hw > min_hw:
             # recurse using cached values for smaller hw
-            prev_search_space, prev_probability = guessing_set_and_hit_probability(zeta, dist, hw - 1)
+            prev_search_space, prev_probability = guessing_set_and_hit_probability(
+                zeta, dist, hw - 1
+            )
             search_space += prev_search_space
             probability += prev_probability
 
         return search_space, probability
-
-
-# we cache this function for faster recursion and because its called many times with the same input.
-guessing_set_and_hit_probability = cached_function(_guessing_set_and_hit_probability)
