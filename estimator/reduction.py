@@ -242,7 +242,7 @@ class ReductionCost:
         else:
             return d**3 * B**2
 
-    def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
+    def short_vectors(self, beta, d, N=None, B=None, preprocess=True, sieve_dim=None):
         """
         Cost of outputting many somewhat short vectors.
 
