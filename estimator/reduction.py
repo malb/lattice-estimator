@@ -242,7 +242,7 @@ class ReductionCost:
         else:
             return d**3 * B**2
 
-    def short_vectors(self, beta, d, N=None, B=None, preprocess=True):
+    def short_vectors(self, beta, d, N=None, B=None, preprocess=True, sieve_dim=None):
         """
         Cost of outputting many somewhat short vectors.
 
@@ -262,6 +262,8 @@ class ReductionCost:
         :param B: Bit-size of entries.
         :param preprocess: Include the cost of preprocessing the basis with BKZ-β.
                If ``False`` we assume the basis is already BKZ-β reduced.
+        :param sieve_dim: Sieve dimension. Present for consistent interface across cost models but ignored
+                in this function.
         :return: ``(ρ, c, N, β')``
 
         EXAMPLES::
