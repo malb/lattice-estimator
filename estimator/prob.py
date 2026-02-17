@@ -250,9 +250,9 @@ def guessing_set_and_hit_probability(zeta: int, dist: NoiseDistribution, hw: int
         max_hw = min(zeta, h)
 
         if hw < min_hw:
-            raise ValueError(f"{hw=} < min feasible hw={min_hw}")
+            raise ValueError(f"hw={hw} < min feasible hw={min_hw}")
         if hw > max_hw:
-            raise ValueError(f"{hw=} > max feasible hw={max_hw}")
+            raise ValueError(f"hw={hw} > max feasible hw={max_hw}")
 
         # calculate the number of elements of exactly hw and the probability this segment has weight exactly hw
         if hw == 0:
