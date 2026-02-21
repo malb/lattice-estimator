@@ -18,7 +18,6 @@ from multiprocessing import Pool
 from functools import partial
 from dataclasses import dataclass, astuple
 from typing import Iterable, Union, Optional, Callable
-from inspect import get_annotations
 
 import numpy as np
 from matplotlib import pyplot as plt
