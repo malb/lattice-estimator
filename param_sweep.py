@@ -118,12 +118,6 @@ class ParameterSweep:
             def __post_init__(self):
                 if self.m is None:
                     self.m = self.n
-                # Check types are same as annotations
-                for name, field_type in self.__annotations__.items():
-                    obj = self.__dict__[name]
-                    if not isinstance(obj, field_type):
-                        # Attempt conversion to correct type
-                        setattr(self, name, field_type(obj))
 
         tasks = [astuple(Params(*params)) for params in it.product(n, q, e, s, m)]
 
