@@ -73,15 +73,19 @@ def CN11(d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
     :returns: squared Gram-Schmidt norms
 
     """
-
+    # for higher dimension switch to GSA
+    if d > 2000:
+        return GSA(d, n, q, beta, xi, tau, dual)
+    
+    # for small/medium dimension continue with CN11 simulator
     from fpylll import BKZ
     from fpylll.tools.bkz_simulator import simulate
-
-    assert 2 <= beta <= d
-
+    
+    max_loops = max(8, min(2 * beta, d, 100)) # 2β tours are sufficient and 8 is a practical minimum to avoid under-running small-β cases
+    
     def f(r, beta):
-        return simulate(r, BKZ.EasyParam(beta))[0]
-
+        return simulate(r, BKZ.EasyParam(beta, max_loops=max_loops))[0]
+    
     return qary_simulator(f=f, d=d, n=n, q=q, beta=beta, xi=xi, tau=tau, dual=dual, ignore_qary=ignore_qary)
 
 

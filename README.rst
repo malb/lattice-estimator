@@ -152,6 +152,7 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Markus Schmidt
 - `Martin Albrecht <https://github.com/malb>`__
 - Michael Walter
+- `Navid Abapour <https://github.com/navid-divan>`__
 - Rachel Player
 - Sam Scott
 
