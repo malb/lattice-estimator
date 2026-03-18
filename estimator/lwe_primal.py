@@ -353,6 +353,44 @@ class PrimalHybrid:
             # Note: if eta = d + 1, then it's impossible, so stronger lattice reduction is needed (higher `beta`).
         return eta
 
+    @staticmethod
+    def svp_dimension_gsa(d, n, q, beta, xi, D, is_homogeneous=False):
+        """
+        Return required SVP dimension for a given a q-ary lattice (assuming GSA),
+        using the success condition specified in [USENIX:ADPS16]_.
+        This function avoids numerical errors that may happen in `svp_dimension`.
+
+        :param d: lattice dimension (excl. embedding)
+        :param n: number of `q` vectors is `d-n-1`
+        :param q: prime modulus used for q-ary lattice
+        :param xi: scaling factor ξ for identity part
+        """
+        log_norm_total_vol = RR((log(q) * (d - n) + log(xi) * n) / d)  # See GSA from simulator.py
+        log_delta = RR(log(deltaf(beta)))
+        log_tau = RR(log(D.stddev))
+
+        # Assuming GSA holds, the i'th log Gram--Schmidt norm, logGS[i] = .5 log(r[i]), equals:
+        #     logGS[i] = (d - 1 - 2 * i) * log_delta + log_norm_total_vol (i=0, ..., d-1).
+        # In particular,
+        #     logGS[ 0 ] = +(d-1) * log_delta + log_norm_total_vol,
+        #     logGS[d-1] = -(d-1) * log_delta + log_norm_total_vol.
+        # Note: for inhomogeneous problem, we pretend as if logGS[d] = log(tau).
+
+        def success(svp_dim):
+            eta = svp_dim - int(not is_homogeneous)  # if inhom, subtract 1 to get number of basis vectors.
+            log_proj_vol = eta * log_norm_total_vol - eta * (d - eta) * log_delta + (0 if is_homogeneous else log_tau)
+            return log_tau + log(svp_dim**.5) <= log_gh(svp_dim, log_proj_vol, False)
+
+        if success(beta):
+            while beta >= 2 and success(beta):
+                beta -= 1
+            beta += 1
+        else:
+            emb_dim = d + int(not is_homogeneous)
+            while beta < emb_dim + 1 and beta < max_beta_global and not success(beta):
+                beta += 1
+        return beta
+
     @classmethod
     @cached_function
     def beta_params(
@@ -421,6 +459,10 @@ class PrimalHybrid:
         else:
             # we scaled the lattice so that χ_e is what we want
             svp_dim = PrimalHybrid.svp_dimension(r, beta, params.Xe, params._homogeneous)
+            if simulator is GSA:
+                # TODO: actually replace by this call.
+                assert svp_dim == PrimalHybrid.svp_dimension_gsa(
+                    d, params.n - zeta, params.q, beta, xi, params.Xe, params._homogeneous)
             eta = svp_dim if params._homogeneous else svp_dim - 1
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
