@@ -452,11 +452,12 @@ class PrimalHybrid:
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
             # we scaled the lattice so that χ_e is what we want
-            svp_dim = PrimalHybrid.svp_dimension(r, beta, params.Xe, params._homogeneous)
-            if simulator is GSA:
-                # TODO: actually replace by this call.
-                assert svp_dim == PrimalHybrid.svp_dimension_gsa(
+            if simulator == GSA:
+                # assert svp_dim == PrimalHybrid.svp_dimension_gsa(
+                svp_dim = PrimalHybrid.svp_dimension_gsa(
                     d, params.n - zeta, params.q, beta, xi, params.Xe, params._homogeneous)
+            else:
+                svp_dim = PrimalHybrid.svp_dimension(r, beta, params.Xe, params._homogeneous)
             eta = svp_dim if params._homogeneous else svp_dim - 1
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
