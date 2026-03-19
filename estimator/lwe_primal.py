@@ -456,13 +456,15 @@ class PrimalHybrid:
         if babai:
             eta = 2
             svp_cost = PrimalHybrid.babai_cost(d)
+            babai_probability = prob_babai(r, sqrt(d) * params.Xe.stddev)
         else:
             # we scaled the lattice so that χ_e is what we want
-            svp_dim = PrimalHybrid.svp_dimension(r, beta, params.Xe, params._homogeneous)
-            if simulator is GSA:
-                # TODO: actually replace by this call.
-                assert svp_dim == PrimalHybrid.svp_dimension_gsa(
+            if simulator == GSA:
+                # assert svp_dim == PrimalHybrid.svp_dimension_gsa(
+                svp_dim = PrimalHybrid.svp_dimension_gsa(
                     d, params.n - zeta, params.q, beta, xi, params.Xe, params._homogeneous)
+            else:
+                svp_dim = PrimalHybrid.svp_dimension(r, beta, params.Xe, params._homogeneous)
             eta = svp_dim if params._homogeneous else svp_dim - 1
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
@@ -472,10 +474,6 @@ class PrimalHybrid:
             svp_cost = costf(red_cost_model, svp_dim, svp_dim)
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
-
-        if babai:
-            babai_probability = prob_babai(r, sqrt(d) * params.Xe.stddev)
-        else:
             babai_probability = prob_babai(r[:d-eta], sqrt(d - eta) * params.Xe.stddev)
 
         if mitm and zeta > 0:
