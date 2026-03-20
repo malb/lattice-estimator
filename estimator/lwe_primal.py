@@ -13,7 +13,8 @@ from .reduction import cost as costf
 from .util import local_minimum
 from .cost import Cost
 from .lwe_parameters import LWEParameters
-from .simulator import normalize as simulator_normalize, GSA
+from .simulator import normalize as simulator_normalize
+from .simulator import GSA
 from .prob import guessing_set_and_hit_probability
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
@@ -256,7 +257,7 @@ class PrimalUSVP:
         cost_gsa = self(
             params,
             red_cost_model=red_cost_model,
-            red_shape_model=GSA,
+            red_shape_model="gsa",
         )
         Logging.log("usvp", log_level + 1, f"GSA: {repr(cost_gsa)}")
 
