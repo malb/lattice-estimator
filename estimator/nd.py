@@ -531,8 +531,8 @@ class SparseTernary(NoiseDistribution):
     def split_probability(self, new_n, new_hw=None):
         """
         Compute probability of splitting in a way that one half having `new_n` coefficients has
-        `new_hw` of the weight, and the remaining part the rest. This is naturally the proportion
-        of such splits divided this support size.
+        `new_hw` of the weight, and the remaining part the rest. This is naturally the number
+        of such splits divided by the total support size.
         """
         left, right = self.split_balanced(new_n, new_hw)
         return left.support_size() * right.support_size() / self.support_size()
@@ -596,11 +596,19 @@ def SparseBinary(hw, n=None):
 
 class SparseBinomial(NoiseDistribution):
     """
-    Distribution of vectors of length ``n`` with ``hw`` non-zero entries in the range {-eta, ..., eta},
+    Distribution of vectors of length ``n`` with ``hw`` nonzero entries in the range {-eta, ..., eta},
     of which each nonzero entry is obtained by:
     (1) tossing a fair coin 2*eta times,
     (2) computing the number of heads minus eta, and
     (3) restarting at (1), if that number is zero, else returning it.
+
+    EXAMPLE::
+
+        >>> from estimator import ND
+        >>> ND.SparseBinomial(8, 25, 100)
+        D(σ=1.12)
+        >>> ND.SparseBinomial(1, 10, 20).bounds
+        (-1, 1)
     """
     def __init__(self, eta, hw, n=None):
         eta, hw = int(eta), int(hw)
@@ -611,7 +619,7 @@ class SparseBinomial(NoiseDistribution):
             # Treat it the same as n=0.
             n = 0
         density = 0 if n == 0 else hw / n
-        stddev = sqrt(density * eta / 2)
+        stddev = sqrt(density * eta / (2 * (1 - binomial(2 * eta, eta) * 2 ** (-2 * eta))))
         super().__init__(
             n=n,
             mean=0,
@@ -621,18 +629,25 @@ class SparseBinomial(NoiseDistribution):
         )
 
     def __hash__(self):
+        """
+        EXAMPLE::
+
+            >>> from estimator import ND
+            >>> hash(ND.SparseBinomial(2, 5, 10)) == hash(("SparseBinomial", 10, 2, 5))
+            True
+        """
         return hash(("SparseBinomial", self.n, self.eta, self.hw))
 
     def resize(self, new_n):
         """
         Return an altered distribution having a dimension `new_n`.
-        Assumes `p` and `m` stay the same.
+        Assumes `eta` and `hw` stay the same.
         """
         return SparseBinomial(self.eta, self.hw, new_n)
 
     def split_balanced(self, new_n, new_hw=None):
         """
-        Split the +1 and -1 entries in a balanced way, and return 2 SparseBinomial distributions:
+        Split the nonzero entries in a balanced way, and return 2 SparseBinomial distributions:
         one of dimension `new_n` and the other of dimension `n - new_n`.
 
         :param new_n: dimension of the first noise distribution
@@ -651,8 +666,8 @@ class SparseBinomial(NoiseDistribution):
     def split_probability(self, new_n, new_hw=None):
         """
         Compute probability of splitting in a way that one half having `new_n` coefficients has
-        `new_hw` of the weight, and the remaining part the rest. This is naturally the proportion
-        of such splits divided this support size.
+        `new_hw` of the weight, and the remaining part the rest. This is naturally the number
+        of such splits divided by the total support size.
         """
         left, right = self.split_balanced(new_n, new_hw)
         return left.support_size() * right.support_size() / self.support_size()
@@ -660,7 +675,7 @@ class SparseBinomial(NoiseDistribution):
     @property
     def is_sparse(self):
         """
-        Always say this is a sparse distribution, even if p + m >= n/2, because there is correlation between the
+        Always say this is a sparse distribution, even if `hw >= n/2`, because there is correlation between the
         coefficients: if you split the distribution into two of half the length, then you expect in each of them to be
         half the weight.
         """
@@ -673,8 +688,15 @@ class SparseBinomial(NoiseDistribution):
     def support_size(self, fraction=1.0):
         """
         Compute the size of the support covering the probability given as fraction.
+
+        EXAMPLE:::
+
+        >>> from estimator import ND
+        >>> ND.SparseBinomial(1, 10, 20).support_size() - binomial(20, 10) * 2**10
+        0
         """
-        return (2 * self.eta)**self.hw * binomial(self.n, self.hw)
+        # TODO: this might be suboptimal/inaccurate for sparse binomial distribution
+        return ceil(RR(fraction) * (2 * self.eta)**self.hw * binomial(self.n, self.hw))
 
 
 """
