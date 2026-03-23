@@ -13,8 +13,7 @@ This influences the concrete estimated cost of attacks.
 """
 red_cost_model = RC.MATZOV
 red_cost_model_classical_poly_space = RC.ABLR21
-red_shape_model = "gsa"
-red_simulator = GSA
+red_shape_model = GSA
 
 # Upper bound on blocksize, for security levels of at most 512 bits.
 # This value is selected as RC.ADPS16(1754, 1754) ~ 2^(512)
