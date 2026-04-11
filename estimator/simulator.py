@@ -115,8 +115,6 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
     delta = deltaf(beta)
     log_delta = RR(log(delta, 2))
-    #r_log = [(d - 1 - 2 * i) * log_delta + log_vol / d for i in range(d)]
-    #r = [2 ** (2 * r_) for r_ in r_log]
     r_log = (d - 1 - 2 * np.arange(d)) * float(log_delta) + float(log_vol) / d
     r = (4.0 ** r_log).tolist()
     return r
