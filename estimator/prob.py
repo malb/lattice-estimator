@@ -15,6 +15,7 @@ EXAMPLES::
 
 """
 
+import numpy as np
 from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, RDF, cached_function
 from sage.all import RealDistribution, RR, sqrt, prod, erf
 from .conf import max_n_cache
@@ -115,17 +116,51 @@ def mitm_babai_probability(r, stddev, fast=False):
     assert 0.0 <= p <= 1.0
     return p
 
+def mitm_babai_probability_gsa(d, log_vol, log_delta, stddev, fast=False):
+    """
+    Compute the "e-admissibility" probability associated to the mitm step, according to
+    [WAHC:SonChe19]_, in the special case we assume the basis profiles follow the GSA.
 
-def babai(r, norm):
+    :param log_vol: log of the volume of the lattice
+    :param log_delta: log of the root-Hermite factor delta
+    :param stddev: the std.dev of the error distribution
+    :param fast: toggle for setting p = 1 (faster, but underestimates security)
+    :return: probability for the mitm process
+    """
+    if fast:
+        # overestimate the probability -> underestimate security
+        return 1
+
+    log_xs = 0.5 * log(0.5) + (d - 1 - 2 * np.arange(d, dtype=np.float64)) * float(log_delta) + float(log_vol) / d - log(stddev)
+    xs = [sqrt(.5 * ri) / stddev for ri in r]
+    # Using RDF.pi() to prevent memory leakage:
+    # see https://ask.sagemath.org/question/45863/memory-usage-strictly-increasing-on-sage-interactive-shell/
+    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(RDF.pi()))) for x in xs)
+
+
+def babai(babai_dim, r, norm):
     """
     Babai probability following [JMC:Wunderer19]_.
 
     """
     denom = float(2 * norm) ** 2
     T = RealDistribution("beta", ((len(r) - 1) / 2, 1.0 / 2))
-    probs = [1 - T.cum_distribution_function(1 - r_ / denom) for r_ in r]
-    return prod(probs)
+    return prod(1 - T.cum_distribution_function(1 - r_ / denom) for r_ in r[:babai_dim])
 
+def babai_gsa(babai_dim, norm, d, log_vol, log_delta):
+    """
+    Babai probability following [JMC:Wunderer19]_, in the special case we assume the basis profiles follow the GSA.
+
+    """
+    T = RealDistribution("beta", ((d - 1) / 2, 1.0 / 2))
+
+    # calculate log (r_i ** 2/ (2 * short_vector_len ** 2)) for each i up to babai_dim, assuming the GSA. We cast logs to floats, which shouldn't overflow.
+    log_ratios = 2 * (d - 1 - 2 * np.arange(babai_dim, dtype=np.float64)) * float(log_delta) + 2 * float(log_vol) / d - 2 * float(log(2 * norm))
+
+    # if some log_ratio >= 0, then the corresponding term in the product is 1, so we can ignore it. We only keep the terms where log_ratio < 0
+    log_ratios = log_ratios[log_ratios < 0]
+    ratios = np.exp(log_ratios) # we know these won't overflow, because log_ratios < 0
+    return prod(1 - T.cum_distribution_function(1 - ratio) for ratio in ratios)
 
 def drop(n, h, k, fail=0, rotations=False):
     """
