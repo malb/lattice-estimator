@@ -18,6 +18,7 @@ from .simulator import GSA
 from .prob import guessing_set_and_hit_probability
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
+from .prob import babai_gsa as prob_babai_gsa
 from .prob import mitm_babai_probability
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
@@ -461,7 +462,12 @@ class PrimalHybrid:
         # [q I_m |  A_{n - zeta}  ]
         # [  0   | xi I_{n - zeta}]
         # r holds the simulated squared GSO norms after BKZ-β
-        r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
+        if simulator != GSA:
+            r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
+        if simulator == GSA:
+            # for better performance, we do not calculate the basis profile, just the values that determine the GSA shape
+            log_vol = RR((d - (params.n - zeta)) * log(params.q) + (params.n - zeta) * log(xi))
+            log_delta = RR(log(deltaf(beta)))
         bkz_cost = costf(red_cost_model, beta, d)
 
         # 2. Required SVP dimension η + 1
@@ -474,8 +480,6 @@ class PrimalHybrid:
         else:
             # we scaled the lattice so that χ_e is what we want
             if simulator == GSA:
-                log_vol = RR((d - (params.n - zeta)) * log(params.q) + (params.n - zeta) * log(xi))
-                log_delta = RR(log(deltaf(beta)))
                 svp_dim = PrimalHybrid.svp_dimension_gsa(d, log_vol, log_delta, params.Xe, params._homogeneous)
             else:
                 svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, is_homogeneous=params._homogeneous)
@@ -489,13 +493,17 @@ class PrimalHybrid:
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
 
-        if babai:
-            babai_probability = prob_babai(r, sqrt(d) * params.Xe.stddev)
+        # the number of coordinates we recover with a Babai lift
+        babai_dim = d - eta if not babai else d
+        if simulator == GSA:
+            babai_probability = prob_babai_gsa(babai_dim=babai_dim, norm=sqrt(babai_dim) * params.Xe.stddev, d=d, log_vol=log_vol, log_delta=log_delta)
         else:
-            babai_probability = prob_babai(r[:d-eta], sqrt(d - eta) * params.Xe.stddev)
+            babai_probability = prob_babai(babai_dim, r, sqrt(babai_dim) * params.Xe.stddev)
 
         if mitm and zeta > 0:
             if babai:
+                if simulator == GSA:
+                    r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
                 mitm_probability = mitm_babai_probability(r, params.Xe.stddev)
             else:
                 # TODO: the probability in this case needs to be analysed
