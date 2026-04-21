@@ -17,9 +17,8 @@ where
 The last row is optional.
 """
 
-from sage.all import RR, floor, log, line, cached_function, pi, exp
+from sage.all import RR, log, line, cached_function, pi, exp
 from functools import partial
-import numpy as np
 
 
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
@@ -115,18 +114,9 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
     delta = deltaf(beta)
     log_delta = RR(log(delta, 2))
-    # we have the ith Gram-Schmidt vector has log squared norm (d - 1 - 2*i) log_delta + log_vol/d. 
-    # at this value, 4 ** r will overflow numpy float64
-    numpy_threshold = np.finfo(np.float64).maxexp / 2
-    # find value of i for which 4 ** r[i] stops overflowing
-    threshold = floor((d - 1 - (numpy_threshold - log_vol/d) / log_delta) / 2) + 1
-    first_safe_index = max(0, min(threshold, d))
-    r_log_head = [(d - 1 - 2 * i) * log_delta + log_vol / d for i in range(first_safe_index)]
-    r_head = [2 ** (2 * r_) for r_ in r_log_head]
-    r_log_tail = (d - 1 - 2 * np.arange(first_safe_index, d)) * float(log_delta) + float(log_vol) / d
-    r_tail = (4.0 ** r_log_tail).tolist()
-
-    return r_head + r_tail
+    r_log = [(d - 1 - 2 * i) * log_delta + log_vol / d for i in range(d)]
+    r = [2 ** (2 * r_) for r_ in r_log]
+    return r
 
 
 def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
@@ -203,7 +193,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
     def delta(k):
         assert k >= 60
-        delta = exp(log_gh(k)/(k-1))
+        delta = exp(log_gh(k) / (k - 1))
         return RR(delta)
 
     @cached_function

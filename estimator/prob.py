@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 EXAMPLES::
-        >>> from estimator import prob
+    >>> from estimator import prob
     >>> from estimator.nd import SparseTernary
     >>> # guess no coordinates: we will do one guess, and hit with probability 1
     >>> prob.guessing_set_and_hit_probability(0, SparseTernary(16, 16, 512), 0)
@@ -16,11 +16,13 @@ EXAMPLES::
 """
 
 import numpy as np
-from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, RDF, cached_function
+from sage.all import binomial, ZZ, floor, log, ceil, RealField, oo, exp, RDF, cached_function
 from sage.all import RealDistribution, RR, sqrt, prod, erf
 from .conf import max_n_cache
 from .nd import NoiseDistribution
 from .util import LazyEvaluation
+from scipy.special import erf as scipy_erf
+from scipy.special import betainc as scipy_beta_cdf
 
 
 chi_squared_cdf = LazyEvaluation(lambda i: RealDistribution('chisquared', i).cum_distribution_function, 2*max_n_cache)
@@ -102,6 +104,21 @@ def mitm_babai_probability(r, stddev, fast=False):
     :params stddev: the std.dev of the error distribution
     :param fast: toggle for setting p = 1 (faster, but underestimates security)
     :return: probability for the mitm process
+
+    EXAMPLES::
+        >>> from estimator import prob, schemes, simulator
+        >>> from estimator.nd import SparseTernary
+        >>> from estimator.reduction import delta as deltaf
+
+        # check gsa and non-gsa probabilities match
+        >>> params = schemes.Kyber512
+        >>> beta = 300
+        >>> r = simulator.GSA(d=2 * params.n, n=params.n,q=params.q, beta=beta, xi=1, tau=False, dual=True)
+        >>> log(prob.mitm_babai_probability(r, params.Xe.stddev), 2)
+        -387.008967465078
+        >>> log_delta = log(deltaf(beta))
+        >>> log(prob.mitm_babai_probability_gsa(2 * params.n, 0.5 * log(prod(r)), log_delta, params.Xe.stddev), 2)
+        -387.008967465078
     """
     if fast:
         # overestimate the probability -> underestimate security
@@ -112,9 +129,11 @@ def mitm_babai_probability(r, stddev, fast=False):
     xs = [sqrt(.5 * ri) / stddev for ri in r]
     # Using RDF.pi() to prevent memory leakage:
     # see https://ask.sagemath.org/question/45863/memory-usage-strictly-increasing-on-sage-interactive-shell/
-    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(RDF.pi()))) for x in xs)
+    sqrt_pi = sqrt(RDF.pi())
+    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt_pi)) for x in xs)
     assert 0.0 <= p <= 1.0
     return p
+
 
 def mitm_babai_probability_gsa(d, log_vol, log_delta, stddev, fast=False):
     """
@@ -131,36 +150,80 @@ def mitm_babai_probability_gsa(d, log_vol, log_delta, stddev, fast=False):
         # overestimate the probability -> underestimate security
         return 1
 
-    log_xs = 0.5 * log(0.5) + (d - 1 - 2 * np.arange(d, dtype=np.float64)) * float(log_delta) + float(log_vol) / d - log(stddev)
-    xs = [sqrt(.5 * ri) / stddev for ri in r]
-    # Using RDF.pi() to prevent memory leakage:
-    # see https://ask.sagemath.org/question/45863/memory-usage-strictly-increasing-on-sage-interactive-shell/
-    p = prod(RR(erf(x) - (1 - exp(-x**2)) / (x * sqrt(RDF.pi()))) for x in xs)
+    # we need to calculate log_xs[i] = log(sqrt(.5 * r_i) / stddev))) for r_i square norms
+    # under the GSA, log_xs[i] = b - a * i
+    b = 0.5 * log(0.5) + (d - 1) * log_delta + log_vol / d - log(stddev)
+    a = 2 * log_delta
+
+    # if b - a * i < max_log_xs, we can calculate with f64s without overflow
+    max_log_xs = log(2) * np.finfo(np.float64).maxexp / 2
+
+    threshold_i = min(d, max(0, floor((b - max_log_xs) / a) + 1))
+
+    # in the range [threshold_i, d), log_xs are small enough to calculate with f64s and ufuncs for a speedup
+    log_small_xs = float(b) - float(a) * np.arange(threshold_i, d, dtype=np.float64)
+    sqrt_pi = np.sqrt(np.pi)
+    small_xs = np.exp(log_small_xs)
+    probs_small_xs = scipy_erf(small_xs) + np.expm1(-np.exp(2 * log_small_xs)) / (small_xs * sqrt_pi)
+    prob_small_xs = np.prod(probs_small_xs)
+
+    # in the range [0, threshold_i), log_xs are too large to calculate with f64s, so we calculate in Sage
+    # we do this on the fly to avoid storing large arrays
+    sqrt_pi = sqrt(RDF.pi())
+
+    def prob(i):
+        return erf(exp(b - a * i)) - (1 - exp(-exp(2 * (b - a * i)))) / (exp(b - a * i) * sqrt_pi)
+    prob_large_xs = prod(prob(i) for i in range(threshold_i))
+
+    p = RR(prob_small_xs) * prob_large_xs
+    assert 0.0 <= p <= 1.0
+    return p
 
 
 def babai(babai_dim, r, norm):
     """
     Babai probability following [JMC:Wunderer19]_.
 
+    EXAMPLES::
+        >>> from estimator import prob, schemes, simulator
+        >>> from estimator.nd import SparseTernary
+        >>> from estimator.reduction import delta as deltaf
+
+        # check gsa and non-gsa probabilities match
+        >>> params = schemes.Kyber512
+        >>> beta = 300
+        >>> r = simulator.GSA(d=2 * params.n, n=params.n,q=params.q, beta=beta, xi=1, tau=False, dual=True)
+
+        >>> babai_dim = len(r)
+        >>> log(prob.babai(babai_dim, r, sqrt(babai_dim) * params.Xe.stddev), 2)
+        -330.9488591088554
+        >>> log_delta = log(deltaf(beta))
+        >>> short_vector_norm = sqrt(babai_dim) * params.Xe.stddev
+        >>> log(prob.babai_gsa(babai_dim, short_vector_norm, 2 * params.n, 0.5 * log(prod(r)), log_delta), 2)
+        -330.948859108856
     """
     denom = float(2 * norm) ** 2
     T = RealDistribution("beta", ((len(r) - 1) / 2, 1.0 / 2))
     return prod(1 - T.cum_distribution_function(1 - r_ / denom) for r_ in r[:babai_dim])
+
 
 def babai_gsa(babai_dim, norm, d, log_vol, log_delta):
     """
     Babai probability following [JMC:Wunderer19]_, in the special case we assume the basis profiles follow the GSA.
 
     """
-    T = RealDistribution("beta", ((d - 1) / 2, 1.0 / 2))
+    # calculate log (r_i ** 2/ (2 * short_vector_len ** 2)) for each i up to babai_dim, assuming the GSA.
+    # We cast logs to floats, which shouldn't overflow.
+    a = 4 * log_delta
+    b = 2 * log_delta * (d - 1) + 2 * log_vol / d - 2 * log(2 * norm)
+    log_ratios = float(b) - float(a) * np.arange(babai_dim, dtype=np.float64)
 
-    # calculate log (r_i ** 2/ (2 * short_vector_len ** 2)) for each i up to babai_dim, assuming the GSA. We cast logs to floats, which shouldn't overflow.
-    log_ratios = 2 * (d - 1 - 2 * np.arange(babai_dim, dtype=np.float64)) * float(log_delta) + 2 * float(log_vol) / d - 2 * float(log(2 * norm))
-
-    # if some log_ratio >= 0, then the corresponding term in the product is 1, so we can ignore it. We only keep the terms where log_ratio < 0
+    # if some log_ratio >= 0, then the corresponding term in the product is 1, so we can ignore it.
     log_ratios = log_ratios[log_ratios < 0]
-    ratios = np.exp(log_ratios) # we know these won't overflow, because log_ratios < 0
-    return prod(1 - T.cum_distribution_function(1 - ratio) for ratio in ratios)
+    ratios = np.exp(log_ratios)  # we know these won't overflow, because log_ratios < 0
+    probs = 1 - scipy_beta_cdf((d - 1) / 2, 1.0 / 2, 1 - ratios)
+    return RR(np.prod(probs))
+
 
 def drop(n, h, k, fail=0, rotations=False):
     """
