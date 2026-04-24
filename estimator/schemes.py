@@ -1,5 +1,5 @@
 from sage.all import oo
-from .nd import stddevf, Binary, CenteredBinomial, DiscreteGaussian, SparseTernary, UniformMod
+from .nd import stddevf, Binary, CenteredBinomial, DiscreteGaussian, SparseTernary, UniformMod, Ternary, TUniform
 from .lwe_parameters import LWEParameters
 from .ntru_parameters import NTRUParameters
 from .sis_parameters import SISParameters
@@ -575,4 +575,63 @@ CHHS_4096_82 = LWEParameters(
     Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=stddevf(8)),
     tag="CHHS_4096_82",
+)
+
+# TFHE-rs Parameters
+# https://github.com/zama-ai/tfhe-rs/blob/main/tfhe/src/shortint/parameters/v1_4/classic/tuniform/p_fail_2_minus_128/ks_pbs.rs#L29
+# Key-Switching key (LWE)
+TFHErs_LWE = LWEParameters(
+    n=918,
+    q=2**64,
+    Xs=Binary,
+    Xe=TUniform(45),
+    tag="TFHErs_LWE",
+)
+# Bootstrapping key (Ring-LWE)
+TFHErs_RLWE = LWEParameters(
+    n=2048,
+    q=2**64,
+    Xs=Binary,
+    Xe=TUniform(17),
+    tag="TFHErs_RLWE",
+)
+
+# Selected ternary parameters from v2 of the HE Standard, see https://eprint.iacr.org/2024/463, Table 5.2
+HESv2_8192_128_ternary = LWEParameters(
+    n=8192,
+    q=2 ** 214,
+    Xe=DiscreteGaussian(3.19),
+    Xs=Ternary,
+    tag="HESv2_8192_128_ternary"
+)
+HESv2_16384_128_ternary = LWEParameters(
+    n=16384,
+    q=2 ** 430,
+    Xe=DiscreteGaussian(3.19),
+    Xs=Ternary,
+    tag="HESv2_16384_128_ternary"
+)
+
+HESv2_32768_128_ternary = LWEParameters(
+    n=32768,
+    q=2 ** 868,
+    Xe=DiscreteGaussian(3.19),
+    Xs=Ternary,
+    tag="HESv2_32768_128_ternary"
+)
+
+HESv2_65536_128_ternary = LWEParameters(
+    n=65536,
+    q=2 ** 1747,
+    Xe=DiscreteGaussian(3.19),
+    Xs=Ternary,
+    tag="HESv2_65536_128_ternary"
+)
+
+HESv2_131072_128_ternary = LWEParameters(
+    n=131072,
+    q=2 ** 3523,
+    Xe=DiscreteGaussian(3.19),
+    Xs=Ternary,
+    tag="HESv2_131072_128_ternary"
 )
