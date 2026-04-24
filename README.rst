@@ -154,6 +154,7 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - Michael Walter
 - Rachel Player
 - Sam Scott
+- `Tabitha Ogilvie <https://github.com/TabOg>`__
 
 See `Contributing <https://lattice-estimator.readthedocs.io/en/latest/contributing.html>`__ for details on how
 to contribute.
