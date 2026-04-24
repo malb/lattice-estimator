@@ -111,14 +111,27 @@ def mitm_babai_probability(r, stddev, fast=False):
         >>> from estimator.reduction import delta as deltaf
 
         # check gsa and non-gsa probabilities match
-        >>> params = schemes.Kyber512
-        >>> beta = 300
-        >>> r = simulator.GSA(d=2 * params.n, n=params.n,q=params.q, beta=beta, xi=1, tau=False, dual=True)
-        >>> log(prob.mitm_babai_probability(r, params.Xe.stddev), 2)
-        -387.008967465078
+        # we choose parameters where this probability is non negligible
+        >>> params = schemes.Kyber512.updated(Xs=SparseTernary(16, 16))
+        >>> beta = 111
+        >>> zeta = 366
+        >>> d = 330
+        >>> xi = params.Xe.stddev / params.Xs.stddev
+
+        # simulate basis
+        >>> r = simulator.GSA(d=d, n=params.n - zeta ,q=params.q, beta=beta, xi=xi, tau=False, dual=True)
+
+        # calculate probability using full profile
+        # print to 15 decimal places for stability across platforms
+        >>> prob_sim = prob.mitm_babai_probability(r, params.Xe.stddev)
+        >>> ((prob_sim * 10 ** 15).round() / 10 ** 15).n()
+        0.00407086106991200
+
+        # now calculate using GSA-specific formula, which should match
         >>> log_delta = log(deltaf(beta))
-        >>> log(prob.mitm_babai_probability_gsa(2 * params.n, 0.5 * log(prod(r)), log_delta, params.Xe.stddev), 2)
-        -387.008967465078
+        >>> prob_gsa = prob.mitm_babai_probability_gsa(d, 0.5 * log(prod(r)), log_delta, params.Xe.stddev)
+        >>> ((prob_gsa * 10 ** 15).round() / 10 ** 15).n()
+        0.00407086106991200
     """
     if fast:
         # overestimate the probability -> underestimate security
@@ -190,17 +203,29 @@ def babai(babai_dim, r, norm):
         >>> from estimator.reduction import delta as deltaf
 
         # check gsa and non-gsa probabilities match
-        >>> params = schemes.Kyber512
-        >>> beta = 300
-        >>> r = simulator.GSA(d=2 * params.n, n=params.n,q=params.q, beta=beta, xi=1, tau=False, dual=True)
-
-        >>> babai_dim = len(r)
-        >>> log(prob.babai(babai_dim, r, sqrt(babai_dim) * params.Xe.stddev), 2)
-        -330.9488591088554
-        >>> log_delta = log(deltaf(beta))
+        # we choose parameters where this probability is non negligible
+        >>> params = schemes.Kyber512.updated(Xs=SparseTernary(16, 16))
+        >>> beta = 111
+        >>> zeta = 366
+        >>> d = 330
+        >>> xi = params.Xe.stddev / params.Xs.stddev
+        >>> babai_dim = d
         >>> short_vector_norm = sqrt(babai_dim) * params.Xe.stddev
-        >>> log(prob.babai_gsa(babai_dim, short_vector_norm, 2 * params.n, 0.5 * log(prod(r)), log_delta), 2)
-        -330.948859108856
+
+        # simulate basis
+        >>> r = simulator.GSA(d=d, n=params.n - zeta ,q=params.q, beta=beta, xi=xi, tau=False, dual=True)
+
+        # calculate probability using full profile
+        # print to 15 decimal places for stability across platforms
+        >>> prob_sim = prob.babai(babai_dim, r, short_vector_norm)
+        >>> ((prob_sim * 10 ** 15).round() / 10 ** 15).n()
+        0.999951336768017
+
+        # now calculate using GSA-specific formula, which should match
+        >>> log_delta = log(deltaf(beta))
+        >>> prob_gsa = prob.babai_gsa(babai_dim, short_vector_norm, d, 0.5 * log(prod(r)), log_delta)
+        >>> ((prob_gsa * 10 ** 15).round() / 10 ** 15).n()
+        0.999951336768017
     """
     denom = float(2 * norm) ** 2
     T = RealDistribution("beta", ((len(r) - 1) / 2, 1.0 / 2))
