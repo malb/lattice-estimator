@@ -153,8 +153,9 @@ def mitm_babai_probability_gsa(d, log_vol, log_delta, stddev, fast=False):
     Compute the "e-admissibility" probability associated to the mitm step, according to
     [WAHC:SonChe19]_, in the special case we assume the basis profiles follow the GSA.
 
-    :param log_vol: log of the volume of the lattice
-    :param log_delta: log of the root-Hermite factor delta
+    :param d: lattice rank
+    :param log_vol: natural log of the volume of the lattice
+    :param log_delta: natural log of the root-Hermite factor δ
     :param stddev: the std.dev of the error distribution
     :param fast: toggle for setting p = 1 (faster, but underestimates security)
     :return: probability for the mitm process
@@ -197,6 +198,11 @@ def babai(babai_dim, r, norm):
     """
     Babai probability following [JMC:Wunderer19]_.
 
+    :param babai_dim: number of coordinates to recover with Babai's Nearest Plane
+    :param r: squared Gram-Schmidt norms of the basis
+    :parm norm: length of the remaining short vector to recover
+    :return: probability Babai's nearest Plane outputs the target short vector
+
     EXAMPLES::
         >>> from estimator import prob, schemes, simulator
         >>> from estimator.nd import SparseTernary
@@ -235,6 +241,13 @@ def babai(babai_dim, r, norm):
 def babai_gsa(babai_dim, norm, d, log_vol, log_delta):
     """
     Babai probability following [JMC:Wunderer19]_, in the special case we assume the basis profiles follow the GSA.
+
+    :param babai_dim: number of coordinates to recover with Babai's Nearest Plane
+    :param norm: length of the remaining short vector to recover
+    :param d: lattice rank
+    :param log_vol: natural log of lattice volume
+    :param log_delta: natural log of root-Hermite factor δ
+    :return: probability Babai's Nearest Plane algorithm outputs the target short vector
 
     """
     # calculate log (r_i ** 2/ (2 * short_vector_len ** 2)) for each i up to babai_dim, assuming the GSA.
