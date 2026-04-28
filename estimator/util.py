@@ -168,7 +168,7 @@ class local_minimum_base:
 
         """
 
-        Logging.log("bins", self._log_level, f"({self._last_x}, {repr(res)})")
+        Logging.log("bins", self._log_level, "(%s, %r)", self._last_x, res)
 
         self._all_x.add(self._last_x)
 
@@ -341,7 +341,7 @@ class early_abort_range:
 
     def update(self, res):
         """ """
-        Logging.log("lins", self._log_level, f"({self._last_x}, {repr(res)})")
+        Logging.log("lins", self._log_level, "(%s, %r)", self._last_x, res)
 
         if self._best.low is None:
             self._best = Bounds(self._last_x, res)
