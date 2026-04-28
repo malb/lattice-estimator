@@ -1,6 +1,8 @@
 name: Publish Jupyter Notebooks
 
 on:
+  pull_request:
+    branches: [ main, docs ]
   push:
     branches: [ main, docs ]
 
@@ -17,10 +19,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
   
-      - name: Install Prerequists
+      - name: Install Prerequisites
         run: |
           python -m pip install --upgrade --break-system-packages pip
           pip install --break-system-packages sphinxcontrib-jupyter
+          python -m pip install numpy scipy
 
       - name: Generate Jupyter Notebooks
         run: |
