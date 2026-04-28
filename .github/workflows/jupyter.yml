@@ -51,6 +51,7 @@ jobs:
           cp docs/_build/jupyter/prompt.ipynb out
 
       - name: Publish
+        if: github.event_name == 'push'
         uses: s0/git-publish-subdir-action@develop
         env:
           REPO: self
