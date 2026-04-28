@@ -19,7 +19,6 @@ The last row is optional.
 
 from sage.all import RR, log, line, cached_function, pi, exp
 from functools import partial
-import numpy as np
 
 
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
@@ -115,8 +114,8 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
     delta = deltaf(beta)
     log_delta = RR(log(delta, 2))
-    r_log = (d - 1 - 2 * np.arange(d)) * float(log_delta) + float(log_vol) / d
-    r = (4.0 ** r_log).tolist()
+    r_log = [(d - 1 - 2 * i) * log_delta + log_vol / d for i in range(d)]
+    r = [2 ** (2 * r_) for r_ in r_log]
     return r
 
 
