@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-High-level NTRU interface
+High-level SIS interface
 """
 
 from functools import partial
 from sage.all import oo
 
 from .sis_lattice import lattice
+from .sis_small_q import small_q
 from .sis_parameters import SISParameters as Parameters  # noqa
 from .conf import (
     red_cost_model as red_cost_model_default,
@@ -48,8 +49,12 @@ class Estimate:
         """
         algorithms = {}
 
-        # Only lattice attacks are supported on SIS for now
+        # lattice attacks for SIS
         algorithms["lattice"] = partial(lattice, red_cost_model=RC.ADPS16, red_shape_model="lgsa")
+
+        # small-q attack when applicable (nu >= q/2)
+        if params.length_bound >= params.q / 2:
+            algorithms["small_q"] = partial(small_q, sieve="bdgl", otf_lift=True, inhom=None)
 
         res_raw = batch_estimate(
             params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
@@ -114,6 +119,12 @@ class Estimate:
         algorithms["lattice"] = partial(
             lattice, red_cost_model=red_cost_model, red_shape_model=red_shape_model
         )
+
+        # small-q attack when applicable (nu >= q/2)
+        if params.length_bound >= params.q / 2:
+            algorithms["small_q"] = partial(small_q, sieve="bdgl", otf_lift=True, inhom=None)
+            # also try the isis variant with specific probability loss
+            algorithms["small_q_isis"] = partial(small_q, sieve="bdgl", otf_lift=True, inhom="specific")
 
         algorithms = {k: v for k, v in algorithms.items() if k not in deny_list}
         algorithms.update(add_list)
