@@ -177,7 +177,7 @@ class local_minimum_base:
             self._best = Bounds(self._last_x, res)
 
         # We found something better
-        if res and self._smallerf(res, self._best.high):
+        if res is not False and self._smallerf(res, self._best.high):
             # store it
             self._best = Bounds(self._last_x, res)
 
@@ -347,7 +347,7 @@ class early_abort_range:
             self._best = Bounds(self._last_x, res)
             return
 
-        if not res:
+        if res is False:
             self._next_x = None
         elif self._smallerf(res, self._best.high):
             self._best = Bounds(self._last_x, res)

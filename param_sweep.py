@@ -289,14 +289,14 @@ class ParameterSweep:
         assert num_proc >= 1, "need at least one process to execute"
 
         pickle_filename = f"{file_name}.pickle"
-        if load_pickle:
+        if load_pickle is True:
             with open(pickle_filename, "rb") as f:
                 result_dict = pickle.load(f)
         else:
             result_dict = ParameterSweep.parameter_sweep(
                 n, q, e, s, m, Xe, e_log, Xs, s_log, tag, f, num_proc, log_level
             )
-            if make_pickle:
+            if make_pickle is True:
                 # Pickle the intermediate computation results
                 with open(pickle_filename, "wb") as f:
                     pickle.dump(result_dict, f)
