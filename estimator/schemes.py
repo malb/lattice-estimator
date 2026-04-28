@@ -587,6 +587,7 @@ TFHErs_LWE = LWEParameters(
     Xe=TUniform(45),
     tag="TFHErs_LWE",
 )
+
 # Bootstrapping key (Ring-LWE)
 TFHErs_RLWE = LWEParameters(
     n=2048,
@@ -604,6 +605,7 @@ HESv2_8192_128_ternary = LWEParameters(
     Xs=Ternary,
     tag="HESv2_8192_128_ternary"
 )
+
 HESv2_16384_128_ternary = LWEParameters(
     n=16384,
     q=2 ** 430,
