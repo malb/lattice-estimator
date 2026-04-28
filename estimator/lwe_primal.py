@@ -18,9 +18,7 @@ from .simulator import GSA
 from .prob import guessing_set_and_hit_probability
 from .prob import amplify as prob_amplify
 from .prob import babai as prob_babai
-from .prob import babai_gsa as prob_babai_gsa
 from .prob import mitm_babai_probability
-from .prob import mitm_babai_probability_gsa
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
@@ -423,7 +421,7 @@ class PrimalHybrid:
         red_cost_model=red_cost_model_default,
         log_level=5,
     ):
-        """
+        '''
         The costs in a Primal Hybrid attack when we run BKZ-β on the lattice basis.
 
         :param beta: blocksize.
@@ -442,7 +440,7 @@ class PrimalHybrid:
         - eta: the projection dimension.
         - babai_probability: the probability the Babai lift in the CVP subroutine succeeds.
         - mitm_probability: the probability a mitm speedup succeeds. If mitm=False, returns 1.
-        """
+        '''
         if m - zeta < beta:
             # cannot BKZ-β on a basis of dimension < β
             return {"bkz_cost": Cost(rop=oo)}
@@ -463,12 +461,7 @@ class PrimalHybrid:
         # [q I_m |  A_{n - zeta}  ]
         # [  0   | xi I_{n - zeta}]
         # r holds the simulated squared GSO norms after BKZ-β
-        if simulator != GSA:
-            r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
-        if simulator == GSA:
-            # for better performance, we only calculate the values that determine the GSA shape, not the full shape.
-            log_vol = RR((d - (params.n - zeta)) * log(params.q) + (params.n - zeta) * log(xi))
-            log_delta = RR(log(deltaf(beta)))
+        r = simulator(d, params.n - zeta, params.q, beta, xi=xi, tau=False, dual=True)
         bkz_cost = costf(red_cost_model, beta, d)
 
         # 2. Required SVP dimension η + 1
@@ -481,6 +474,8 @@ class PrimalHybrid:
         else:
             # we scaled the lattice so that χ_e is what we want
             if simulator == GSA:
+                log_vol = RR((d - (params.n - zeta)) * log(params.q) + (params.n - zeta) * log(xi))
+                log_delta = RR(log(deltaf(beta)))
                 svp_dim = PrimalHybrid.svp_dimension_gsa(d, log_vol, log_delta, params.Xe, params._homogeneous)
             else:
                 svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, is_homogeneous=params._homogeneous)
@@ -494,20 +489,14 @@ class PrimalHybrid:
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
 
-        # the number of coordinates we recover with a Babai lift
-        babai_dim = d - eta if not babai else d
-        short_vector_norm = sqrt(babai_dim) * params.Xe.stddev
-        if simulator == GSA:
-            babai_probability = prob_babai_gsa(babai_dim, short_vector_norm, d, log_vol, log_delta=log_delta)
+        if babai:
+            babai_probability = prob_babai(r, sqrt(d) * params.Xe.stddev)
         else:
-            babai_probability = prob_babai(babai_dim, r, norm=short_vector_norm)
+            babai_probability = prob_babai(r[:d-eta], sqrt(d - eta) * params.Xe.stddev)
 
         if mitm and zeta > 0:
             if babai:
-                if simulator == GSA:
-                    mitm_probability = mitm_babai_probability_gsa(d, log_vol, log_delta, stddev=params.Xe.stddev)
-                else:
-                    mitm_probability = mitm_babai_probability(r, stddev=params.Xe.stddev)
+                mitm_probability = mitm_babai_probability(r, params.Xe.stddev)
             else:
                 # TODO: the probability in this case needs to be analysed
                 mitm_probability = 1
@@ -772,13 +761,13 @@ class PrimalHybrid:
             >>> from estimator import *
             >>> params = schemes.Kyber512.updated(Xs=ND.SparseTernary(16))
             >>> LWE.primal_hybrid(params, mitm=False, babai=False)
-            rop: ≈2^87.8, red: ≈2^87.1, svp: ≈2^86.5, β: 127, η: 18, ζ: 303, |S|: ≈2^45.9, d: 409, prob: ≈2^-19.3, ↻...
+            rop: ≈2^87.9, red: ≈2^87.2, svp: ≈2^86.5, β: 127, η: 18, ζ: 303, |S|: ≈2^45.9, d: 409, prob: ≈2^-19.4, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=False, babai=True)
             rop: ≈2^88.2, red: ≈2^87.3, svp: ≈2^87.1, β: 119, η: 2, ζ: 304, |S|: ≈2^45.9, d: 401, prob: ≈2^-21.6, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=False)
-            rop: ≈2^72.1, red: ≈2^70.7, svp: ≈2^71.3, β: 106, η: 18, ζ: 321, |S|: ≈2^82.8, d: 373, prob: 0.002, ↻...
+            rop: ≈2^72.1, red: ≈2^70.8, svp: ≈2^71.4, β: 106, η: 18, ζ: 321, |S|: ≈2^82.8, d: 373, prob: 0.002, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=True)
             rop: ≈2^85.4, red: ≈2^83.6, svp: ≈2^84.9, β: 111, η: 2, ζ: 366, |S|: ≈2^90.9, d: 330, prob: ≈2^-20.5, ↻...
