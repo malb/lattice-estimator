@@ -193,7 +193,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
     def delta(k):
         assert k >= 60
-        delta = exp(log_gh(k) / (k - 1))
+        delta = exp(log_gh(k)/(k-1))
         return RR(delta)
 
     @cached_function
