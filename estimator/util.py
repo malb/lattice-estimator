@@ -93,8 +93,8 @@ class local_minimum_base:
 
         """
 
-        if stop < start:
-            raise ValueError(f"Incorrect bounds {start} > {stop}.")
+        if stop <= start:
+            raise ValueError(f"Incorrect bounds {start} >= {stop}.")
 
         self._suppress_bounds_warning = suppress_bounds_warning
         self._log_level = log_level
