@@ -33,4 +33,19 @@ Another option is to simulate a rerandomization of the basis, such that the q-ve
     SIS.lattice(params.updated(length_bound=70), red_shape_model=Simulator.LGSA)
 
 **Note:** Currently, lattice attack estimation is only available for euclidean (``2``) and infinity (``oo``) norms. ``SIS.lattice()`` will return a ``NotImplementedError`` if one of these two norms are not selected.
-                        
+
+Small Modulus
+-------------
+
+When the modulus ``q`` is small relative to a euclidean length bound ``ν > q``, plain SIS is trivially solved by a q-vector, but finding a solution that is not a multiple of ``q`` (the SIS\* problem) remains hard. The attack of [C:DucEspPos23]_ exploits the Z-shape of a BKZ-reduced basis of the q-ary lattice: it sieves in the projected sublattice past the q-vectors and lifts the resulting short vectors over them, which succeeds when the (uniform mod q) lifted entries are short enough. The number of such short lifts is counted via theta series of ``ZZ``::
+
+    from estimator import *
+    params = SIS.Parameters(n=150, q=257, length_bound=420, m=300, norm=2)
+    SIS.small_q(params)
+
+The reduction of [C:DucEspPos23]_ frames signature forgery for schemes such as Falcon and Mitaka as an inhomogeneous instance; pass ``inhom="specific"`` (or ``inhom="generic"``) to account for the corresponding loss in success probability::
+
+    SIS.small_q(params, inhom="specific")
+
+This attack is included automatically in ``SIS.estimate()`` whenever the instance falls into the ``ν > q`` euclidean regime.
+

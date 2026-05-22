@@ -19,10 +19,10 @@ from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, RDF, cached_fu
 from sage.all import RealDistribution, RR, sqrt, prod, erf
 from .conf import max_n_cache
 from .nd import NoiseDistribution
+from .util import LazyEvaluation
 
-chisquared_table = {i: None for i in range(2*max_n_cache+1)}
-for i in range(2*max_n_cache+1):
-    chisquared_table[i] = RealDistribution('chisquared', i)
+
+chi_squared_cdf = LazyEvaluation(lambda i: RealDistribution('chisquared', i).cum_distribution_function, 2*max_n_cache)
 
 
 def conditional_chi_squared(d1, d2, lt, l2):
@@ -52,8 +52,7 @@ def conditional_chi_squared(d1, d2, lt, l2):
         >>> prob.conditional_chi_squared(100, 5, 50, .7)
         5.4021875103989546e-06
     """
-    D1 = chisquared_table[d1].cum_distribution_function
-    D2 = chisquared_table[d2].cum_distribution_function
+    D1, D2 = chi_squared_cdf[d1], chi_squared_cdf[d2]
     l2 = RR(l2)
 
     PE2 = D2(l2)

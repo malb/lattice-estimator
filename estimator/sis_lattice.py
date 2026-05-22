@@ -19,7 +19,6 @@ from .prob import amplify as prob_amplify
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
-from .conf import red_simulator as red_simulator_default
 
 
 class SISLattice:
@@ -82,10 +81,10 @@ class SISLattice:
     def cost_infinity(
         beta: int,
         params: SISParameters,
-        simulator,
         zeta: int = 0,
         success_probability: float = 0.99,
         d=None,
+        red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         log_level=None,
         **kwds,
@@ -95,10 +94,10 @@ class SISLattice:
 
         :param params: SIS parameters
         :param beta: Block size used to produce short vectors for reduction
-        :param simulator: Basis profile simulator
         :param zeta: Number of coefficients to set to 0 (ignore)
         :param success_probability: The success probability to target
         :param red_cost_model: How to cost lattice reduction
+        :param red_shape_model: How to model the shape of a reduced basis.
 
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
@@ -116,6 +115,7 @@ class SISLattice:
         if d_ < beta:
             return Cost(rop=oo, mem=oo)
 
+        simulator = simulator_normalize(red_shape_model)
         r = simulator(d=d_, n=d_ - params.n, q=params.q, beta=beta, xi=1, tau=False)
 
         # Cost the sampling of short vectors.
@@ -184,13 +184,12 @@ class SISLattice:
 
         return ret
 
-    @classmethod
     def cost_zeta(
-        cls,
+        self,
         zeta: int,
         params: SISParameters,
         ignore_qary: bool = False,
-        red_shape_model=red_simulator_default,
+        red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         d=None,
         log_level=5,
@@ -206,7 +205,7 @@ class SISLattice:
         params_baseline = params.updated(
             norm=2, length_bound=2 if params.length_bound == 1 else params.length_bound
         )
-        baseline_cost = lattice(
+        baseline_cost = self(
             params_baseline,
             ignore_qary=ignore_qary,
             red_shape_model=red_shape_model,
@@ -218,11 +217,11 @@ class SISLattice:
         Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
-            cls.cost_infinity,
+            SISLattice.cost_infinity,
             params=params,
             zeta=zeta,
             ignore_qary=ignore_qary,
-            simulator=red_shape_model,
+            red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
             d=d,
             **kwds,
@@ -312,8 +311,6 @@ class SISLattice:
             )
 
         if tag == "infinity":
-            red_shape_model = simulator_normalize(red_shape_model)
-
             f = partial(
                 self.cost_zeta,
                 params=params,

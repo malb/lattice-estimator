@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-High-level SIS interface
+High-level NTRU interface
 """
 
 from functools import partial
@@ -49,12 +49,11 @@ class Estimate:
         """
         algorithms = {}
 
-        # lattice attacks for SIS
         algorithms["lattice"] = partial(lattice, red_cost_model=RC.ADPS16, red_shape_model="lgsa")
 
-        # small-q attack when applicable (nu >= q/2)
-        if params.length_bound >= params.q / 2:
-            algorithms["small_q"] = partial(small_q, sieve="bdgl", otf_lift=True, inhom=None)
+        # the small modulus attack [C:DucEspPos23]_ applies to euclidean instances with ν > q
+        if params.norm == 2 and params.length_bound > params.q:
+            algorithms["small_q"] = partial(small_q, red_cost_model=RC.ADPS16, red_shape_model="zgsa")
 
         res_raw = batch_estimate(
             params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
@@ -120,11 +119,11 @@ class Estimate:
             lattice, red_cost_model=red_cost_model, red_shape_model=red_shape_model
         )
 
-        # small-q attack when applicable (nu >= q/2)
-        if params.length_bound >= params.q / 2:
-            algorithms["small_q"] = partial(small_q, sieve="bdgl", otf_lift=True, inhom=None)
-            # also try the isis variant with specific probability loss
-            algorithms["small_q_isis"] = partial(small_q, sieve="bdgl", otf_lift=True, inhom="specific")
+        # the small modulus attack [C:DucEspPos23]_ applies to euclidean instances with ν > q
+        if params.norm == 2 and params.length_bound > params.q:
+            algorithms["small_q"] = partial(
+                small_q, red_cost_model=red_cost_model, red_shape_model=red_shape_model
+            )
 
         algorithms = {k: v for k, v in algorithms.items() if k not in deny_list}
         algorithms.update(add_list)

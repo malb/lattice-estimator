@@ -19,38 +19,36 @@ class ReductionCost:
 
         ```
         # -*- coding: utf-8 -*-
+        from functools import partial
+        from statistics import mean
+        from math import sqrt, exp, log
+        from multiprocessing import Pool
+        from timeit import default_timer
         from fpylll import BKZ, IntegerMatrix
 
-        from multiprocessing import Pool
-        from sage.all import mean, sqrt, exp, log, cputime
 
-        d, trials = 320, 32
+        def f(params, A):
+            q, d = A[-1, -1], A.nrows
+            t1 = default_timer()
+            A = BKZ.reduction(A, params, float_type="dd")
+            t2 = default_timer()
+            return t2 - t1, exp(log(A[0].norm() / sqrt(q)) / d)  # rhf = ||b_0||^{1/n} / det(L)^{1/n^2}
 
-        def f((A, beta)):
 
-            par = BKZ.Param(block_size=beta, strategies=BKZ.DEFAULT_STRATEGY, flags=BKZ.AUTO_ABORT)
-            q = A[-1, -1]
-            d = A.nrows
-            t = cputime()
-            A = BKZ.reduction(A, par, float_type="dd")
-            t = cputime(t)
-            return t, exp(log(A[0].norm()/sqrt(q).n())/d)
+        def run(pool, beta):
+            d, trials = 320, 20  # Dimension & Number of trials
+            As = [IntegerMatrix.random(d, "qary", k=d//2, bits=50) for j in range(trials)]
+            params = BKZ.Param(block_size=beta, strategies=BKZ.DEFAULT_STRATEGY, flags=BKZ.AUTO_ABORT)
+            t, delta = zip(*pool.map(partial(f, params), As))
+            print(f"β:{beta:3d}, δ_0: {mean(delta):.5f}, time: {mean(t):5.2f}s "
+                  f"({trials} trials, {threads} threads)")
+
 
         if __name__ == '__main__':
-            for beta in (5, 10, 15, 20, 25, 28, 30, 35, 40):
-                delta = []
-                t = []
-                i = 0
-                  while i < trials:
-                    threads = int(open("delta.nthreads").read()) # make sure this file exists
-                    pool = Pool(threads)
-                    A = [(IntegerMatrix.random(d, "qary", beta=d//2, bits=50), beta) for j in range(threads)]
-                    for (t_, delta_) in pool.imap_unordered(f, A):
-                        t.append(t_)
-                        delta.append(delta_)
-                    i += threads
-                    print u"β: %2d, δ_0: %.5f, time: %5.1fs, (%2d,%2d)"%(beta, mean(delta), mean(t), i, threads)
-                print
+            threads = int(open("delta.nthreads").read())  # make sure this file exists
+            with Pool(threads) as pool:
+                for beta in (5, 10, 15, 20, 25, 28, 30, 35, 40):
+                    run(pool, beta)
         ```
 
         """
