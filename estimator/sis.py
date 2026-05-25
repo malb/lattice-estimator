@@ -119,11 +119,10 @@ class Estimate:
             lattice, red_cost_model=red_cost_model, red_shape_model=red_shape_model
         )
 
-        # the small modulus attack [C:DucEspPos23]_ applies to euclidean instances with ν > q
+        # the small modulus attack [C:DucEspPos23]_ applies to euclidean instances with ν > q; it
+        # needs the q-vectors, so we give it the Z-shape simulator rather than the default shape
         if params.norm == 2 and params.length_bound > params.q:
-            algorithms["small_q"] = partial(
-                small_q, red_cost_model=red_cost_model, red_shape_model=red_shape_model
-            )
+            algorithms["small_q"] = partial(small_q, red_cost_model=red_cost_model, red_shape_model="zgsa")
 
         algorithms = {k: v for k, v in algorithms.items() if k not in deny_list}
         algorithms.update(add_list)

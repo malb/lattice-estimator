@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Estimate cost of solving SIS with a small modulus.
+Estimate cost of solving SIS with a small modulus via lattice reduction [C:DucEspPos23]_.
 
 See :ref:`SIS Lattice Attacks` for an introduction to what is available.
 
 """
 from functools import partial
-from math import log as mlog, pi
+from math import log as mlog, sqrt as msqrt, exp as mexp, pi, erf
 
-import numpy as np
 from scipy.optimize import brentq
 from sage.all import oo, sqrt, RR, floor, cached_function
 
@@ -16,27 +15,11 @@ from .reduction import cost as costf
 from .util import local_minimum, log2
 from .cost import Cost
 from .sis_parameters import SISParameters
-from .simulator import GSA, normalize as simulator_normalize
+from .simulator import normalize as simulator_normalize
 from .prob import amplify as prob_amplify
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
-from .conf import red_shape_model as red_shape_model_default
 from .conf import max_beta
-
-
-@cached_function
-def _centred_squares(q):
-    """
-    Squares of a centred set of representatives of ``ZZ/qZZ``.
-
-    These are the squared lengths a single (uniform mod q) lifted coordinate can take, used to form
-    the cumulant generating function to the squared length of a lift.
-
-    :param q: the modulus.
-
-    """
-    u = np.arange(-((q - 1) // 2), q // 2 + 1, dtype=float)
-    return u * u
 
 
 def log2_lift_proportion(n_q, sq_radius, q):
@@ -45,39 +28,50 @@ def log2_lift_proportion(n_q, sq_radius, q):
 
     ``Cube_{n_q}(q)`` is a centred set of representatives of ``(ZZ/qZZ)^{n_q}`` and the proportion of
     it inside the ball of squared radius ``sq_radius`` is the success probability of a single lift
-    [C:DucEspPos23]_ Eq. 2. We evaluate it with a saddle-point (Bahadur-Rao) approximation of the
-    theta-series count of [C:DucEspPos23]_ Sect. 3.3, in closed form and accurate in the relevant
-    tail. Above the mean cube length the lifting is not the bottleneck and the proportion is one.
+    [C:DucEspPos23]_ Eq. 2, whose integer points [C:DucEspPos23]_ Sect. 3.3 counts via theta series.
+    We instead use a saddle-point (Bahadur-Rao) approximation: a coordinate uniform mod q is modelled
+    as uniform on ``[-q/2, q/2]``, whose cumulant generating function ``K(t) = log E[e^{t U^2}]`` is
+    closed form, so the estimate is accurate in the relevant tail and costs ``O(1)`` rather than
+    ``O(q)``. Above the mean cube length the lifting is not the bottleneck and the proportion is one.
 
     :param n_q: number of (uniform mod q) lifted coordinates.
     :param sq_radius: squared radius of the ball.
     :param q: the modulus.
 
     """
-    squares = _centred_squares(q)
-    if sq_radius >= n_q * float(squares.mean()):
+    a = float(sq_radius)
+    h = q / 2.0  # a lifted coordinate is modelled as uniform on [-q/2, q/2], with E[U^2] = h^2 / 3
+    if a >= n_q * h ** 2 / 3:
+        # the ball reaches past the mean cube length, so the lifting is not the bottleneck
         return RR(0)
-    if sq_radius < 1:
+    if a < 1:
         # only the zero vector of the cube lies in the ball
-        return RR(-n_q * mlog(q) / mlog(2))
+        return RR(-n_q * log2(q))
 
     def derivatives(t):
-        # φ(t) and the derivatives K'(t), K''(t) of K(t) = log φ(t) for one coordinate's squared length
-        w = np.exp(t * squares)
-        s0, s1, s2 = float(w.sum()), float((squares * w).sum()), float((squares * squares * w).sum())
-        return s0, s1 / s0, s2 / s0 - (s1 / s0) ** 2
+        # K'(t), K''(t) of K(t) = log E[e^{t U^2}] via I_k = ∫_0^h u^k e^{t u^2} du for one coordinate
+        s = -t
+        if s < 1e-8:
+            I0, I2, I4 = h, h ** 3 / 3, h ** 5 / 5
+        else:
+            decay = mexp(-s * h ** 2)
+            I0 = msqrt(pi / s) / 2 * erf(h * msqrt(s))
+            I2 = (I0 - h * decay) / (2 * s)
+            I4 = (3 * I2 - h ** 3 * decay) / (2 * s)
+        return I0, I2 / I0, I4 / I0 - (I2 / I0) ** 2
 
     # saddle point t < 0: the tilted mean n_q ⋅ K'(t) matches the squared radius
-    t = brentq(lambda t: n_q * derivatives(t)[1] - sq_radius, -50.0, 0.0)
-    s0, _, var_t = derivatives(t)
-    log_phi = mlog(s0) - mlog(q)
-    ln_p = n_q * log_phi - t * sq_radius - mlog(-t) - mlog(2 * pi * n_q * var_t) / 2
+    t = brentq(lambda x: n_q * derivatives(x)[1] - a, -(2 * n_q / a + 50), 0.0)
+    I0, _, var_t = derivatives(t)
+    if var_t <= 0:
+        return RR(0)
+    ln_p = n_q * (mlog(I0) - mlog(h)) - t * a - mlog(-t) - mlog(2 * pi * n_q * var_t) / 2
     return RR(min(0.0, ln_p) / mlog(2))
 
 
 class SISSmallQ:
     """
-    Estimate cost of solving SIS with a small modulus via lattice reduction.
+    Estimate cost of solving SIS with a small modulus via lattice reduction [C:DucEspPos23]_.
     """
 
     @staticmethod
@@ -85,67 +79,36 @@ class SISSmallQ:
     def cost(
         beta: int,
         params: SISParameters,
-        on_the_fly: bool = None,
-        inhom: str = None,
         success_probability: float = 0.99,
-        red_shape_model=red_shape_model_default,
+        red_shape_model="ZGSA",
         red_cost_model=red_cost_model_default,
         log_level=None,
         **kwds,
     ):
         """
-        Cost of the small-q attack [C:DucEspPos23] for a fixed block size β.
+        Cost of the small-q attack [C:DucEspPos23]_ for a fixed block size β.
 
         The attack reduces a basis of the kernel lattice ``Λ_q^⊥(A)``, which exhibits a "Z-shape":
         a head of ``n_q`` vectors of length ``q``, a sloped middle and a flat tail. Sieving in the
         projected sublattice past the q-vectors yields many short vectors which are then lifted over
         the q-vectors; a lift is a solution when its (uniform mod q) lifted entries are short enough.
+        We take the cheaper of lifting the terminal sieve database [C:DucEspPos23]_ Sect. 3.4 and
+        lifting every vector of the final sieve iteration [C:DucEspPos23]_ Sect. 4.
 
         :param beta: block size β.
         :param params: SIS parameters.
-        :param on_the_fly: lift every vector seen in the last sieve iteration [C:DucEspPos23]_ Sect. 4.
-            If ``None``, return the cheaper of the two variants.
-        :param inhom: model the reduction to the inhomogeneous problem [C:DucEspPos23]_ Sect. 3.5;
-            one of ``None`` (homogeneous SIS*), ``"specific"`` (loss ``q/2``) or ``"generic"``
-            (loss ``m(q-1)``).
         :param success_probability: targeted success probability.
         :param red_shape_model: how to model the shape of a reduced basis; must expose the q-vectors.
         :param red_cost_model: how to cost lattice reduction.
 
         """
-        if on_the_fly is None:
-            # the two lifting strategies trade more vectors for a smaller radius; consider the cheaper
-            return min(
-                SISSmallQ.cost(beta, params, otf, inhom, success_probability,
-                               red_shape_model, red_cost_model, log_level)
-                for otf in (True, False)
-            )
-
-        # the inhomogeneous reduction operates one rank higher
-        d = params.m + 1 if inhom else params.m
+        d = params.m
 
         if beta > d:
             return Cost(rop=oo)
 
-        # length and (log) number of vectors expected from sieving the projected sublattice
-        if on_the_fly:
-            # lift every vector visited in the final sieve iteration 
-            proj_length = sqrt(RR(2)) * params.q
-            log2_density = log2(RR(3) / 2) / 2
-        else:
-            # lift the terminal sieve database only
-            proj_length = sqrt(RR(4) / 3) * params.q
-            log2_density = log2(RR(4) / 3) / 2
-
-        if proj_length >= params.length_bound:
-            # the projected vectors alone are already too long to lift to a solution
-            return Cost(rop=oo)
-
         # shape of the BKZ-β reduced basis of the kernel lattice Λ_q^⊥(A)
         simulator = simulator_normalize(red_shape_model)
-        if simulator is GSA:
-            # the GSA has no q-vectors; the attack requires the Z-shape, so use the ZGSA instead
-            simulator = simulator_normalize("ZGSA")
         r = simulator(d=d, n=d - params.n, q=params.q, beta=beta, xi=1, tau=False)
 
         # number of q-vectors n_q left at the head of the basis (Zone I of the Z-shape)
@@ -158,20 +121,23 @@ class SISSmallQ:
         # the sieve runs in the projected sublattice Λ_{[ℓ:s]}, ℓ = n_q + 1 and s = min(ℓ+β, d+1)
         sieve_dim = min(beta, d - n_q)
 
-        # squared lifting radius: the lifted entries must absorb the remaining length 
-        sq_radius = floor(RR(params.length_bound) ** 2 - proj_length ** 2)
-        log2_p = log2_lift_proportion(n_q, sq_radius, params.q)
+        # expected number of solutions from one sieve over the two lifting strategies; for each the
+        # projected vectors have length ``proj_length`` and there are ``2^(log2_density ⋅ sieve_dim)``
+        log2_solutions = None
+        for proj_length, log2_density in (
+            (sqrt(RR(4) / 3) * params.q, log2(RR(4) / 3) / 2),  # terminal sieve database, Sect. 3.4
+            (sqrt(RR(2)) * params.q, log2(RR(3) / 2) / 2),  # on-the-fly lifting, Sect. 4
+        ):
+            if proj_length >= params.length_bound:
+                # the projected vectors alone are already too long to lift to a solution
+                continue
+            # squared lifting radius: the lifted entries must absorb the remaining length, Eq. 2
+            sq_radius = floor(RR(params.length_bound) ** 2 - proj_length ** 2)
+            log2_p = log2_density * sieve_dim + log2_lift_proportion(n_q, sq_radius, params.q)
+            log2_solutions = log2_p if log2_solutions is None else max(log2_solutions, log2_p)
 
-        # expected number of solutions from one sieve, capped at one 
-        log2_solutions = log2_density * sieve_dim + log2_p
-
-        # the inhomogeneous reductions lose a factor in success probability 
-        if inhom == "specific":
-            log2_solutions += log2(RR(2) / params.q)
-        elif inhom == "generic":
-            log2_solutions += -log2((params.m + 1) * (params.q - 1))
-        elif inhom is not None:
-            raise ValueError(f"Unknown inhomogeneous reduction: {inhom}")
+        if log2_solutions is None:
+            return Cost(rop=oo)
 
         probability = RR(2) ** min(RR(0), log2_solutions)
 
@@ -182,7 +148,7 @@ class SISSmallQ:
         ret = Cost()
         ret["rop"] = cost_red
         ret["red"] = bkz_cost["rop"]
-        ret["sieve"] = max(cost_red - bkz_cost["rop"], 1e-100)  # check non-zero cost
+        ret["sieve"] = max(cost_red - bkz_cost["rop"], 1e-100)  # ensuring non-zero cost here
         ret["beta"] = beta
         ret["eta"] = sieve_dim
         ret["ell"] = n_q + 1
@@ -196,7 +162,7 @@ class SISSmallQ:
             ell=False,
             prob=False,
         )
-        # repeat the whole attack ~1/prob times, rerandomizing the basis between attempts
+        # repeat the whole attack ~1/prob times, rerandomising the basis between attempts
         if probability and not RR(probability).is_NaN():
             ret = ret.repeat(prob_amplify(success_probability, probability))
         else:
@@ -207,22 +173,15 @@ class SISSmallQ:
     def __call__(
         self,
         params: SISParameters,
-        on_the_fly: bool = None,
-        inhom: str = None,
-        red_shape_model=red_shape_model_default,
+        red_shape_model="ZGSA",
         red_cost_model=red_cost_model_default,
         log_level=1,
         **kwds,
     ):
         """
-        Estimate the cost of solving SIS with a small modulus via reduction.
+        Estimate the cost of solving SIS with a small modulus via lattice reduction [C:DucEspPos23]_.
 
         :param params: SIS parameters.
-        :param on_the_fly: lift every vector seen in the last sieve iteration [C:DucEspPos23]_ Sect. 4.
-            If ``None``, report the cheaper of the two variants.
-        :param inhom: model the reduction to the inhomogeneous problem [C:DucEspPos23]_ Sect. 3.5;
-            one of ``None`` (homogeneous SIS*), ``"specific"`` (loss ``q/2``) or ``"generic"``
-            (loss ``m(q-1)``).
         :param red_shape_model: how to model the shape of a reduced basis; must expose the q-vectors.
         :param red_cost_model: how to cost lattice reduction.
         :return: A cost dictionary.
@@ -246,12 +205,6 @@ class SISSmallQ:
             >>> SIS.small_q(params)
             rop: ≈2^46.6, red: ≈2^46.6, sieve: ≈2^40.3, β: 59, η: 59, ℓ: 32, d: 300, prob: 1, ↻: 1, tag: small_q
 
-        The reduction to the inhomogeneous problem (e.g. signature forgery) loses a factor in the
-        success probability and operates one rank higher [C:DucEspPos23]_ Sect. 3.5::
-
-            >>> SIS.small_q(params, inhom="specific")
-            rop: ≈2^48.3, red: ≈2^48.2, sieve: ≈2^42.1, β: 65, η: 65, ℓ: 27, d: 301, prob: 1, ↻: 1, tag: small_q_isis
-
         The attack only targets the regime where the length bound exceeds the modulus and the
         euclidean norm is used; outside of it ``rop`` is infinite::
 
@@ -264,7 +217,7 @@ class SISSmallQ:
                 "The small-q attack is only available for the euclidean norm."
             )
 
-        # the attack targets the regime ν > q 
+        # the attack targets the regime where the length bound exceeds the modulus [C:DucEspPos23]_
         if params.length_bound <= params.q:
             cost = Cost(rop=oo)
             cost["tag"] = "small_q"
@@ -274,8 +227,6 @@ class SISSmallQ:
         f = partial(
             SISSmallQ.cost,
             params=params,
-            on_the_fly=on_the_fly,
-            inhom=inhom,
             red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
         )
@@ -292,7 +243,7 @@ class SISSmallQ:
 
         Logging.log("sis_small_q", log_level, f"{cost!r}")
 
-        cost["tag"] = "small_q" if inhom is None else "small_q_isis"
+        cost["tag"] = "small_q"
         cost["problem"] = params
         return cost.sanity_check()
 
