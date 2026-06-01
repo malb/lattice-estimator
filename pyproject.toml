@@ -1,3 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lattice-estimator"
+version = "0.1.0"
+description = "Lattice-based cryptographic parameter estimator"
+readme = "README.rst"
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.uv]
+python-preference = "system"
+
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["estimator*"]
+
 [tool.black]
 line-length = 120
 
@@ -8,3 +29,4 @@ addopts = "--ignore=docs/conf.py --doctest-modules --doctest-glob=\"*.rst\" --nb
 max-line-length = 120
 max-complexity = 17
 extend-ignore = "E203,E22,E241"
+
