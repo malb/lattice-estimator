@@ -1,10 +1,11 @@
 import itertools as it
+from math import lgamma
 from multiprocessing import Pool
 from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Callable, NamedTuple
 
-from sage.all import ceil, floor, log, oo, RR, cached_function, zeta
+from sage.all import ceil, floor, log, oo, pi, RR, cached_function, zeta
 
 from .io import Logging
 from .lwe_parameters import LWEParameters
@@ -22,7 +23,28 @@ def zeta_prime(x):
     return RR((zeta(x+h) - zeta(x-h)))/(2*h)
 
 
-# Low beta Gaussian Heuristic constant for use in NTRU Dense sublattice estimation.
+@cached_function
+def ball_log_vol(n):
+    """
+    return ln(volume of n-dimensional ball)
+    """
+    return RR((n/2.) * log(pi) - lgamma(n/2. + 1))
+
+
+def log_gh(d, logvol=0, use_constant=True):
+    """
+    return natural logarithm of an estimate of what the length is of the shortest vector in a
+    lattice of rank `d` and determinant `e**logvol`.
+
+    (used in LWE.primal_hybrid, RC.ZGSA and NTRU.primal_dsd)
+    """
+    if use_constant and d < 49:
+        return RR(gh_constant[d] + logvol/d)
+
+    return RR(1./d * (logvol - ball_log_vol(d)))
+
+
+# Low beta Gaussian Heuristic constants:
 gh_constant = {1: 0.00000, 2: -0.50511, 3: -0.46488, 4: -0.39100, 5: -0.29759, 6: -0.24880, 7: -0.21970, 8: -0.15748,
                9: -0.14673, 10: -0.07541, 11: -0.04870, 12: -0.01045, 13: 0.02298, 14: 0.04212, 15: 0.07014,
                16: 0.09205, 17: 0.12004, 18: 0.14988, 19: 0.17351, 20: 0.18659, 21: 0.20971, 22: 0.22728, 23: 0.24951,
