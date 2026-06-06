@@ -10,6 +10,10 @@ from .cost import Cost
 
 
 class ReductionCost:
+    # Upper bracket used by ``_beta_find_root``. If the required β is beyond this
+    # range, beta inversion returns ``oo`` rather than pretending the cap is exact.
+    BETA_SEARCH_MAX = 2**16
+
     @staticmethod
     def _delta(beta):
         """
@@ -127,9 +131,29 @@ class ReductionCost:
                 raise RuntimeError("β < 40")
             return beta
         except (RuntimeError, TypeError):
-            # if something fails, use old beta method
+            if ReductionCost._beta_unbracketed(delta):
+                return oo
             beta = ReductionCost._beta_simple(delta)
             return beta
+
+    @staticmethod
+    def _beta_unbracketed(delta):
+        """
+        Return ``True`` when the root-Hermite factor ``δ`` is below
+        ``_delta(BETA_SEARCH_MAX)``, so the required block size exceeds the
+        ``find_root`` search bracket. Callers use ``oo`` for this out-of-range
+        result rather than a finite β value.
+
+        TESTS::
+
+            >>> from estimator.reduction import ReductionCost, RC
+            >>> ReductionCost._beta_unbracketed(RC.delta(ReductionCost.BETA_SEARCH_MAX))
+            False
+            >>> ReductionCost._beta_unbracketed(RR(1.0000000000453744))
+            True
+
+        """
+        return RR(delta) < ReductionCost._delta(ZZ(ReductionCost.BETA_SEARCH_MAX))
 
     @staticmethod
     def _beta_find_root(delta):
@@ -143,6 +167,9 @@ class ReductionCost:
             >>> from estimator.reduction import ReductionCost, RC
             >>> ReductionCost._beta_find_root(RC.delta(500))
             500
+            >>> from sage.all import oo
+            >>> ReductionCost._beta_find_root(RR(1.0000000000453744)) == oo
+            True
 
         """
         # handle beta < 40 separately
@@ -152,13 +179,18 @@ class ReductionCost:
 
         try:
             beta = find_root(
-                lambda beta: RR(ReductionCost._delta(beta) - delta), 40, 2**16, maxiter=500
+                lambda beta: RR(ReductionCost._delta(beta) - delta),
+                40,
+                ReductionCost.BETA_SEARCH_MAX,
+                maxiter=500,
             )
             beta = ceil(beta - 1e-8)
         except RuntimeError:
             # finding root failed; reasons:
             # 1. maxiter not sufficient
             # 2. no root in given interval
+            if ReductionCost._beta_unbracketed(delta):
+                return oo
             beta = ReductionCost._beta_simple(delta)
         return beta
 

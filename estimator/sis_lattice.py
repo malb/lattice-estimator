@@ -6,6 +6,7 @@ See :ref:`SIS Lattice Attacks` for an introduction what is available.
 
 """
 from functools import partial
+import warnings
 
 from sage.all import oo, sqrt, log, RR, floor, cached_function
 from .reduction import beta as betaf
@@ -53,6 +54,26 @@ class SISLattice:
         log_level=None,
         **kwds,
     ):
+        """
+        Estimate the cost of attacking SIS with a Euclidean length bound.
+
+        TESTS::
+
+            >>> from estimator.sis_lattice import SISLattice
+            >>> from estimator.sis_parameters import SISParameters
+            >>> from estimator.reduction import RC
+            >>> from sage.all import oo
+            >>> q = 2**200
+            >>> params = SISParameters(n=512, q=q, m=1024, length_bound=1000, norm=2, tag="large-q")
+            >>> cost = SISLattice.cost_euclidean(params, d=40, red_cost_model=RC.BDGL16)
+            >>> cost["rop"] == oo and cost["beta"] == 40
+            True
+            >>> params = SISParameters(n=32, q=4294967291, m=128, length_bound=256, norm=2)
+            >>> cost = SISLattice.cost_euclidean(params, red_cost_model=RC.BDGL16)
+            >>> cost["rop"] == oo
+            True
+
+        """
         # Check for triviality
         if params.length_bound >= (params.q - 1) / 2:
             raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")
@@ -62,16 +83,24 @@ class SISLattice:
 
         # First solve for root hermite factor
         delta = SISLattice._solve_for_delta_euclidean(params, d)
-        # Then derive beta from the cost model(s)
-        if delta >= 1 and betaf(delta) <= d:
-            beta = betaf(delta)
+        # Then derive beta from the cost model(s). ``betaf`` returns ``oo`` when
+        # the required block size lies outside the supported search bracket.
+        beta = betaf(delta) if delta >= 1 else oo
+        if beta <= d:
             reduction_possible = True
 
         else:
             beta = d
             reduction_possible = False
 
-        lb = min(RR(sqrt(params.n * log(params.q))), RR(sqrt(d) * params.q ** (params.n / d)))
+        # Compare min(A, B) for A = sqrt(n log q), B = sqrt(d) q^(n/d) in log space
+        # so q^(n/d) is not evaluated when the other branch is smaller.
+        log_A_sq = log(params.n * log(params.q))
+        log_B_sq = log(d) + 2 * (params.n / d) * log(params.q)
+        if log_A_sq <= log_B_sq:
+            lb = RR(sqrt(params.n * log(params.q)))
+        else:
+            lb = RR(sqrt(d) * params.q ** (params.n / d))
         return costf(
             red_cost_model, beta, d, predicate=params.length_bound > lb and reduction_possible
         )
@@ -284,6 +313,10 @@ class SISLattice:
             >>> SIS.lattice(params)
             rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
+            >>> euclid_params = SIS.Parameters(n=32, q=4294967291, m=128, length_bound=256, norm=2)
+            >>> SIS.lattice(euclid_params, red_cost_model=RC.BDGL16, log_level=0)["rop"] == oo
+            True
+
             >>> SIS.lattice(params.updated(norm=oo, length_bound=16), red_shape_model="lgsa")
             rop: ≈2^61.0, red: ≈2^59.9, sieve: ≈2^60.1, β: 95, η: 126, ζ: 0, d: 2486, prob: 1, ↻: 1, tag: infinity
 
@@ -334,6 +367,12 @@ class SISLattice:
                 cost = f(zeta=zeta)
 
         else:
+            if simulator_normalize(red_shape_model) is not simulator_normalize(red_shape_model_default):
+                warnings.warn(
+                    "red_shape_model is ignored for Euclidean (norm=2) SIS estimates; "
+                    "reduction shape simulators apply only to infinity-norm attacks.",
+                    stacklevel=2,
+                )
             cost = self.cost_euclidean(
                 params=params,
                 red_cost_model=red_cost_model,

@@ -13,7 +13,9 @@ The simplest (and quickest to estimate) model is solving for the SIS instance wi
 
     SIS.lattice(params)
 
-The exact reduction shape model does not matter when using euclidean norm bounds, as the required block size is calculated directly from the length bound. 
+The exact reduction shape model does not matter when using euclidean norm bounds, as the required block size is calculated directly from the length bound. Passing ``red_shape_model`` to ``SIS.lattice()`` for ``norm=2`` parameters has no effect (a warning is emitted if a non-default simulator is supplied).
+
+When the implied root-Hermite factor ``δ`` falls below ``_delta(2^{16})``, the required BKZ block size exceeds the Chen-model search bracket. The bounded inversion reports this as ``β = +Infinity``; the Euclidean SIS estimator then reports ``rop: inf`` instead of falling back to an unbounded search.
 
 For infinity norm length bounds, we have two separate analyses. Both follow the same basic strategy. We use the worst case euclidean norm bound as a lower bound on the hardness. Then, we analyze the probability of obtaining a short vector where every coordinate meets the infinity norm constraint. When sqrt(m)*length_bound is less than the modulus q, we follow the analysis of the MATZOV report ([MATZOV22]_ P.18). We simulate the cost of generating *many* short vectors and treat each coordinate of the vector as an i.i.d Gaussian random variable with standard deviation equal to the length(s) of these short vectors divided by the square root of the dimension.::
 
