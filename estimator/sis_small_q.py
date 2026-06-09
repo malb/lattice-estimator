@@ -21,6 +21,60 @@ from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import max_beta
 
+# tolerance, in length units, for identifying q-vectors when reading a simulated basis profile
+profile_precision = 1e-6
+
+
+def log2_lift_proportion_exact(n_q, sq_radius, q):
+    """
+    Exact base-2 logarithm of the proportion of ``Cube_{n_q}(q)`` lying inside a Euclidean ball.
+
+    This counts the integer points directly, by convolving truncated theta series of ``ZZ`` as in
+    [C:DucEspPos23]_ Sect. 3.3. It is a slow reference, of cost ``O(n_q · sq_radius · q)``, against
+    which :func:`log2_lift_proportion` is validated; the latter should be preferred in practice.
+
+    :param n_q: number of (uniform mod q) lifted coordinates.
+    :param sq_radius: squared radius of the ball.
+    :param q: the modulus.
+
+    EXAMPLES::
+
+        >>> from estimator.sis_small_q import log2_lift_proportion_exact
+        >>> log2_lift_proportion_exact(60, 40000, 127)  # doctest: +ELLIPSIS
+        -19.99...
+
+    """
+    import numpy as np
+
+    if sq_radius < 0:
+        return RR(-oo)
+    half = (q - 1) // 2
+    max_sq = n_q * half ** 2
+    D = min(int(floor(sq_radius)), max_sq)
+    if D >= max_sq:
+        # the whole cube lies inside the ball, every lift is short enough
+        return RR(0)
+
+    # squared-length distribution of one centred coordinate uniform mod q, truncated beyond X^D
+    dist = np.zeros(D + 1)
+    for u in range(-half, q // 2 + 1):
+        s = u * u
+        if s <= D:
+            dist[s] += 1.0 / q
+    exps = np.nonzero(dist)[0]
+    coeffs = dist[exps]
+
+    # the n_q-fold convolution is the squared-length distribution of a lift; sum its mass in the ball
+    p = np.zeros(D + 1)
+    p[0] = 1.0
+    for _ in range(n_q):
+        nxt = coeffs[0] * p
+        for j, c in zip(exps[1:], coeffs[1:]):
+            nxt[int(j):] += c * p[: -int(j)]
+        p = nxt
+    total = float(p.sum())
+    return RR(log2(total)) if total > 0 else RR(-oo)
+
 
 def log2_lift_proportion(n_q, sq_radius, q):
     """
@@ -28,15 +82,24 @@ def log2_lift_proportion(n_q, sq_radius, q):
 
     ``Cube_{n_q}(q)`` is a centred set of representatives of ``(ZZ/qZZ)^{n_q}`` and the proportion of
     it inside the ball of squared radius ``sq_radius`` is the success probability of a single lift
-    [C:DucEspPos23]_ Eq. 2, whose integer points [C:DucEspPos23]_ Sect. 3.3 counts via theta series.
-    We instead use a saddle-point (Bahadur-Rao) approximation: a coordinate uniform mod q is modelled
-    as uniform on ``[-q/2, q/2]``, whose cumulant generating function ``K(t) = log E[e^{t U^2}]`` is
-    closed form, so the estimate is accurate in the relevant tail and costs ``O(1)`` rather than
-    ``O(q)``. Above the mean cube length the lifting is not the bottleneck and the proportion is one.
+    [C:DucEspPos23]_ Eq. 2. Rather than counting integer points directly as in
+    :func:`log2_lift_proportion_exact`, we use a saddle-point (Bahadur-Rao) approximation: a
+    coordinate uniform mod q is modelled as uniform on ``[-q/2, q/2]``, whose cumulant generating
+    function ``K(t) = log E[e^{t U^2}]`` is closed form, so the estimate costs ``O(1)`` rather than
+    ``O(q)`` and is accurate in the relevant tail (see the example below). Above the mean cube length
+    the lifting is not the bottleneck and the proportion is one.
 
     :param n_q: number of (uniform mod q) lifted coordinates.
     :param sq_radius: squared radius of the ball.
     :param q: the modulus.
+
+    EXAMPLES::
+
+        >>> from estimator.sis_small_q import log2_lift_proportion, log2_lift_proportion_exact
+        >>> approx = log2_lift_proportion(60, 40000, 127)
+        >>> exact = log2_lift_proportion_exact(60, 40000, 127)
+        >>> bool(abs(approx - exact) < 0.1)
+        True
 
     """
     a = float(sq_radius)
@@ -112,7 +175,7 @@ class SISSmallQ:
         r = simulator(d=d, n=d - params.n, q=params.q, beta=beta, xi=1, tau=False)
 
         # number of q-vectors n_q left at the head of the basis (Zone I of the Z-shape)
-        if abs(sqrt(r[0]) - params.q) < 1e-6:  # q-vectors exist
+        if abs(sqrt(r[0]) - params.q) < profile_precision:  # q-vectors exist
             n_q = next((i for i, r_ in enumerate(r) if r_ < r[0]), len(r))
         else:
             # no q-vectors to lift over: this is the plain reduction attack of SIS.lattice
