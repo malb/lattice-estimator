@@ -111,10 +111,15 @@ def log2_lift_proportion(n_q, sq_radius, q):
         # only the zero vector of the cube lies in the ball
         return RR(-n_q * log2(q))
 
+    # below this value of the saddle parameter s = -t the closed-form integrals below degenerate to a
+    # 0/0 form and lose accuracy to cancellation, so we use their s → 0 limit; this is a numerical
+    # cutoff internal to the saddle point, unrelated to the q-vector tolerance ``profile_precision``
+    small_s_cutoff = 1e-8
+
     def derivatives(t):
         # K'(t), K''(t) of K(t) = log E[e^{t U^2}] via I_k = ∫_0^h u^k e^{t u^2} du for one coordinate
         s = -t
-        if s < 1e-8:
+        if s < small_s_cutoff:
             I0, I2, I4 = h, h ** 3 / 3, h ** 5 / 5
         else:
             decay = mexp(-s * h ** 2)
