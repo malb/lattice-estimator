@@ -309,8 +309,9 @@ class SISLattice:
         with local_minimum(40, beta_stop, precision=2, log_level=log_level + 1) as it:
             for beta in it:
                 it.update(f(beta))
-            for beta in it.neighborhood:
-                it.update(f(beta))
+            if it.y is not None:
+                for beta in it.neighborhood:
+                    it.update(f(beta))
             cost = it.y
 
         Logging.log("sis_infinity", log_level, f"H1: {cost!r}")
