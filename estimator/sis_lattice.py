@@ -298,6 +298,41 @@ class SISLattice:
             return Cost(rop=oo)
         return cost
 
+    @staticmethod
+    def cost_zeta_candidates(zeta_candidates, f, params, diagnostics=False, **kwds):
+        """
+        Evaluate an explicit list of ignored-coordinate candidates and return the cheapest cost.
+        """
+        zeta_candidates = tuple(dict.fromkeys(int(z) for z in zeta_candidates))
+        if not zeta_candidates:
+            raise ValueError("zeta_candidates must not be empty.")
+        for zeta_candidate in zeta_candidates:
+            if zeta_candidate < 0 or zeta_candidate > params.m:
+                raise ValueError(
+                    f"zeta candidate {zeta_candidate} must satisfy 0 <= zeta <= m={params.m}."
+                )
+
+        costs = {
+            zeta_candidate: f(
+                zeta=zeta_candidate,
+                **kwds,
+            )
+            for zeta_candidate in zeta_candidates
+        }
+        cost = min(costs.values())
+        if diagnostics:
+            cost.register_impermanent(
+                zeta_search=False,
+                zeta_candidates=False,
+                rop_at_zeta_0=False,
+            )
+            cost["zeta_search"] = "candidates"
+            cost["zeta_candidates"] = zeta_candidates
+            if 0 in costs:
+                cost["rop_at_zeta_0"] = costs[0]["rop"]
+
+        return cost
+
     def __call__(
         self,
         params: SISParameters,
@@ -471,32 +506,13 @@ class SISLattice:
                 raise ValueError("zeta and zeta_candidates cannot both be set.")
 
             if zeta_candidates is not None:
-                zeta_candidates = tuple(dict.fromkeys(int(z) for z in zeta_candidates))
-                if not zeta_candidates:
-                    raise ValueError("zeta_candidates must not be empty.")
-                for zeta_candidate in zeta_candidates:
-                    if zeta_candidate < 0 or zeta_candidate > params.m:
-                        raise ValueError(
-                            f"zeta candidate {zeta_candidate} must satisfy 0 <= zeta <= m={params.m}."
-                        )
-                costs = {
-                    zeta_candidate: f(
-                        zeta=zeta_candidate,
-                        **kwds,
-                    )
-                    for zeta_candidate in zeta_candidates
-                }
-                cost = min(costs.values())
-                if diagnostics:
-                    cost.register_impermanent(
-                        zeta_search=False,
-                        zeta_candidates=False,
-                        rop_at_zeta_0=False,
-                    )
-                    cost["zeta_search"] = "candidates"
-                    cost["zeta_candidates"] = zeta_candidates
-                    if 0 in costs:
-                        cost["rop_at_zeta_0"] = costs[0]["rop"]
+                cost = self.cost_zeta_candidates(
+                    zeta_candidates,
+                    f,
+                    params,
+                    diagnostics=diagnostics,
+                    **kwds,
+                )
 
             elif zeta is None:
                 with local_minimum(0, params.m, log_level=log_level) as it:
