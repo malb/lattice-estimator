@@ -63,5 +63,19 @@ probability.::
         diagnostics=True,
     )
 
+By default, infinity-norm estimates optimize over the number of ignored coordinates ``zeta``.
+Passing an integer ``zeta`` evaluates a fixed ignored-coordinate count. Passing
+``zeta_candidates`` evaluates only the provided candidate counts and picks the cheapest result,
+which is useful for reproducible parameter sweeps where a full ``0..m`` search would be too
+expensive.::
+
+    SIS.lattice(
+        schemes.Dilithium2_MSIS_WkUnf,
+        red_cost_model=RC.ADPS16,
+        red_shape_model="lgsa",
+        zeta_candidates=[0, 64, 128],
+        diagnostics=True,
+    )
+
 **Note:** Currently, lattice attack estimation is only available for euclidean (``2``) and infinity (``oo``) norms. ``SIS.lattice()`` will return a ``NotImplementedError`` if one of these two norms are not selected.
                         

@@ -302,6 +302,7 @@ class SISLattice:
         self,
         params: SISParameters,
         zeta: int = None,
+        zeta_candidates=None,
         red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         diagnostics=False,
@@ -313,6 +314,8 @@ class SISLattice:
 
         :param params: SIS parameters.
         :param zeta: Number of coefficients to set to 0 (ignore)
+        :param zeta_candidates: Candidate numbers of coefficients to set to 0 (ignore). If set,
+            only these candidates are evaluated and ``zeta`` must be ``None``.
         :param diagnostics: Include extra fields describing the infinity-norm probability model.
         :return: A cost dictionary
 
@@ -342,6 +345,11 @@ class SISLattice:
           ``diagnostics=True``.
         - ``vector_length``: Modeled short-vector length before coordinate probabilities, when
           ``diagnostics=True``.
+        - ``zeta_search``: Ignored-coordinate search mode, when ``diagnostics=True``.
+        - ``zeta_candidates``: Candidate ignored-coordinate counts, when ``diagnostics=True`` and
+          candidate search is used.
+        - ``rop_at_zeta_0``: Cost at ``zeta=0`` when ``diagnostics=True`` and ``0`` was evaluated
+          during candidate search.
 
         EXAMPLES::
 
@@ -420,6 +428,17 @@ class SISLattice:
             ... )
             >>> diag["linf_regime"], diag["gaussian_coords"], diag["idx_start"]
             ('dilithium_qary', 2066, 0)
+            >>> candidate_cost = SIS.lattice(
+            ...     schemes.Dilithium2_MSIS_WkUnf,
+            ...     red_cost_model=RC.ADPS16,
+            ...     red_shape_model="lgsa",
+            ...     zeta_candidates=[0],
+            ...     diagnostics=True,
+            ... )
+            >>> candidate_cost["beta"], candidate_cost["zeta_search"], candidate_cost["zeta_candidates"]
+            (423, 'candidates', (0,))
+            >>> candidate_cost["rop_at_zeta_0"] == candidate_cost["rop"]
+            True
 
         The success condition for euclidean norm bound is derived by determining the root hermite factor required for
         BKZ to produce the required output. For infinity norm bounds, the success conditions are derived using a
@@ -448,7 +467,38 @@ class SISLattice:
                 log_level=log_level + 1,
             )
 
-            if zeta is None:
+            if zeta is not None and zeta_candidates is not None:
+                raise ValueError("zeta and zeta_candidates cannot both be set.")
+
+            if zeta_candidates is not None:
+                zeta_candidates = tuple(dict.fromkeys(int(z) for z in zeta_candidates))
+                if not zeta_candidates:
+                    raise ValueError("zeta_candidates must not be empty.")
+                for zeta_candidate in zeta_candidates:
+                    if zeta_candidate < 0 or zeta_candidate > params.m:
+                        raise ValueError(
+                            f"zeta candidate {zeta_candidate} must satisfy 0 <= zeta <= m={params.m}."
+                        )
+                costs = {
+                    zeta_candidate: f(
+                        zeta=zeta_candidate,
+                        **kwds,
+                    )
+                    for zeta_candidate in zeta_candidates
+                }
+                cost = min(costs.values())
+                if diagnostics:
+                    cost.register_impermanent(
+                        zeta_search=False,
+                        zeta_candidates=False,
+                        rop_at_zeta_0=False,
+                    )
+                    cost["zeta_search"] = "candidates"
+                    cost["zeta_candidates"] = zeta_candidates
+                    if 0 in costs:
+                        cost["rop_at_zeta_0"] = costs[0]["rop"]
+
+            elif zeta is None:
                 with local_minimum(0, params.m, log_level=log_level) as it:
                     for zeta in it:
                         it.update(
@@ -459,8 +509,14 @@ class SISLattice:
                         )
                 # TODO: this should not be required
                 cost = min(it.y, f(0, **kwds))
+                if diagnostics:
+                    cost.register_impermanent(zeta_search=False)
+                    cost["zeta_search"] = "local_minimum"
             else:
                 cost = f(zeta=zeta)
+                if diagnostics:
+                    cost.register_impermanent(zeta_search=False)
+                    cost["zeta_search"] = "fixed"
 
         else:
             if simulator_normalize(red_shape_model) is not simulator_normalize(red_shape_model_default):
