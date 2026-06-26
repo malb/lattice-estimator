@@ -52,8 +52,9 @@ to be a byte-for-byte reproduction of the Dilithium submission scripts.
 For debugging infinity-norm estimates, pass ``diagnostics=True``. The returned cost dictionary then
 includes the selected infinity-norm regime, the branch ratio ``sqrt(d) * length_bound / q``, the
 q-vector and unit-vector cut points used by the Dilithium-style analysis, the number of
-Gaussian-modeled coordinates, the generated short-vector count, and the base-2 log trial
-probability.::
+Gaussian-modeled coordinates, the generated short-vector count, the base-2 log Gaussian
+coordinate probability, the base-2 log trial probability, and the capped base-2 log success
+probability used for amplification.::
 
     SIS.lattice(
         schemes.Dilithium2_MSIS_WkUnf,

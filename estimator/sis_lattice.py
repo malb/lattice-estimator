@@ -8,15 +8,14 @@ See :ref:`SIS Lattice Attacks` for an introduction what is available.
 from functools import partial
 import warnings
 
-from sage.all import oo, sqrt, log, RR, floor, cached_function
+from sage.all import oo, sqrt, log, RR, floor, cached_function, erf
 from .reduction import beta as betaf
 from .reduction import cost as costf
 from .util import local_minimum
 from .cost import Cost
 from .sis_parameters import SISParameters
 from .simulator import normalize as simulator_normalize
-from .prob import gaussian_cdf
-from .prob import amplify as prob_amplify
+from .prob import amplify_from_log as prob_amplify_from_log
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
 from .conf import red_shape_model as red_shape_model_default
@@ -44,6 +43,16 @@ class SISLattice:
         log_delta = log(params.length_bound, 2) ** 2 / (4 * params.n * RR(log(params.q, 2)))
         d = sqrt(params.n * log(params.q, 2) / log_delta)
         return d
+
+    @staticmethod
+    def _log_gaussian_linf_coordinate_probability(sigma, length_bound):
+        """
+        Return ``log2(Pr[|X| <= length_bound])`` for ``X`` sampled from ``N(0, sigma)``.
+
+        The probability is ``erf(length_bound/(sqrt(2)*sigma))``.  Using this
+        expression avoids the cancellation in ``1 - 2*Phi(-length_bound)``.
+        """
+        return RR(log(erf(length_bound / (sqrt(2) * sigma)), 2))
 
     @staticmethod
     @cached_function
@@ -160,7 +169,10 @@ class SISLattice:
             vector_length = rho * sqrt(r[0])
             # Find probability that all coordinates meet norm bound
             sigma = vector_length / sqrt(d_)
-            log_trial_prob = RR(d_ * log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2))
+            log_gaussian_coordinate_prob = SISLattice._log_gaussian_linf_coordinate_probability(
+                sigma, params.length_bound
+            )
+            log_trial_prob = RR(d_ * log_gaussian_coordinate_prob)
             linf_regime = "matzov"
             idx_start = 0
             idx_end = d_ - 1
@@ -185,15 +197,17 @@ class SISLattice:
             gaussian_coords = max(idx_end - idx_start + 1, sieve_dim)
             sigma = vector_length / sqrt(gaussian_coords)
 
-            log_trial_prob = RR(
-                log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2) * (gaussian_coords)
+            log_gaussian_coordinate_prob = SISLattice._log_gaussian_linf_coordinate_probability(
+                sigma, params.length_bound
             )
+            log_trial_prob = RR(log_gaussian_coordinate_prob * gaussian_coords)
             log_trial_prob += RR(log((2 * params.length_bound + 1) / params.q, 2) * (idx_start))
             linf_regime = "dilithium_qary"
 
-        probability = 2 ** min(
-            0, log_trial_prob + RR(log(N, 2))
+        log_success_probability = min(
+            RR(0), log_trial_prob + RR(log(N, 2))
         )  # expected number of solutions (max 1)
+        probability = 2 ** log_success_probability
         ret = Cost()
         ret["rop"] = cost_red
         ret["red"] = bkz_cost["rop"]
@@ -210,7 +224,9 @@ class SISLattice:
             ret["idx_start"] = idx_start
             ret["idx_end"] = idx_end
             ret["gaussian_coords"] = gaussian_coords
+            ret["log_gaussian_coordinate_prob"] = log_gaussian_coordinate_prob
             ret["log_trial_prob"] = log_trial_prob
+            ret["log_success_probability"] = log_success_probability
             ret["short_vectors"] = N
             ret["vector_length"] = vector_length
 
@@ -226,14 +242,16 @@ class SISLattice:
             idx_start=False,
             idx_end=False,
             gaussian_coords=False,
+            log_gaussian_coordinate_prob=False,
             log_trial_prob=False,
+            log_success_probability=False,
             short_vectors=False,
             vector_length=False,
         )
         # 4. Repeat whole experiment ~1/prob times
         if probability and not RR(probability).is_NaN():
             ret = ret.repeat(
-                prob_amplify(success_probability, probability),
+                prob_amplify_from_log(success_probability, log_success_probability),
             )
         else:
             return Cost(rop=oo)
@@ -374,8 +392,12 @@ class SISLattice:
         - ``idx_end``: Last non-unit-vector index in the Dilithium-style analysis, when
           ``diagnostics=True``.
         - ``gaussian_coords``: Number of Gaussian-modeled coordinates, when ``diagnostics=True``.
+        - ``log_gaussian_coordinate_prob``: Base-2 log probability that one Gaussian-modeled
+          coordinate satisfies the infinity-norm bound, when ``diagnostics=True``.
         - ``log_trial_prob``: Base-2 log probability for one generated short vector, when
           ``diagnostics=True``.
+        - ``log_success_probability``: Base-2 log success probability after accounting for the
+          generated short-vector count, capped above by zero, when ``diagnostics=True``.
         - ``short_vectors``: Number of generated short vectors used by the cost model, when
           ``diagnostics=True``.
         - ``vector_length``: Modeled short-vector length before coordinate probabilities, when
