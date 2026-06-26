@@ -34,5 +34,34 @@ Another option is to simulate a rerandomization of the basis, such that the q-ve
 
     SIS.lattice(params.updated(length_bound=70), red_shape_model=Simulator.LGSA)
 
+The Dilithium submission's Core-SVP-style MSIS estimates are reproduced by combining the LGSA
+shape model with the ADPS16 Core-SVP reduction cost model. For example, the built-in Dilithium
+MSIS parameter sets recover the published weak-unforgeability block sizes ``423``, ``638`` and
+``909`` using::
+
+    SIS.lattice(
+        schemes.Dilithium2_MSIS_WkUnf,
+        red_cost_model=RC.ADPS16,
+        red_shape_model="lgsa",
+        zeta=0,
+    )
+
+The default ``SIS.lattice`` cost and shape models are intentionally more general and are not meant
+to be a byte-for-byte reproduction of the Dilithium submission scripts.
+
+For debugging infinity-norm estimates, pass ``diagnostics=True``. The returned cost dictionary then
+includes the selected infinity-norm regime, the branch ratio ``sqrt(d) * length_bound / q``, the
+q-vector and unit-vector cut points used by the Dilithium-style analysis, the number of
+Gaussian-modeled coordinates, the generated short-vector count, and the base-2 log trial
+probability.::
+
+    SIS.lattice(
+        schemes.Dilithium2_MSIS_WkUnf,
+        red_cost_model=RC.ADPS16,
+        red_shape_model="lgsa",
+        zeta=0,
+        diagnostics=True,
+    )
+
 **Note:** Currently, lattice attack estimation is only available for euclidean (``2``) and infinity (``oo``) norms. ``SIS.lattice()`` will return a ``NotImplementedError`` if one of these two norms are not selected.
                         

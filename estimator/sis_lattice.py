@@ -113,6 +113,7 @@ class SISLattice:
         zeta: int = 0,
         success_probability: float = 0.99,
         d=None,
+        diagnostics=False,
         red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         log_level=None,
@@ -125,6 +126,7 @@ class SISLattice:
         :param beta: Block size used to produce short vectors for reduction
         :param zeta: Number of coefficients to set to 0 (ignore)
         :param success_probability: The success probability to target
+        :param diagnostics: Include extra fields describing the infinity-norm probability model.
         :param red_cost_model: How to cost lattice reduction
         :param red_shape_model: How to model the shape of a reduced basis.
 
@@ -151,12 +153,18 @@ class SISLattice:
         rho, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d_)
         bkz_cost = costf(red_cost_model, beta, d_)
 
-        if RR(sqrt(d)) * params.length_bound <= params.q:  # Non-dilithium style analysis
+        sqrt_d_bound_over_q = RR(sqrt(d)) * params.length_bound / params.q
+
+        if sqrt_d_bound_over_q <= 1:  # Non-dilithium style analysis
             # Calculate expected vector length using approximation factor on the shortest vector from BKZ
             vector_length = rho * sqrt(r[0])
             # Find probability that all coordinates meet norm bound
             sigma = vector_length / sqrt(d_)
             log_trial_prob = RR(d_ * log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2))
+            linf_regime = "matzov"
+            idx_start = 0
+            idx_end = d_ - 1
+            gaussian_coords = d_
 
         else:  # Dilithium style analysis
             # Find first non-q-vector in r
@@ -181,6 +189,7 @@ class SISLattice:
                 log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2) * (gaussian_coords)
             )
             log_trial_prob += RR(log((2 * params.length_bound + 1) / params.q, 2) * (idx_start))
+            linf_regime = "dilithium_qary"
 
         probability = 2 ** min(
             0, log_trial_prob + RR(log(N, 2))
@@ -195,6 +204,16 @@ class SISLattice:
         ret["d"] = d_
         ret["prob"] = probability
 
+        if diagnostics:
+            ret["linf_regime"] = linf_regime
+            ret["sqrt_d_bound_over_q"] = sqrt_d_bound_over_q
+            ret["idx_start"] = idx_start
+            ret["idx_end"] = idx_end
+            ret["gaussian_coords"] = gaussian_coords
+            ret["log_trial_prob"] = log_trial_prob
+            ret["short_vectors"] = N
+            ret["vector_length"] = vector_length
+
         ret.register_impermanent(
             rop=True,
             red=True,
@@ -202,6 +221,14 @@ class SISLattice:
             eta=False,
             zeta=False,
             prob=False,
+            linf_regime=False,
+            sqrt_d_bound_over_q=False,
+            idx_start=False,
+            idx_end=False,
+            gaussian_coords=False,
+            log_trial_prob=False,
+            short_vectors=False,
+            vector_length=False,
         )
         # 4. Repeat whole experiment ~1/prob times
         if probability and not RR(probability).is_NaN():
@@ -277,6 +304,7 @@ class SISLattice:
         zeta: int = None,
         red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
+        diagnostics=False,
         log_level=1,
         **kwds,
     ):
@@ -285,6 +313,7 @@ class SISLattice:
 
         :param params: SIS parameters.
         :param zeta: Number of coefficients to set to 0 (ignore)
+        :param diagnostics: Include extra fields describing the infinity-norm probability model.
         :return: A cost dictionary
 
         The returned cost dictionary has the following entries:
@@ -299,6 +328,20 @@ class SISLattice:
         - ``prob``: Probability of success in guessing.
         - ``repeat``: How often to repeat the attack.
         - ``d``: Lattice dimension.
+        - ``linf_regime``: Infinity-norm probability model, when ``diagnostics=True``.
+        - ``sqrt_d_bound_over_q``: Branch ratio ``sqrt(d) * length_bound / q``, when
+          ``diagnostics=True``.
+        - ``idx_start``: First non-q-vector index in the Dilithium-style analysis, when
+          ``diagnostics=True``.
+        - ``idx_end``: Last non-unit-vector index in the Dilithium-style analysis, when
+          ``diagnostics=True``.
+        - ``gaussian_coords``: Number of Gaussian-modeled coordinates, when ``diagnostics=True``.
+        - ``log_trial_prob``: Base-2 log probability for one generated short vector, when
+          ``diagnostics=True``.
+        - ``short_vectors``: Number of generated short vectors used by the cost model, when
+          ``diagnostics=True``.
+        - ``vector_length``: Modeled short-vector length before coordinate probabilities, when
+          ``diagnostics=True``.
 
         EXAMPLES::
 
@@ -326,6 +369,58 @@ class SISLattice:
             >>> SIS.lattice(params.updated(norm=oo, length_bound=1), red_shape_model="cn11")
             rop: ≈2^246.2, red: ≈2^245.1, sieve: ≈2^245.2, β: 764, η: 751, ζ: 0, d: 2486, prob: 1, ↻: 1, tag: infinity
 
+            >>> SIS.lattice(
+            ...     schemes.Dilithium2_MSIS_WkUnf,
+            ...     red_cost_model=RC.ADPS16,
+            ...     red_shape_model="lgsa",
+            ...     zeta=0,
+            ... )["beta"]
+            423
+            >>> SIS.lattice(
+            ...     schemes.Dilithium3_MSIS_WkUnf,
+            ...     red_cost_model=RC.ADPS16,
+            ...     red_shape_model="lgsa",
+            ...     zeta=0,
+            ... )["beta"]
+            638
+            >>> SIS.lattice(
+            ...     schemes.Dilithium5_MSIS_WkUnf,
+            ...     red_cost_model=RC.ADPS16,
+            ...     red_shape_model="lgsa",
+            ...     zeta=0,
+            ... )["beta"]
+            909
+            >>> SIS.lattice(
+            ...     schemes.Dilithium2_MSIS_StrUnf,
+            ...     red_cost_model=RC.ADPS16,
+            ...     red_shape_model="lgsa",
+            ...     zeta=0,
+            ... )["beta"]
+            417
+            >>> SIS.lattice(
+            ...     schemes.Dilithium3_MSIS_StrUnf,
+            ...     red_cost_model=RC.ADPS16,
+            ...     red_shape_model="lgsa",
+            ...     zeta=0,
+            ... )["beta"]
+            602
+            >>> SIS.lattice(
+            ...     schemes.Dilithium5_MSIS_StrUnf,
+            ...     red_cost_model=RC.ADPS16,
+            ...     red_shape_model="lgsa",
+            ...     zeta=0,
+            ... )["beta"]
+            868
+            >>> diag = SIS.lattice(
+            ...     schemes.Dilithium2_MSIS_WkUnf,
+            ...     red_cost_model=RC.ADPS16,
+            ...     red_shape_model="lgsa",
+            ...     zeta=0,
+            ...     diagnostics=True,
+            ... )
+            >>> diag["linf_regime"], diag["gaussian_coords"], diag["idx_start"]
+            ('dilithium_qary', 2066, 0)
+
         The success condition for euclidean norm bound is derived by determining the root hermite factor required for
         BKZ to produce the required output. For infinity norm bounds, the success conditions are derived using a
         probabilistic analysis. Vectors are assumed to be short as in [MATZOV22]_ P.18, or [Dilithium21]_ P.35.
@@ -349,6 +444,7 @@ class SISLattice:
                 params=params,
                 red_shape_model=red_shape_model,
                 red_cost_model=red_cost_model,
+                diagnostics=diagnostics,
                 log_level=log_level + 1,
             )
 
