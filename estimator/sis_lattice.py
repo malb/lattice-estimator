@@ -263,6 +263,7 @@ class SISLattice:
         zeta: int,
         params: SISParameters,
         ignore_qary: bool = False,
+        baseline_beta=None,
         red_shape_model=red_shape_model_default,
         red_cost_model=red_cost_model_default,
         d=None,
@@ -274,21 +275,19 @@ class SISLattice:
         Ignored coordinates are set to 0 in the final SIS solution, so the dimension of the
         instance is treated as d-ζ.
         """
-        # step 0. establish baseline cost using worst case euclidean norm estimate
-        # length_bound =1 makes sense when norm=∞, but we take logs and divide
-        params_baseline = params.updated(
-            norm=2, length_bound=2 if params.length_bound == 1 else params.length_bound
-        )
-        baseline_cost = self(
-            params_baseline,
-            ignore_qary=ignore_qary,
-            red_shape_model=red_shape_model,
-            red_cost_model=red_cost_model,
-            log_level=log_level + 1,
-            **kwds,
-        )
-
-        Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
+        if baseline_beta is None:
+            baseline_cost = self._cost_zeta_baseline(
+                params=params,
+                ignore_qary=ignore_qary,
+                red_shape_model=red_shape_model,
+                red_cost_model=red_cost_model,
+                log_level=log_level + 1,
+                **kwds,
+            )
+            baseline_beta = baseline_cost["beta"]
+            Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
+        else:
+            Logging.log("sis_infinity", log_level, f"H0 β: {baseline_beta}")
 
         f = partial(
             SISLattice.cost_infinity,
@@ -302,9 +301,12 @@ class SISLattice:
         )
 
         # step 1. optimize β
-        with local_minimum(
-            40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
-        ) as it:
+        effective_d = (params.m if d is None else d) - zeta
+        beta_stop = min(baseline_beta, effective_d) + 1
+        if beta_stop <= 40:
+            return Cost(rop=oo)
+
+        with local_minimum(40, beta_stop, precision=2, log_level=log_level + 1) as it:
             for beta in it:
                 it.update(f(beta))
             for beta in it.neighborhood:
@@ -315,6 +317,31 @@ class SISLattice:
         if cost is None:
             return Cost(rop=oo)
         return cost
+
+    def _cost_zeta_baseline(
+        self,
+        params: SISParameters,
+        ignore_qary: bool = False,
+        red_shape_model=red_shape_model_default,
+        red_cost_model=red_cost_model_default,
+        log_level=5,
+        **kwds,
+    ):
+        """
+        Establish the Euclidean baseline used to bound infinity-norm beta searches.
+        """
+        # length_bound =1 makes sense when norm=∞, but we take logs and divide
+        params_baseline = params.updated(
+            norm=2, length_bound=2 if params.length_bound == 1 else params.length_bound
+        )
+        return self(
+            params_baseline,
+            ignore_qary=ignore_qary,
+            red_shape_model=red_shape_model,
+            red_cost_model=red_cost_model,
+            log_level=log_level,
+            **kwds,
+        )
 
     @staticmethod
     def cost_zeta_candidates(zeta_candidates, f, params, diagnostics=False, **kwds):
@@ -330,14 +357,18 @@ class SISLattice:
                     f"zeta candidate {zeta_candidate} must satisfy 0 <= zeta <= m={params.m}."
                 )
 
-        costs = {
-            zeta_candidate: f(
+        cost = None
+        rop_at_zeta_0 = None
+        for zeta_candidate in zeta_candidates:
+            candidate_cost = f(
                 zeta=zeta_candidate,
                 **kwds,
             )
-            for zeta_candidate in zeta_candidates
-        }
-        cost = min(costs.values())
+            if zeta_candidate == 0:
+                rop_at_zeta_0 = candidate_cost["rop"]
+            if cost is None or candidate_cost < cost:
+                cost = candidate_cost
+
         if diagnostics:
             cost.register_impermanent(
                 zeta_search=False,
@@ -346,8 +377,8 @@ class SISLattice:
             )
             cost["zeta_search"] = "candidates"
             cost["zeta_candidates"] = zeta_candidates
-            if 0 in costs:
-                cost["rop_at_zeta_0"] = costs[0]["rop"]
+            if rop_at_zeta_0 is not None:
+                cost["rop_at_zeta_0"] = rop_at_zeta_0
 
         return cost
 
@@ -515,17 +546,27 @@ class SISLattice:
             )
 
         if tag == "infinity":
+            if zeta is not None and zeta_candidates is not None:
+                raise ValueError("zeta and zeta_candidates cannot both be set.")
+
+            baseline_cost = self._cost_zeta_baseline(
+                params=params,
+                red_shape_model=red_shape_model,
+                red_cost_model=red_cost_model,
+                log_level=log_level + 1,
+                **kwds,
+            )
+            Logging.log("sis_infinity", log_level, f"H0: {repr(baseline_cost)}")
+
             f = partial(
                 self.cost_zeta,
                 params=params,
+                baseline_beta=baseline_cost["beta"],
                 red_shape_model=red_shape_model,
                 red_cost_model=red_cost_model,
                 diagnostics=diagnostics,
                 log_level=log_level + 1,
             )
-
-            if zeta is not None and zeta_candidates is not None:
-                raise ValueError("zeta and zeta_candidates cannot both be set.")
 
             if zeta_candidates is not None:
                 cost = self.cost_zeta_candidates(
