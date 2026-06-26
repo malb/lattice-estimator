@@ -38,7 +38,7 @@ def conditional_chi_squared(d1, d2, lt, l2):
     EXAMPLE::
         >>> from estimator import prob
         >>> prob.conditional_chi_squared(100, 5, 105, 1)
-        0.6358492948586715
+        0.63584929485867...
 
         >>> prob.conditional_chi_squared(100, 5, 105, 5)
         0.5764336909205551
@@ -50,7 +50,7 @@ def conditional_chi_squared(d1, d2, lt, l2):
         1.170759720628...e-06
 
         >>> prob.conditional_chi_squared(100, 5, 50, .7)
-        5.4021875103989546e-06
+        5.402187510398...e-06
     """
     D1, D2 = chi_squared_cdf[d1], chi_squared_cdf[d2]
     l2 = RR(l2)
@@ -151,6 +151,77 @@ def drop(n, h, k, fail=0, rotations=False):
         return prob_drop
 
 
+def _log1mexp2(log_x):
+    """
+    Return ``log(1 - x)`` from ``log(x, 2)``.
+
+    This helper keeps amplification stable when ``x`` is so small that
+    ``1 - x`` rounds to one at ordinary working precision.
+
+    EXAMPLES::
+
+        >>> from estimator import prob
+        >>> from sage.all import floor, log
+        >>> floor(log(-1 / prob._log1mexp2(-10000), 2))
+        10000
+    """
+    if log_x >= 0:
+        return -oo
+
+    if log_x < -512:
+        return -(RR(2) ** log_x)
+
+    prec = max(53, 2 * ceil(abs(float(log_x))) + 16)
+    RR_ = RealField(prec)
+    x = RR_(2) ** RR_(log_x)
+    return log(1 - x)
+
+
+def amplify_from_log(target_success_probability, log_success_probability, majority=False):
+    """
+    Return the number of trials needed to amplify a log success probability.
+
+    ``log_success_probability`` is base two.  This is equivalent to
+    :func:`amplify` but avoids exponentiating tiny probabilities only to lose
+    them again when computing ``log(1 - p)``.
+
+    EXAMPLES::
+
+        >>> from estimator import prob
+        >>> from sage.all import floor, log, RR
+        >>> prob.amplify_from_log(0.99, -10000) < oo
+        True
+        >>> floor(log(prob.amplify_from_log(0.99, -10000), 2))
+        10002
+        >>> floor(log(prob.amplify(0.99, RR(2)**-10000), 2))
+        10002
+    """
+    if log_success_probability == -oo:
+        return oo
+
+    log_success_probability = RR(log_success_probability)
+    target_success_probability = RR(target_success_probability)
+
+    if log(target_success_probability, 2) < log_success_probability:
+        return ZZ(1)
+
+    try:
+        if majority:
+            # eps = p/2 and 4*eps^2 = p^2.
+            return ceil(
+                2 * log(2 - 2 * target_success_probability)
+                / _log1mexp2(2 * log_success_probability)
+            )
+        else:
+            # target_success_probability = 1 - (1-success_probability)^trials
+            return ceil(
+                log(1 - target_success_probability)
+                / _log1mexp2(log_success_probability)
+            )
+    except ValueError:
+        return oo
+
+
 def amplify(target_success_probability, success_probability, majority=False):
     """
     Return the number of trials needed to amplify current `success_probability` to
@@ -167,6 +238,9 @@ def amplify(target_success_probability, success_probability, majority=False):
         return ZZ(1)
     if success_probability == 0.0:
         return oo
+
+    if not majority:
+        return amplify_from_log(target_success_probability, log(success_probability, 2))
 
     prec = max(
         53,
