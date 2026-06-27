@@ -7,6 +7,7 @@ from functools import partial
 from sage.all import oo
 
 from .sis_lattice import lattice
+from .sis_large_norm import large_norm
 from .sis_parameters import SISParameters as Parameters  # noqa
 from .conf import (
     red_cost_model as red_cost_model_default,
@@ -48,8 +49,12 @@ class Estimate:
         """
         algorithms = {}
 
-        # Only lattice attacks are supported on SIS for now
         algorithms["lattice"] = partial(lattice, red_cost_model=RC.ADPS16, red_shape_model="lgsa")
+
+        # the attack of [C:DucEspPos23]_ on q-ary lattices applies to euclidean instances with
+        # ν > q; it needs the q-vectors, so we give it the Z-shape simulator rather than the default
+        if params.norm == 2 and params.length_bound > params.q:
+            algorithms["large_norm"] = partial(large_norm, red_cost_model=RC.ADPS16, red_shape_model="zgsa")
 
         res_raw = batch_estimate(
             params, algorithms.values(), log_level=1, jobs=jobs, catch_exceptions=catch_exceptions
@@ -114,6 +119,11 @@ class Estimate:
         algorithms["lattice"] = partial(
             lattice, red_cost_model=red_cost_model, red_shape_model=red_shape_model
         )
+
+        # the attack of [C:DucEspPos23]_ on q-ary lattices applies to euclidean instances with
+        # ν > q; it needs the q-vectors, so we give it the Z-shape simulator rather than the default
+        if params.norm == 2 and params.length_bound > params.q:
+            algorithms["large_norm"] = partial(large_norm, red_cost_model=red_cost_model, red_shape_model="zgsa")
 
         algorithms = {k: v for k, v in algorithms.items() if k not in deny_list}
         algorithms.update(add_list)
