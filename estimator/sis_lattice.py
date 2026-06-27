@@ -75,8 +75,8 @@ class SISLattice:
 
         """
         # Check for triviality
-        if params.length_bound >= (params.q - 1) / 2:
-            raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")
+        if params.length_bound >= params.q:
+            raise ValueError("SIS trivially easy. Please set norm bound < q.")
 
         if d is None:
             d = min(floor(SISLattice._opt_sis_d(params)), params.m)
