@@ -13,8 +13,6 @@ dependencies = []
 [tool.uv]
 python-preference = "system"
 
-
-
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["estimator*"]
@@ -30,3 +28,5 @@ max-line-length = 120
 max-complexity = 17
 extend-ignore = "E203,E22,E241"
 
+[tool.zuban]
+mypy_path = ["estimator"]
