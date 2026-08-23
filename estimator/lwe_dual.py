@@ -289,7 +289,7 @@ class DualHybrid:
             log_level=log_level,
         )
 
-        if fft is True:
+        if fft:
 
             def f(beta):
                 with local_minimum(0, params.n - zeta) as it:
@@ -773,7 +773,7 @@ def dual_hybrid(
     - ``t``: Number of secrets to guess mod 2 (only if ``fft`` is ``True``)
     """
 
-    if mitm_optimization is True:
+    if mitm_optimization:
         mitm_optimization = mitm_opt_default
 
     if mitm_optimization:
