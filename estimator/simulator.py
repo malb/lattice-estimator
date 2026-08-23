@@ -17,7 +17,7 @@ where
 The last row is optional.
 """
 
-from sage.all import RR, log, line, cached_function, pi, exp
+from sage.all import RR, log, line, cached_function, exp
 from functools import partial
 
 
@@ -120,8 +120,6 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
 
 def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
-    from math import lgamma
-    from .util import gh_constant, small_slope_t8
     """
     Reduced lattice Z-shape following the Geometric Series Assumption as specified in
     NTRU fatrigue [DucWoe21]_
@@ -136,60 +134,44 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
     EXAMPLES:
 
+    Here is an example of a Z-shaped profile, where you can see that the end of the basis has Gram-Schmidt norms all
+    equal to 1.
+
         >>> from estimator.simulator import GSA, ZGSA, CN11
-        >>> n = 128
-        >>> d = 213
-        >>> q = 2048
-        >>> beta = 40
-        >>> xi = 1
-        >>> tau = 1
+        >>> d, n, q, beta, xi, tau = 213, 128, 2048, 40, 1, 1
         >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
-        >>> len(zgsa_profile)
-        214
+        >>> (zgsa_profile[167], zgsa_profile[168])
+        (23.6662264183680, 1.00000000000000)
 
     Setting tau to False indicates a homogeneous instance.
 
         >>> tau = False
         >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
-        >>> len(zgsa_profile)
-        213
+        >>> (zgsa_profile[169], zgsa_profile[170])
+        (22.4351513634307, 1.00000000000000)
 
     All three profiles should have the same product (represent the same lattice volume)
 
-        >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
-        >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
-        >>> sum([log(x) for x in cn11_profile]
-        1296.1852276471009
         >>> sum([log(x) for x in zgsa_profile])
         1296.18522764710
-        >>> sum([log(x) for x in gsa_profile])
+        >>> sum([log(x) for x in GSA(d, n, q, beta, xi, tau)])
         1296.18522764710
+        >>> sum([log(x) for x in CN11(d, n, q, beta, xi, tau)])
+        1296.185227647...
 
     Changing xi will change the volume of the lattice
 
         >>> xi = 2
-        >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
-        >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
-        >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
-        >>> sum([log(x) for x in gsa_profile])
+        >>> sum([log(x) for x in ZGSA(d, n, q, beta, xi, tau)])
         1473.63090587044
-        >>> sum([log(x) for x in zgsa_profile])
+        >>> sum([log(x) for x in GSA(d, n, q, beta, xi, tau)])
         1473.63090587044
-        >>> sum([log(x) for x in cn11_profile])
-        1473.630905870442
+        >>> sum([log(x) for x in CN11(d, n, q, beta, xi, tau)])
+        1473.6309058704...
+
     """
-
+    from .util import log_gh, small_slope_t8
     assert 2 <= beta <= d
-
-    @cached_function
-    def ball_log_vol(n):
-        return RR((n/2.) * log(pi) - lgamma(n/2. + 1))
-
-    def log_gh(d, logvol=0):
-        if d < 49:
-            return RR(gh_constant[d] + logvol/d)
-
-        return RR(1./d * (logvol - ball_log_vol(d)))
 
     def delta(k):
         assert k >= 60

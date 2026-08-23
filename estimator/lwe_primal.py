@@ -7,10 +7,11 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 """
 from functools import partial
 
-from sage.all import oo, ceil, sqrt, log, RR, ZZ, cached_function
+from sage.all import oo, ceil, exp, sqrt, log, RR, cached_function
 from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .util import local_minimum
+from .util import log_gh
 from .cost import Cost
 from .lwe_parameters import LWEParameters
 from .simulator import normalize as simulator_normalize
@@ -303,108 +304,92 @@ class PrimalHybrid:
         return Cost(rop=max(d, 1) ** 2)
 
     @classmethod
-    def svp_dimension(cls, r, D, is_homogeneous=False):
+    def svp_dimension(cls, r, beta, D, is_homogeneous=False):
         """
-        Return required svp dimension for a given lattice shape and distance.
+        Return required SVP dimension for a given lattice shape and distance,
+        using the success condition specified in [USENIX:ADPS16]_.
 
         :param r: squared Gram-Schmidt norms
-
+        :param beta: block size used to get this basis profile
+        :param D: error distribution
+        :param is_homogeneous: whether to perform Kannan's embedding
+        :return: required SVP dimension to obtain a shortest vector in the (embedding) lattice.
         """
-        from math import lgamma, log, pi
+        d, eta = len(r), beta
+        if not is_homogeneous:
+            d += 1  # Kannan embedding
 
-        def ball_log_vol(n):
-            return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
+        log_proj_vol = sum(0.5 * log(r_i) for r_i in r[d - eta:])
+        if not is_homogeneous:
+            log_proj_vol += log(D.stddev)  # Kannan embedding
+        # Loop invariant:
+        # log_proj_vol = log(Vol(Lambda(b_{d-eta}, b_{d-eta+1}, ..., b_{d-1}))) (+log(D.stddev))
 
-        # If B is a basis with GSO profiles r, this returns an estimate for the shortest vector in the lattice
-        # [ B | * ]
-        # [ 0 |tau]
-        # if the tau is None, the instance is homogeneous, and we omit the final row/column.
-        def svp_gaussian_heuristic_log_input(r, tau):
-            if tau is None:
-                n = len(list(r))
-                log_vol = sum(r)
-            else:
-                n = len(list(r)) + 1
-                log_vol = sum(r) + 2 * log(tau)
-            log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
-            return log_gh
+        def success():
+            return D.stddev**2 * eta <= exp(2.0 * log_gh(eta, log_proj_vol, False))
 
-        d = len(r)
-        r = [log(x) for x in r]
-
-        if d > 4096:
-            # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
-            min_i = d - 1754
+        # Find smallest eta ∈ [2, d] satisfying the success condition from [USENIX:ADPS16]_.
+        # Namely, given tau = stddev(D), we look for the smallest `eta` such that (pi_{d-eta}(e), tau) is a shortest
+        # lattice vector in the embedding lattice given by the basis:
+        # [pi_{d-eta}(B) | * ]
+        # [       0      |tau],
+        # where B is a basis of a random lattice.
+        # If `is_homogeneous`, the basis is simply [pi_{d-eta}(B)].
+        if success():
+            # It appears the size of our SVP call can be even smaller than beta. Now, we iteratively decrease eta as
+            # long as the success condition still holds.
+            # Note: we cannot try eta = 2,3,... until success, because this gives issues in extremely low dimensions.
+            while eta >= 2 and success():
+                # Decrease eta by one, and update the volume.
+                log_proj_vol -= 0.5 * log(r[d - eta])
+                eta -= 1
+            eta += 1  # eta >= 2
         else:
-            min_i = 0
+            # It appears we need to increase eta until we have success.
+            while eta < d + 1 and eta < max_beta_global and not success():
+                # Increase eta by one, and update the volume.
+                eta += 1
+                log_proj_vol += 0.5 * log(r[d - eta])
+            # Note: if eta = d + 1, then it's impossible, so stronger lattice reduction is needed (higher `beta`).
+        return eta
 
-        if is_homogeneous:
-            tau = None
-            for i in range(min_i, d):
-                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i)):
-                    return ZZ(d - (i - 1))
-            return ZZ(2)
-
-        else:
-            # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
-            # [pi_i(B) | * ]
-            # [   0    |tau]
-            tau = D.stddev
-            for i in range(min_i, d):
-                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau ** 2):
-                    return ZZ(d - (i - 1) + 1)
-            return ZZ(2)
-
-    @classmethod
-    def svp_dimension_gsa(cls, d, log_total_vol, log_delta, D, is_homogeneous=False):
+    @staticmethod
+    def svp_dimension_gsa(d, n, q, beta, xi, D, is_homogeneous=False):
         """
-        Return required svp dimension assuming the GSA on a lattice with a given volume and rank.
+        Return required SVP dimension for a given a q-ary lattice (assuming GSA),
+        using the success condition specified in [USENIX:ADPS16]_.
+        This function avoids numerical errors that may happen in `svp_dimension`.
 
+        :param d: lattice dimension (excl. embedding)
+        :param n: number of `q` vectors is `d-n-1`
+        :param q: prime modulus used for q-ary lattice
+        :param xi: scaling factor ξ for identity part
         """
-        from math import lgamma, log, pi
+        log_norm_total_vol = RR((log(q) * (d - n) + log(xi) * n) / d)  # See GSA from simulator.py
+        log_delta = RR(log(deltaf(beta)))
+        log_tau = RR(log(D.stddev))
 
-        def log_projected_vol(i):
-            return (d - i) / d * log_total_vol - i * (d - i) * log_delta
+        # Assuming GSA holds, the i'th log Gram--Schmidt norm, logGS[i] = .5 log(r[i]), equals:
+        #     logGS[i] = (d - 1 - 2 * i) * log_delta + log_norm_total_vol (i=0, ..., d-1).
+        # In particular,
+        #     logGS[ 0 ] = +(d-1) * log_delta + log_norm_total_vol,
+        #     logGS[d-1] = -(d-1) * log_delta + log_norm_total_vol.
+        # Note: for inhomogeneous problem, we pretend as if logGS[d] = log(tau).
 
-        def ball_log_vol(n):
-            return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
+        def success(svp_dim):
+            eta = svp_dim - int(not is_homogeneous)  # if inhom, subtract 1 to get number of basis vectors.
+            log_proj_vol = eta * log_norm_total_vol - eta * (d - eta) * log_delta + (0 if is_homogeneous else log_tau)
+            return log_tau + log(svp_dim**.5) <= log_gh(svp_dim, log_proj_vol, False)
 
-        # If B is a BKZ reduced basis, this returns an estimate for the shortest vector in the lattice
-        # [ B | * ]
-        # [ 0 |tau]
-        # under the GSA assumption, where total_vol is the volume of B, and delta is the root Hermite factor.
-        # if the tau is None, the instance is homogeneous, and we omit the final row/column.
-        def svp_gaussian_heuristic_gsa(i, tau):
-            if tau is None:
-                n = d - i
-                log_vol = 2 * log_projected_vol(i)
-            else:
-                n = d - i + 1
-                log_vol = 2 * log_projected_vol(i) + 2 * log(tau)
-            log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
-            return log_gh
-
-        if d > 4096:
-            # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
-            min_i = d - 1754
+        if success(beta):
+            while beta >= 2 and success(beta):
+                beta -= 1
+            beta += 1
         else:
-            min_i = 0
-
-        if is_homogeneous:
-            tau = None
-            for i in range(min_i, d):
-                if svp_gaussian_heuristic_gsa(i, tau) < log(D.stddev**2 * (d - i)):
-                    return ZZ(d - (i - 1))
-            return ZZ(2)
-        else:
-            # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
-            # [pi_i(B) | * ]
-            # [   0    |tau]
-            tau = D.stddev
-            for i in range(min_i, d):
-                if svp_gaussian_heuristic_gsa(i, tau) < log(D.stddev**2 * (d - i) + tau ** 2):
-                    return ZZ(d - (i - 1) + 1)
-            return ZZ(2)
+            emb_dim = d + int(not is_homogeneous)
+            while beta < emb_dim + 1 and beta < max_beta_global and not success(beta):
+                beta += 1
+        return beta
 
     @classmethod
     @cached_function
@@ -471,14 +456,15 @@ class PrimalHybrid:
         if babai:
             eta = 2
             svp_cost = PrimalHybrid.babai_cost(d)
+            babai_probability = prob_babai(r, sqrt(d) * params.Xe.stddev)
         else:
             # we scaled the lattice so that χ_e is what we want
             if simulator == GSA:
-                log_vol = RR((d - (params.n - zeta)) * log(params.q) + (params.n - zeta) * log(xi))
-                log_delta = RR(log(deltaf(beta)))
-                svp_dim = PrimalHybrid.svp_dimension_gsa(d, log_vol, log_delta, params.Xe, params._homogeneous)
+                # assert svp_dim == PrimalHybrid.svp_dimension_gsa(
+                svp_dim = PrimalHybrid.svp_dimension_gsa(
+                    d, params.n - zeta, params.q, beta, xi, params.Xe, params._homogeneous)
             else:
-                svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, is_homogeneous=params._homogeneous)
+                svp_dim = PrimalHybrid.svp_dimension(r, beta, params.Xe, params._homogeneous)
             eta = svp_dim if params._homogeneous else svp_dim - 1
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
@@ -488,10 +474,6 @@ class PrimalHybrid:
             svp_cost = costf(red_cost_model, svp_dim, svp_dim)
             # when η ≪ β, lifting may be a bigger cost
             svp_cost["rop"] += PrimalHybrid.babai_cost(d - eta)["rop"]
-
-        if babai:
-            babai_probability = prob_babai(r, sqrt(d) * params.Xe.stddev)
-        else:
             babai_probability = prob_babai(r[:d-eta], sqrt(d - eta) * params.Xe.stddev)
 
         if mitm and zeta > 0:
