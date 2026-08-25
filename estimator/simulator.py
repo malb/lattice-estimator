@@ -15,10 +15,29 @@ where
 - d = m + n + 1.
 
 The last row is optional.
+
+TESTS::
+
+    Large q-vectors reconstructed from logarithms are identified with a
+    relative tolerance:
+
+    >>> q = RR(2**64 - 59)
+    >>> squared_norm = (q + 28672)**2
+    >>> abs(sqrt(squared_norm) - q) > 1
+    True
+    >>> is_q_vector(squared_norm, q, 1e-8)
+    True
+    >>> is_q_vector((q - 2**40)**2, q, 1e-8)
+    False
 """
 
-from sage.all import RR, log, line, cached_function, pi, exp
+from sage.all import RR, log, line, cached_function, pi, exp, sqrt
 from functools import partial
+
+
+def is_q_vector(squared_norm, q, relative_tolerance):
+    """Return whether ``squared_norm`` represents a q-vector."""
+    return abs(sqrt(squared_norm) / q - 1) < relative_tolerance
 
 
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):

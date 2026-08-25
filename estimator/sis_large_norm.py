@@ -15,6 +15,7 @@ from .reduction import cost as costf
 from .util import local_minimum, log2
 from .cost import Cost
 from .sis_parameters import SISParameters
+from .simulator import is_q_vector
 from .simulator import normalize as simulator_normalize
 from .prob import amplify as prob_amplify
 from .io import Logging
@@ -195,7 +196,7 @@ class SISLargeNorm:
         r = simulator(d=d, n=d - params.n, q=params.q, beta=beta, xi=1, tau=False)
 
         # number of q-vectors n_q left at the head of the basis (Zone I of the Z-shape)
-        if abs(sqrt(r[0]) / params.q - 1) < profile_precision:  # q-vectors exist
+        if is_q_vector(r[0], params.q, profile_precision):  # q-vectors exist
             n_q = next((i for i, r_ in enumerate(r) if r_ < r[0]), len(r))
         else:
             # no q-vectors to lift over: this is the plain reduction attack of SIS.lattice
