@@ -4,6 +4,22 @@ Estimate cost of solving SIS using lattice reduction attacks.
 
 See :ref:`SIS Lattice Attacks` for an introduction what is available.
 
+TESTS::
+
+    Ignoring enough coordinates to leave a non-tall q-ary lattice is not a
+    valid instance of this attack:
+
+    >>> params = SISParameters(n=64, q=4294967197, m=128, length_bound=15, norm=oo)
+    >>> SISLattice.cost_infinity(40, params, zeta=63)["rop"] < oo
+    True
+    >>> SISLattice.cost_infinity(40, params, zeta=64)["rop"] == oo
+    True
+    >>> SISLattice.cost_infinity(40, params, zeta=65)["rop"] == oo
+    True
+    >>> from estimator.reduction import RC
+    >>> SISLattice()(params, zeta=32, d=96, red_cost_model=RC.BDGL16, log_level=0)["rop"] == oo
+    True
+
 """
 from functools import partial
 import warnings
@@ -141,7 +157,7 @@ class SISLattice:
         # Calculate the basis shape to aid in both styles of analysis
         d_ = d - zeta
 
-        if d_ < beta:
+        if d_ <= params.n or d_ < beta:
             return Cost(rop=oo, mem=oo)
 
         simulator = simulator_normalize(red_shape_model)
@@ -239,6 +255,7 @@ class SISLattice:
             ignore_qary=ignore_qary,
             red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
+            d=d,
             log_level=log_level + 1,
             **kwds,
         )
@@ -353,18 +370,25 @@ class SISLattice:
             )
 
             if zeta is None:
-                with local_minimum(0, params.m, log_level=log_level) as it:
-                    for zeta in it:
-                        it.update(
-                            f(
-                                zeta=zeta,
-                                **kwds,
+                d = kwds.get("d")
+                if d is None:
+                    d = params.m
+                zeta_stop = d - params.n
+                if zeta_stop <= 0:
+                    cost = Cost(rop=oo)
+                else:
+                    with local_minimum(0, zeta_stop, log_level=log_level) as it:
+                        for zeta in it:
+                            it.update(
+                                f(
+                                    zeta=zeta,
+                                    **kwds,
+                                )
                             )
-                        )
-                # TODO: this should not be required
-                cost = min(it.y, f(0, **kwds))
+                    # TODO: this should not be required
+                    cost = min(it.y, f(0, **kwds))
             else:
-                cost = f(zeta=zeta)
+                cost = f(zeta=zeta, **kwds)
 
         else:
             if simulator_normalize(red_shape_model) is not simulator_normalize(red_shape_model_default):
