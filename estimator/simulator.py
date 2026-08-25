@@ -15,10 +15,38 @@ where
 - d = m + n + 1.
 
 The last row is optional.
+
+TESTS::
+
+    Large q-vectors reconstructed from logarithms are identified with a
+    relative tolerance:
+
+    >>> q = RR(2**64 - 59)
+    >>> squared_norm = (q + 28672)**2
+    >>> abs(sqrt(squared_norm) - q) > 1
+    True
+    >>> is_q_vector(squared_norm, q, 1e-8)
+    True
+    >>> is_q_vector((q - 2**40)**2, q, 1e-8)
+    False
+
+    The q-vector-majority ZGSA profile that motivated this fix retains 238
+    q-vectors, and the relative test recognizes the reconstructed prefix:
+
+    >>> profile = ZGSA(d=1810, n=786, q=q, beta=494, xi=1, tau=False)
+    >>> next(i for i, squared_norm in enumerate(profile) if squared_norm < profile[0])
+    238
+    >>> is_q_vector(profile[0], q, 1e-8)
+    True
 """
 
-from sage.all import RR, log, line, cached_function, pi, exp
+from sage.all import RR, log, line, cached_function, pi, exp, sqrt
 from functools import partial
+
+
+def is_q_vector(squared_norm, q, relative_tolerance):
+    """Return whether ``squared_norm`` represents a q-vector."""
+    return abs(sqrt(squared_norm) / q - 1) < relative_tolerance
 
 
 def qary_simulator(f, d, n, q, beta, xi=1, tau=1, dual=False, ignore_qary=False):
@@ -120,8 +148,6 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
 
 def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
-    from math import lgamma
-    from .util import gh_constant, small_slope_t8
     """
     Reduced lattice Z-shape following the Geometric Series Assumption as specified in
     NTRU fatrigue [DucWoe21]_
@@ -134,7 +160,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
            applying it to the primal.
     :returns: Squared Gram-Schmidt norms
 
-    EXAMPLES:
+    EXAMPLES::
 
         >>> from estimator.simulator import GSA, ZGSA, CN11
         >>> n = 128
@@ -145,7 +171,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
         >>> tau = 1
         >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
         >>> len(zgsa_profile)
-        214
+        213
 
     Setting tau to False indicates a homogeneous instance.
 
@@ -158,12 +184,11 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
         >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
         >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
-        >>> sum([log(x) for x in cn11_profile]
-        1296.1852276471009
-        >>> sum([log(x) for x in zgsa_profile])
-        1296.18522764710
-        >>> sum([log(x) for x in gsa_profile])
-        1296.18522764710
+        >>> gsa_log_volume = sum(log(x) for x in gsa_profile)
+        >>> abs(sum(log(x) for x in cn11_profile) - gsa_log_volume) < 1e-8
+        True
+        >>> abs(sum(log(x) for x in zgsa_profile) - gsa_log_volume) < 1e-8
+        True
 
     Changing xi will change the volume of the lattice
 
@@ -171,13 +196,24 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
         >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
         >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
         >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
-        >>> sum([log(x) for x in gsa_profile])
-        1473.63090587044
-        >>> sum([log(x) for x in zgsa_profile])
-        1473.63090587044
-        >>> sum([log(x) for x in cn11_profile])
-        1473.630905870442
+        >>> gsa_log_volume = sum(log(x) for x in gsa_profile)
+        >>> abs(sum(log(x) for x in zgsa_profile) - gsa_log_volume) < 1e-8
+        True
+        >>> abs(sum(log(x) for x in cn11_profile) - gsa_log_volume) < 1e-8
+        True
+
+    Homogeneous profiles also preserve volume when q-vectors outnumber xi-vectors;
+    the unmatched q-vectors remain as a prefix::
+
+        >>> d, n, q, beta = 96, 32, 4294967197, 40
+        >>> profile = ZGSA(d, n, q, beta, xi=1, tau=False)
+        >>> abs(sum(log(x) for x in profile)/2 - (d-n)*RR(log(q))) < 1e-8
+        True
+        >>> next(i for i, x in enumerate(profile) if x < profile[0])
+        32
     """
+    from math import lgamma
+    from .util import gh_constant, small_slope_t8
 
     assert 2 <= beta <= d
 
@@ -218,7 +254,10 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     slope_ = slope(beta)
     diff = slope(beta)/2.
 
-    for i in range(num_q_vec):
+    # Smooth only matched q/non-q pairs. If q-vectors are the majority, the
+    # unmatched prefix remains at q instead of losing lattice volume.
+    num_non_q_vec = len(L_log) - num_q_vec
+    for i in range(min(num_q_vec, num_non_q_vec)):
         if diff > (RR(log(q)) - RR(log(xi)))/2.:
             break
 

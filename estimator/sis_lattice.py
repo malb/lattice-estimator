@@ -14,6 +14,7 @@ from .reduction import cost as costf
 from .util import local_minimum
 from .cost import Cost
 from .sis_parameters import SISParameters
+from .simulator import is_q_vector
 from .simulator import normalize as simulator_normalize
 from .prob import gaussian_cdf
 from .prob import amplify as prob_amplify
@@ -160,7 +161,7 @@ class SISLattice:
 
         else:  # Dilithium style analysis
             # Find first non-q-vector in r
-            if abs(sqrt(r[0]) - params.q) < 1e-8:  # q-vectors exist
+            if is_q_vector(r[0], params.q, 1e-8):  # q-vectors exist
                 idx_start = next(i for i, r_ in enumerate(r) if r_ < r[0])
 
             else:
