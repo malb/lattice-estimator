@@ -131,6 +131,22 @@ class SISLattice:
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
 
+        The probability regime is selected using the dimension left after
+        ignoring ``zeta`` coordinates::
+
+            >>> from estimator.reduction import ADPS16
+            >>> from estimator.simulator import LGSA
+            >>> params = SISParameters(
+            ...     n=1024, q=4294967197, m=65537,
+            ...     length_bound=2**24-1, norm=oo,
+            ... )
+            >>> cost = SISLattice.cost_infinity(
+            ...     343, params, zeta=57345,
+            ...     red_cost_model=ADPS16(mode="quantum"), red_shape_model=LGSA,
+            ... )
+            >>> floor(log(cost["rop"], 2))
+            118
+
         """
         if params.length_bound >= (params.q - 1) / 2:
             raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")
@@ -151,7 +167,7 @@ class SISLattice:
         rho, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d_)
         bkz_cost = costf(red_cost_model, beta, d_)
 
-        if RR(sqrt(d)) * params.length_bound <= params.q:  # Non-dilithium style analysis
+        if d_ * params.length_bound**2 <= params.q**2:  # Non-dilithium style analysis
             # Calculate expected vector length using approximation factor on the shortest vector from BKZ
             vector_length = rho * sqrt(r[0])
             # Find probability that all coordinates meet norm bound

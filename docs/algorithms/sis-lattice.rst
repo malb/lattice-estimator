@@ -17,12 +17,12 @@ The exact reduction shape model does not matter when using euclidean norm bounds
 
 When the implied root-Hermite factor ``δ`` falls below ``_delta(2^{16})``, the required BKZ block size exceeds the Chen-model search bracket. The bounded inversion reports this as ``β = +Infinity``; the Euclidean SIS estimator then reports ``rop: inf`` instead of falling back to an unbounded search.
 
-For infinity norm length bounds, we have two separate analyses. Both follow the same basic strategy. We use the worst case euclidean norm bound as a lower bound on the hardness. Then, we analyze the probability of obtaining a short vector where every coordinate meets the infinity norm constraint. When sqrt(m)*length_bound is less than the modulus q, we follow the analysis of the MATZOV report ([MATZOV22]_ P.18). We simulate the cost of generating *many* short vectors and treat each coordinate of the vector as an i.i.d Gaussian random variable with standard deviation equal to the length(s) of these short vectors divided by the square root of the dimension.::
+For infinity norm length bounds, we have two separate analyses. Both follow the same basic strategy. We use the worst case euclidean norm bound as a lower bound on the hardness. Then, we analyze the probability of obtaining a short vector where every coordinate meets the infinity norm constraint. After ignoring ``zeta`` coordinates, the active lattice dimension is ``d - zeta``. When ``sqrt(d - zeta) * length_bound`` is less than the modulus q, we follow the analysis of the MATZOV report ([MATZOV22]_ P.18). We simulate the cost of generating *many* short vectors and treat each coordinate of the vector as an i.i.d Gaussian random variable with standard deviation equal to the length(s) of these short vectors divided by the square root of the dimension.::
 
     params = SIS.Parameters(n=113, q=2048, length_bound=50, norm=oo)
     SIS.lattice(params)
 
-When sqrt(m)*length_bound is **greater than** the modulus, we follow the analysis present in the NIST round 3 Dilithium specification ([Dilithium21]_ P.35). Here, since BKZ can now produce q vectors at the given length bound (which will always satisfy the bound), we explicitly account for the q-ary structure of the lattice. Every coordinate corresponding to a q-vector yields uniformly random values, while the middle region of the basis produces Gaussian random variables as above. To explicitly account for this q-ary structure, use the ``ZGSA`` simulator.:: 
+When ``sqrt(d - zeta) * length_bound`` is **greater than** the modulus, we follow the analysis present in the NIST round 3 Dilithium specification ([Dilithium21]_ P.35). Here, since BKZ can now produce q vectors at the given length bound (which will always satisfy the bound), we explicitly account for the q-ary structure of the lattice. Every coordinate corresponding to a q-vector yields uniformly random values, while the middle region of the basis produces Gaussian random variables as above. To explicitly account for this q-ary structure, use the ``ZGSA`` simulator.::
 
     SIS.lattice(params.updated(length_bound=70), red_shape_model=Simulator.ZGSA)
 
@@ -46,4 +46,3 @@ When a euclidean length bound exceeds the modulus, ``ν > q`` (the "small modulu
     SIS.large_norm(params)
 
 This attack is included automatically in ``SIS.estimate()`` whenever the instance falls into the ``ν > q`` euclidean regime.
-
