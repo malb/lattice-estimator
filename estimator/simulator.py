@@ -177,6 +177,16 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
         1473.63090587044
         >>> sum([log(x) for x in cn11_profile])
         1473.630905870442
+
+    Homogeneous profiles also preserve volume when q-vectors outnumber xi-vectors;
+    the unmatched q-vectors remain as a prefix::
+
+        >>> d, n, q, beta = 96, 32, 4294967197, 40
+        >>> profile = ZGSA(d, n, q, beta, xi=1, tau=False)
+        >>> abs(sum(log(x) for x in profile)/2 - (d-n)*log(q)) < 1e-8
+        True
+        >>> next(i for i, x in enumerate(profile) if x < profile[0])
+        32
     """
 
     assert 2 <= beta <= d
@@ -218,7 +228,10 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     slope_ = slope(beta)
     diff = slope(beta)/2.
 
-    for i in range(num_q_vec):
+    # Smooth only matched q/non-q pairs. If q-vectors are the majority, the
+    # unmatched prefix remains at q instead of losing lattice volume.
+    num_non_q_vec = len(L_log) - num_q_vec
+    for i in range(min(num_q_vec, num_non_q_vec)):
         if diff > (RR(log(q)) - RR(log(xi)))/2.:
             break
 
