@@ -195,7 +195,7 @@ class SISLargeNorm:
         r = simulator(d=d, n=d - params.n, q=params.q, beta=beta, xi=1, tau=False)
 
         # number of q-vectors n_q left at the head of the basis (Zone I of the Z-shape)
-        if abs(sqrt(r[0]) - params.q) < profile_precision:  # q-vectors exist
+        if abs(sqrt(r[0]) / params.q - 1) < profile_precision:  # q-vectors exist
             n_q = next((i for i, r_ in enumerate(r) if r_ < r[0]), len(r))
         else:
             # no q-vectors to lift over: this is the plain reduction attack of SIS.lattice

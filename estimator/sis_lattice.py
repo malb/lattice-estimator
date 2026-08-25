@@ -131,6 +131,17 @@ class SISLattice:
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
 
+        The simulator constructs large q-vectors through logarithms and
+        exponentials, so they are recognized with a relative tolerance::
+
+            >>> from estimator.simulator import ZGSA
+            >>> q = 2**64 - 59
+            >>> profile = ZGSA(d=96, n=64, q=q, beta=40, xi=1, tau=False)
+            >>> abs(sqrt(profile[0]) - q) > 1
+            True
+            >>> abs(sqrt(profile[0]) / q - 1) < 1e-8
+            True
+
         """
         if params.length_bound >= (params.q - 1) / 2:
             raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")
@@ -160,7 +171,7 @@ class SISLattice:
 
         else:  # Dilithium style analysis
             # Find first non-q-vector in r
-            if abs(sqrt(r[0]) - params.q) < 1e-8:  # q-vectors exist
+            if abs(sqrt(r[0]) / params.q - 1) < 1e-8:  # q-vectors exist
                 idx_start = next(i for i, r_ in enumerate(r) if r_ < r[0])
 
             else:
