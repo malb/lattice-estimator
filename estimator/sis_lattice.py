@@ -131,6 +131,13 @@ class SISLattice:
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
 
+        Ignoring enough coordinates to leave a non-tall q-ary lattice is not
+        a valid instance of this attack::
+
+            >>> params = SISParameters(n=64, q=4294967197, m=128, length_bound=15, norm=oo)
+            >>> SISLattice.cost_infinity(40, params, zeta=64)["rop"] == oo
+            True
+
         """
         if params.length_bound >= (params.q - 1) / 2:
             raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")
@@ -141,7 +148,7 @@ class SISLattice:
         # Calculate the basis shape to aid in both styles of analysis
         d_ = d - zeta
 
-        if d_ < beta:
+        if d_ <= params.n or d_ < beta:
             return Cost(rop=oo, mem=oo)
 
         simulator = simulator_normalize(red_shape_model)
@@ -353,16 +360,21 @@ class SISLattice:
             )
 
             if zeta is None:
-                with local_minimum(0, params.m, log_level=log_level) as it:
-                    for zeta in it:
-                        it.update(
-                            f(
-                                zeta=zeta,
-                                **kwds,
+                d = kwds.get("d", params.m)
+                zeta_stop = d - params.n
+                if zeta_stop <= 0:
+                    cost = Cost(rop=oo)
+                else:
+                    with local_minimum(0, zeta_stop, log_level=log_level) as it:
+                        for zeta in it:
+                            it.update(
+                                f(
+                                    zeta=zeta,
+                                    **kwds,
+                                )
                             )
-                        )
-                # TODO: this should not be required
-                cost = min(it.y, f(0, **kwds))
+                    # TODO: this should not be required
+                    cost = min(it.y, f(0, **kwds))
             else:
                 cost = f(zeta=zeta)
 

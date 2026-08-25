@@ -22,6 +22,8 @@ For infinity norm length bounds, we have two separate analyses. Both follow the 
     params = SIS.Parameters(n=113, q=2048, length_bound=50, norm=oo)
     SIS.lattice(params)
 
+Ignoring ``zeta`` coordinates reduces the active lattice dimension to ``d - zeta``. This q-ary kernel-lattice attack requires ``d - zeta > n``; square or tall projected matrices are outside its domain.
+
 When sqrt(m)*length_bound is **greater than** the modulus, we follow the analysis present in the NIST round 3 Dilithium specification ([Dilithium21]_ P.35). Here, since BKZ can now produce q vectors at the given length bound (which will always satisfy the bound), we explicitly account for the q-ary structure of the lattice. Every coordinate corresponding to a q-vector yields uniformly random values, while the middle region of the basis produces Gaussian random variables as above. To explicitly account for this q-ary structure, use the ``ZGSA`` simulator.:: 
 
     SIS.lattice(params.updated(length_bound=70), red_shape_model=Simulator.ZGSA)
@@ -46,4 +48,3 @@ When a euclidean length bound exceeds the modulus, ``ν > q`` (the "small modulu
     SIS.large_norm(params)
 
 This attack is included automatically in ``SIS.estimate()`` whenever the instance falls into the ``ν > q`` euclidean regime.
-
