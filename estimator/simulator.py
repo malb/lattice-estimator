@@ -29,6 +29,15 @@ TESTS::
     True
     >>> is_q_vector((q - 2**40)**2, q, 1e-8)
     False
+
+    The q-vector-majority ZGSA profile that motivated this fix retains 238
+    q-vectors, and the relative test recognizes the reconstructed prefix:
+
+    >>> profile = ZGSA(d=1810, n=786, q=q, beta=494, xi=1, tau=False)
+    >>> next(i for i, squared_norm in enumerate(profile) if squared_norm < profile[0])
+    238
+    >>> is_q_vector(profile[0], q, 1e-8)
+    True
 """
 
 from sage.all import RR, log, line, cached_function, pi, exp, sqrt
