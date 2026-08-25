@@ -4,6 +4,24 @@ Estimate cost of solving SIS using lattice reduction attacks.
 
 See :ref:`SIS Lattice Attacks` for an introduction what is available.
 
+TESTS::
+
+    The probability regime is selected using the dimension left after
+    ignoring ``zeta`` coordinates:
+
+    >>> from estimator.reduction import ADPS16
+    >>> from estimator.simulator import LGSA
+    >>> params = SISParameters(
+    ...     n=1024, q=4294967197, m=65537,
+    ...     length_bound=2**24-1, norm=oo,
+    ... )
+    >>> cost = SISLattice.cost_infinity(
+    ...     343, params, zeta=57345,
+    ...     red_cost_model=ADPS16(mode="quantum"), red_shape_model=LGSA,
+    ... )
+    >>> floor(log(cost["rop"], 2))
+    118
+
 """
 from functools import partial
 import warnings
@@ -130,22 +148,6 @@ class SISLattice:
 
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
-
-        The probability regime is selected using the dimension left after
-        ignoring ``zeta`` coordinates::
-
-            >>> from estimator.reduction import ADPS16
-            >>> from estimator.simulator import LGSA
-            >>> params = SISParameters(
-            ...     n=1024, q=4294967197, m=65537,
-            ...     length_bound=2**24-1, norm=oo,
-            ... )
-            >>> cost = SISLattice.cost_infinity(
-            ...     343, params, zeta=57345,
-            ...     red_cost_model=ADPS16(mode="quantum"), red_shape_model=LGSA,
-            ... )
-            >>> floor(log(cost["rop"], 2))
-            118
 
         """
         if params.length_bound >= (params.q - 1) / 2:
