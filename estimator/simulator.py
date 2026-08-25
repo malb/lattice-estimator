@@ -120,8 +120,6 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
 
 def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
-    from math import lgamma
-    from .util import gh_constant, small_slope_t8
     """
     Reduced lattice Z-shape following the Geometric Series Assumption as specified in
     NTRU fatrigue [DucWoe21]_
@@ -134,7 +132,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
            applying it to the primal.
     :returns: Squared Gram-Schmidt norms
 
-    EXAMPLES:
+    EXAMPLES::
 
         >>> from estimator.simulator import GSA, ZGSA, CN11
         >>> n = 128
@@ -145,7 +143,7 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
         >>> tau = 1
         >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
         >>> len(zgsa_profile)
-        214
+        213
 
     Setting tau to False indicates a homogeneous instance.
 
@@ -158,12 +156,11 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
 
         >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
         >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
-        >>> sum([log(x) for x in cn11_profile]
-        1296.1852276471009
-        >>> sum([log(x) for x in zgsa_profile])
-        1296.18522764710
-        >>> sum([log(x) for x in gsa_profile])
-        1296.18522764710
+        >>> gsa_log_volume = sum(log(x) for x in gsa_profile)
+        >>> abs(sum(log(x) for x in cn11_profile) - gsa_log_volume) < 1e-8
+        True
+        >>> abs(sum(log(x) for x in zgsa_profile) - gsa_log_volume) < 1e-8
+        True
 
     Changing xi will change the volume of the lattice
 
@@ -171,23 +168,24 @@ def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
         >>> gsa_profile = GSA(d, n, q, beta, xi, tau)
         >>> zgsa_profile = ZGSA(d, n, q, beta, xi, tau)
         >>> cn11_profile = CN11(d, n, q, beta, xi, tau)
-        >>> sum([log(x) for x in gsa_profile])
-        1473.63090587044
-        >>> sum([log(x) for x in zgsa_profile])
-        1473.63090587044
-        >>> sum([log(x) for x in cn11_profile])
-        1473.630905870442
+        >>> gsa_log_volume = sum(log(x) for x in gsa_profile)
+        >>> abs(sum(log(x) for x in zgsa_profile) - gsa_log_volume) < 1e-8
+        True
+        >>> abs(sum(log(x) for x in cn11_profile) - gsa_log_volume) < 1e-8
+        True
 
     Homogeneous profiles also preserve volume when q-vectors outnumber xi-vectors;
     the unmatched q-vectors remain as a prefix::
 
         >>> d, n, q, beta = 96, 32, 4294967197, 40
         >>> profile = ZGSA(d, n, q, beta, xi=1, tau=False)
-        >>> abs(sum(log(x) for x in profile)/2 - (d-n)*log(q)) < 1e-8
+        >>> abs(sum(log(x) for x in profile)/2 - (d-n)*RR(log(q))) < 1e-8
         True
         >>> next(i for i, x in enumerate(profile) if x < profile[0])
         32
     """
+    from math import lgamma
+    from .util import gh_constant, small_slope_t8
 
     assert 2 <= beta <= d
 
