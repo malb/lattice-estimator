@@ -15,7 +15,7 @@ EXAMPLES::
 
 """
 
-from sage.all import binomial, ZZ, log, ceil, RealField, oo, exp, RDF, cached_function
+from sage.all import binomial, ZZ, log, ceil, oo, exp, RDF, cached_function
 from sage.all import RealDistribution, RR, sqrt, prod, erf
 from .conf import max_n_cache
 from .nd import NoiseDistribution
@@ -151,6 +151,30 @@ def drop(n, h, k, fail=0, rotations=False):
         return prob_drop
 
 
+def _log1mexp2(log_x):
+    """
+    Return ``log(1 - x)`` from ``log(x, 2)``.
+
+    TESTS::
+
+        >>> from estimator import prob
+        >>> from sage.all import floor, log
+        >>> floor(log(-1 / prob._log1mexp2(-10000), 2))
+        10000
+        >>> prob._log1mexp2(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: log_x must be non-positive
+    """
+    if log_x > 0:
+        raise ValueError("log_x must be non-positive")
+    if log_x == 0:
+        return -oo
+
+    x = RR(2) ** RR(log_x)
+    return (-x).log1p()
+
+
 def amplify(target_success_probability, success_probability, majority=False):
     """
     Return the number of trials needed to amplify current `success_probability` to
@@ -162,32 +186,39 @@ def amplify(target_success_probability, success_probability, majority=False):
        if `False` then we assume that we can check solutions, so one success suffices
 
     :returns: number of required trials to amplify
+
+    TESTS::
+
+        >>> from estimator import prob
+        >>> from sage.all import floor, log, RR
+        >>> floor(log(prob.amplify(0.99, RR(2)**-10000), 2))
+        10002
+        >>> prob.amplify(0.99, RR("0.1"), majority=True)
+        779
+        >>> floor(log(prob.amplify(0.99, RR(2)**-10000, majority=True), 2))
+        20002
     """
     if target_success_probability < success_probability:
         return ZZ(1)
     if success_probability == 0.0:
         return oo
 
-    prec = max(
-        53,
-        2 * ceil(abs(float(log(success_probability, 2)))),
-        2 * ceil(abs(float(log(1 - success_probability, 2)))),
-        2 * ceil(abs(float(log(target_success_probability, 2)))),
-        2 * ceil(abs(float(log(1 - target_success_probability, 2)))),
-    )
-    prec = min(prec, 2048)
-    RR = RealField(prec)
-
-    success_probability = RR(success_probability)
-    target_success_probability = RR(target_success_probability)
+    if not majority:
+        try:
+            # target_success_probability = 1 - (1-success_probability)^trials
+            return ceil(
+                log(1 - target_success_probability)
+                / _log1mexp2(log(success_probability, 2))
+            )
+        except ValueError:
+            return oo
 
     try:
-        if majority:
-            eps = success_probability / 2
-            return ceil(2 * log(2 - 2 * target_success_probability) / log(1 - 4 * eps**2))
-        else:
-            # target_success_probability = 1 - (1-success_probability)^trials
-            return ceil(log(1 - target_success_probability) / log(1 - success_probability))
+        return ceil(
+            2
+            * log(2 - 2 * target_success_probability)
+            / _log1mexp2(2 * log(success_probability, 2))
+        )
     except ValueError:
         return oo
 

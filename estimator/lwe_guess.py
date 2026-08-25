@@ -411,7 +411,7 @@ class Distinguisher:
             >>> from estimator.lwe_guess import distinguish
             >>> params = LWE.Parameters(n=0, q=2 ** 32, Xs=ND.Binary, Xe=ND.DiscreteGaussian(2 ** 32))
             >>> distinguish(params)
-            rop: ≈2^60.0, mem: ≈2^60.0, m: ≈2^60.0
+            rop: ≈2^59.9, mem: ≈2^59.9, m: ≈2^59.9
 
         """
 
