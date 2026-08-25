@@ -131,6 +131,27 @@ class SISLattice:
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
 
+        TESTS::
+
+            >>> from estimator.sis_lattice import SISLattice
+            >>> from estimator.sis_parameters import SISParameters
+            >>> from estimator.reduction import RC
+            >>> from estimator.simulator import LGSA
+            >>> from sage.all import oo
+            >>> params = SISParameters(n=32, q=2**220, m=128, length_bound=1, norm=oo)
+            >>> SISLattice.cost_infinity(
+            ...     40, params, red_cost_model=RC.BDGL16, red_shape_model=LGSA, d=128
+            ... )
+                     rop: ≈2^6994.0
+                     red: ≈2^6994.0
+                   sieve:  ≈2^inf
+                       β:       40
+                       η:       40
+                       ζ:        0
+                       d:      128
+                    prob: ≈2^-6953.7
+                       ↻:  ≈2^inf
+
         """
         if params.length_bound >= (params.q - 1) / 2:
             raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")

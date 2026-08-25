@@ -88,8 +88,19 @@ def gaussian_cdf(mu, sigma, t):
     :params t: the limit at which to calculate the cdf.
 
     :returns: the evaluation of the cdf at t.
+
+    Keeping the result symbolic lets callers simplify combinations of CDFs
+    before coercing them to a fixed-precision real. This preserves tiny
+    centered interval probabilities::
+
+        >>> sigma = RR(2) ** 100
+        >>> interval_probability = 1 - 2 * gaussian_cdf(0, sigma, -1)
+        >>> RR(interval_probability) > 0
+        True
+        >>> RR(interval_probability) == RR(erf(1 / (sqrt(2) * sigma)))
+        True
     """
-    return RR((1/2)*(1 + erf((t - mu)/(sqrt(2)*sigma))))
+    return (1/2)*(1 + erf((t - mu)/(sqrt(2)*sigma)))
 
 
 def mitm_babai_probability(r, stddev, fast=False):
