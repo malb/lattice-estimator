@@ -92,29 +92,6 @@ def gaussian_cdf(mu, sigma, t):
     return RR((1/2)*(1 + erf((t - mu)/(sqrt(2)*sigma))))
 
 
-def gaussian_centered_interval_probability(sigma, bound):
-    """
-    Return ``Pr[-bound <= X <= bound]`` for a centered Gaussian random
-    variable ``X`` with standard deviation ``sigma``.
-
-    Evaluating the equivalent error-function expression directly avoids the
-    cancellation in ``1 - 2 * gaussian_cdf(0, sigma, -bound)`` when the
-    interval probability is tiny.
-
-    TESTS::
-
-        >>> from estimator.prob import gaussian_centered_interval_probability
-        >>> from sage.all import RR, sqrt
-        >>> sigma = RR(2) ** 55 * sqrt(2)
-        >>> probability = gaussian_centered_interval_probability(sigma, 1)
-        >>> probability > 0
-        True
-        >>> RR(2) ** -57 < probability < RR(2) ** -55
-        True
-    """
-    return RR(erf(bound / (sqrt(2) * sigma)))
-
-
 def mitm_babai_probability(r, stddev, fast=False):
     """
     Compute the "e-admissibility" probability associated to the mitm step, according to

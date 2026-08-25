@@ -24,14 +24,13 @@ TESTS::
 from functools import partial
 import warnings
 
-from sage.all import oo, sqrt, log, RR, floor, cached_function
+from sage.all import oo, sqrt, log, RR, floor, erf, cached_function
 from .reduction import beta as betaf
 from .reduction import cost as costf
 from .util import local_minimum
 from .cost import Cost
 from .sis_parameters import SISParameters
 from .simulator import normalize as simulator_normalize
-from .prob import gaussian_centered_interval_probability
 from .prob import amplify as prob_amplify
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
@@ -172,8 +171,8 @@ class SISLattice:
             vector_length = rho * sqrt(r[0])
             # Find probability that all coordinates meet norm bound
             sigma = vector_length / sqrt(d_)
-            interval_probability = gaussian_centered_interval_probability(
-                sigma, params.length_bound
+            interval_probability = RR(
+                erf(params.length_bound / (sqrt(2) * sigma))
             )
             log_trial_prob = RR(d_ * log(interval_probability, 2))
 
@@ -196,8 +195,8 @@ class SISLattice:
             gaussian_coords = max(idx_end - idx_start + 1, sieve_dim)
             sigma = vector_length / sqrt(gaussian_coords)
 
-            interval_probability = gaussian_centered_interval_probability(
-                sigma, params.length_bound
+            interval_probability = RR(
+                erf(params.length_bound / (sqrt(2) * sigma))
             )
             log_trial_prob = RR(log(interval_probability, 2) * gaussian_coords)
             log_trial_prob += RR(log((2 * params.length_bound + 1) / params.q, 2) * (idx_start))
