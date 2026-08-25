@@ -4,6 +4,22 @@ Estimate cost of solving SIS using lattice reduction attacks.
 
 See :ref:`SIS Lattice Attacks` for an introduction what is available.
 
+TESTS::
+
+    >>> from estimator.sis_lattice import SISLattice
+    >>> from estimator.sis_parameters import SISParameters
+    >>> from estimator.reduction import RC
+    >>> from estimator.simulator import LGSA
+    >>> from sage.all import log, oo
+    >>> params = SISParameters(n=32, q=2**220, m=128, length_bound=1, norm=oo)
+    >>> cost = SISLattice.cost_infinity(
+    ...     40, params, red_cost_model=RC.BDGL16, red_shape_model=LGSA, d=128
+    ... )
+    >>> round(float(log(cost["rop"], 2)), 1)
+    6994.0
+    >>> round(float(log(cost["prob"], 2)), 1)
+    -6953.7
+
 """
 from functools import partial
 import warnings
@@ -15,7 +31,7 @@ from .util import local_minimum
 from .cost import Cost
 from .sis_parameters import SISParameters
 from .simulator import normalize as simulator_normalize
-from .prob import gaussian_cdf
+from .prob import gaussian_centered_interval_probability
 from .prob import amplify as prob_amplify
 from .io import Logging
 from .conf import red_cost_model as red_cost_model_default
@@ -131,27 +147,6 @@ class SISLattice:
         .. note :: This function assumes that the instance is normalized. It runs no optimization,
             it merely reports costs.
 
-        TESTS::
-
-            >>> from estimator.sis_lattice import SISLattice
-            >>> from estimator.sis_parameters import SISParameters
-            >>> from estimator.reduction import RC
-            >>> from estimator.simulator import LGSA
-            >>> from sage.all import oo
-            >>> params = SISParameters(n=32, q=2**220, m=128, length_bound=1, norm=oo)
-            >>> SISLattice.cost_infinity(
-            ...     40, params, red_cost_model=RC.BDGL16, red_shape_model=LGSA, d=128
-            ... )
-                     rop: ≈2^6994.0
-                     red: ≈2^6994.0
-                   sieve:  ≈2^inf
-                       β:       40
-                       η:       40
-                       ζ:        0
-                       d:      128
-                    prob: ≈2^-6953.7
-                       ↻:  ≈2^inf
-
         """
         if params.length_bound >= (params.q - 1) / 2:
             raise ValueError("SIS trivially easy. Please set norm bound < (q-1)/2.")
@@ -177,7 +172,10 @@ class SISLattice:
             vector_length = rho * sqrt(r[0])
             # Find probability that all coordinates meet norm bound
             sigma = vector_length / sqrt(d_)
-            log_trial_prob = RR(d_ * log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2))
+            interval_probability = gaussian_centered_interval_probability(
+                sigma, params.length_bound
+            )
+            log_trial_prob = RR(d_ * log(interval_probability, 2))
 
         else:  # Dilithium style analysis
             # Find first non-q-vector in r
@@ -198,9 +196,10 @@ class SISLattice:
             gaussian_coords = max(idx_end - idx_start + 1, sieve_dim)
             sigma = vector_length / sqrt(gaussian_coords)
 
-            log_trial_prob = RR(
-                log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2) * (gaussian_coords)
+            interval_probability = gaussian_centered_interval_probability(
+                sigma, params.length_bound
             )
+            log_trial_prob = RR(log(interval_probability, 2) * gaussian_coords)
             log_trial_prob += RR(log((2 * params.length_bound + 1) / params.q, 2) * (idx_start))
 
         probability = 2 ** min(
