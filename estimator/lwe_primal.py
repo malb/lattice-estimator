@@ -333,8 +333,8 @@ class PrimalHybrid:
         r = [log(x) for x in r]
 
         if d > 4096:
-            # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
-            min_i = d - 1754
+            # cap the svp dimension at max_beta
+            min_i = max(0, d - max_beta_global)
         else:
             min_i = 0
 
@@ -385,8 +385,8 @@ class PrimalHybrid:
             return log_gh
 
         if d > 4096:
-            # chosen since RC.ADPS16(1754, 1754).log(2.) = 512.168000000000
-            min_i = d - 1754
+            # cap the svp dimension at max_beta
+            min_i = max(0, d - max_beta_global)
         else:
             min_i = 0
 

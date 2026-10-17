@@ -155,6 +155,7 @@ At present, this estimator is maintained by Martin Albrecht. Contributors are:
 - `Navid Abapour <https://github.com/navid-divan>`__
 - Rachel Player
 - Sam Scott
+- `Swechchha (Sia) Adhikari <https://github.com/swechchhaad>`__
 
 See `Contributing <https://lattice-estimator.readthedocs.io/en/latest/contributing.html>`__ for details on how
 to contribute.
