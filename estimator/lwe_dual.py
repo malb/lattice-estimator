@@ -393,7 +393,7 @@ class DualHybrid:
 
             >>> params = params.updated(Xs=ND.DiscreteGaussian(3.0))
             >>> LWE.dual(params)
-            rop: ≈2^116.6, mem: ≈2^73.2, m: 1142, β: 299, d: 2166, ↻: 1, tag: dual
+            rop: ≈2^116.5, mem: ≈2^73.2, m: 1140, β: 298, d: 2164, ↻: 1, tag: dual
             >>> dual_hybrid(params)
             rop: ≈2^116.2, mem: ≈2^105.8, m: 1137, β: 297, d: 2154, ↻: 1, ζ: 7, tag: dual_hybrid
             >>> dual_hybrid(params, mitm_optimization=True)

@@ -289,7 +289,7 @@ class CodedBKW:
         TESTS::
 
             >>> LWE.coded_bkw(schemes.TFHE630)
-            rop: ≈2^144.7, m: ≈2^131.8, mem: ≈2^132.8, b: 4, t1: 0, t2: 27, ℓ: 3, #cod: 559, #top: 0, #test: 71, ...
+            rop: ≈2^144.7, m: ≈2^131.8, mem: ≈2^132.7, b: 4, t1: 0, t2: 26, ℓ: 3, #cod: 557, #top: 0, #test: 73, ...
 
         .. note :: See also [C:KirFou15]_.
 
