@@ -70,6 +70,7 @@ Tests
 
 - The easiest way to run tests is to run ``pytest``, ``python -m pytest`` (for those running inside ``conda`` or ``sage -sh``), or ``sage --python -m pytest`` in the root directory of this repository. These tests are also run on each commit. Code that isn't tested is broken, so ideally every function should have an example doctest.
   - To install the depdencies for testing, run ``pip install -r requirements.txt``.
+- If you use `uv <https://docs.astral.sh/uv/>`__, note that SageMath is an external dependency which is not (and cannot be) installed by ``uv``. On systems where SageMath is installed into the system Python, e.g. via the distribution's package manager, create the virtual environment with access to the system's site packages, e.g. ``uv venv --python /usr/bin/python --system-site-packages``, and then run ``uv run python -m pytest``. This installs the ``dev`` dependency group, mirroring ``requirements.txt``, and runs the same tests. Without access to the system's site packages, ``uv run`` fails with ``ModuleNotFoundError: No module named 'sage'``.
 - We also enforce a coding style using `flake8 <https://flake8.pycqa.org/en/latest/>`__.
 - You should also test building the documentation locally before creating a pull request (see below).
 
