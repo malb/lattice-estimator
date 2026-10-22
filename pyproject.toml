@@ -10,6 +10,18 @@ readme = "README.rst"
 requires-python = ">=3.9"
 dependencies = []
 
+[dependency-groups]
+dev = [
+    "black",
+    "flake8",
+    "pyproject-flake8",
+    "pytest",
+    "pytest-xdist",
+    "nbmake",
+    "sphinx-book-theme",
+    "sphinxcontrib-jupyter",
+]
+
 [tool.uv]
 python-preference = "system"
 
