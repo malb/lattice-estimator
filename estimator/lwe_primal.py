@@ -5,6 +5,7 @@ Estimate cost of solving LWE using primal attacks.
 See :ref:`LWE Primal Attacks` for an introduction what is available.
 
 """
+
 from functools import partial
 
 from sage.all import oo, ceil, sqrt, log, RR, ZZ, cached_function
@@ -113,10 +114,7 @@ class PrimalUSVP:
 
         if not tau:
             lhs = log(sqrt(params.Xe.stddev**2 * (beta - 1)))
-            rhs = RR(
-                log(delta) * (2 * beta - d - 1)
-                + (log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d
-            )
+            rhs = RR(log(delta) * (2 * beta - d - 1) + (log(xi) * params.n + log(params.q) * (d - params.n - 1)) / d)
 
         else:
             lhs = log(sqrt(params.Xe.stddev**2 * (beta - 1) + tau**2))
@@ -239,14 +237,10 @@ class PrimalUSVP:
             max_beta = max(min(max_beta_global, m), 40 + precision)
             with local_minimum(40, max_beta, precision=precision) as it:
                 for beta in it:
-                    cost = self.cost_gsa(
-                        beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds
-                    )
+                    cost = self.cost_gsa(beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds)
                     it.update(cost)
                 for beta in it.neighborhood:
-                    cost = self.cost_gsa(
-                        beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds
-                    )
+                    cost = self.cost_gsa(beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds)
                     it.update(cost)
                 cost = it.y
             cost["tag"] = "usvp"
@@ -402,7 +396,7 @@ class PrimalHybrid:
             # [   0    |tau]
             tau = D.stddev
             for i in range(min_i, d):
-                if svp_gaussian_heuristic_gsa(i, tau) < log(D.stddev**2 * (d - i) + tau ** 2):
+                if svp_gaussian_heuristic_gsa(i, tau) < log(D.stddev**2 * (d - i) + tau**2):
                     return ZZ(d - (i - 1) + 1)
             return ZZ(2)
 
@@ -421,7 +415,7 @@ class PrimalHybrid:
         red_cost_model=red_cost_model_default,
         log_level=5,
     ):
-        '''
+        """
         The costs in a Primal Hybrid attack when we run BKZ-β on the lattice basis.
 
         :param beta: blocksize.
@@ -440,7 +434,7 @@ class PrimalHybrid:
         - eta: the projection dimension.
         - babai_probability: the probability the Babai lift in the CVP subroutine succeeds.
         - mitm_probability: the probability a mitm speedup succeeds. If mitm=False, returns 1.
-        '''
+        """
         if m - zeta < beta:
             # cannot BKZ-β on a basis of dimension < β
             return {"bkz_cost": Cost(rop=oo)}
@@ -492,7 +486,7 @@ class PrimalHybrid:
         if babai:
             babai_probability = prob_babai(r, sqrt(d) * params.Xe.stddev)
         else:
-            babai_probability = prob_babai(r[:d-eta], sqrt(d - eta) * params.Xe.stddev)
+            babai_probability = prob_babai(r[: d - eta], sqrt(d - eta) * params.Xe.stddev)
 
         if mitm and zeta > 0:
             if babai:
@@ -503,12 +497,14 @@ class PrimalHybrid:
         else:
             mitm_probability = 1
 
-        return {"bkz_cost": bkz_cost,
-                "d": d,
-                "svp_cost": svp_cost,
-                "eta": eta,
-                "babai_probability": babai_probability,
-                "mitm_probability": mitm_probability}
+        return {
+            "bkz_cost": bkz_cost,
+            "d": d,
+            "svp_cost": svp_cost,
+            "eta": eta,
+            "babai_probability": babai_probability,
+            "mitm_probability": mitm_probability,
+        }
 
     @staticmethod
     @cached_function
@@ -543,14 +539,17 @@ class PrimalHybrid:
            costs.
 
         """
-        beta_params = PrimalHybrid.beta_params(beta=beta,
-                                               params=params,
-                                               zeta=zeta,
-                                               babai=babai,
-                                               mitm=mitm, m=m,
-                                               d=d,
-                                               red_shape_model=red_shape_model,
-                                               red_cost_model=red_cost_model)
+        beta_params = PrimalHybrid.beta_params(
+            beta=beta,
+            params=params,
+            zeta=zeta,
+            babai=babai,
+            mitm=mitm,
+            m=m,
+            d=d,
+            red_shape_model=red_shape_model,
+            red_cost_model=red_cost_model,
+        )
         if len(beta_params.keys()) == 1:
             # this beta is not sufficient to reveal the error for these params,
             # either due to insufficient samples or projection dim > d.
@@ -835,7 +834,7 @@ class PrimalHybrid:
                     min_zeta = (min_zeta_upper + min_zeta_lower) // 2
 
             # we search for max_zeta such that cost(max_zeta) is finite, but cost(max_zeta + 1) is infinite.
-            cost_max_zeta = f(zeta=params.n-1, optimize_d=False, **kwds)
+            cost_max_zeta = f(zeta=params.n - 1, optimize_d=False, **kwds)
             if cost_max_zeta["rop"] < oo:
                 max_zeta = params.n - 1
             else:
@@ -850,8 +849,11 @@ class PrimalHybrid:
                         max_zeta_upper = max_zeta
                     max_zeta = (max_zeta_upper + max_zeta_lower) // 2
 
-            ret = minimize_scalar(lambda x: log(f(zeta=round(x), optimize_d=False,
-                                                  **kwds)["rop"]), bounds=(min_zeta, max_zeta), method="bounded")
+            ret = minimize_scalar(
+                lambda x: log(f(zeta=round(x), optimize_d=False, **kwds)["rop"]),
+                bounds=(min_zeta, max_zeta),
+                method="bounded",
+            )
 
             zeta = int(ret.x)
             cost = f(zeta=zeta, optimize_d=False, **kwds)
