@@ -25,7 +25,7 @@ jobs:
           apt-get -qq install -y --no-install-recommends make
           # `pkg_resources` (imported by sphinxcontrib-jupyter) was removed from
           # setuptools in v81, so pin below that to keep it available.
-          sage -pip install --upgrade "setuptools<81" pytest pytest-xdist traitlets nbmake nbclient sphinxcontrib-jupyter sphinx
+          sage -pip install --upgrade "setuptools<81" pytest traitlets nbmake nbclient sphinxcontrib-jupyter sphinx
       - name: Test
         run: |
           # `sage -sh` sets up Sage's environment (PATH, PYTHONPATH, its own
@@ -41,7 +41,7 @@ jobs:
             cp docs/_build/jupyter/algorithms/*.ipynb .
             # sage wants it
             mkdir -p /usr/share/sagemath/build/pkgs
-            # run tests in parallel (xdist)
-            PYTHONIOENCODING=UTF-8 python -m pytest -n $JOBS
+            # run tests
+            PYTHONIOENCODING=UTF-8 python -m pytest
           "
           
