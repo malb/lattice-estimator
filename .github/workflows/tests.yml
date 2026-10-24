@@ -9,31 +9,37 @@ on:
 
 env:
   JOBS: 2
-  DEPS: sagemath
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    container:
+      image: sagemath/sagemath:10.10
+      options: --user root
     steps:
       - name: Check Out
         uses: actions/checkout@v2
       - name: Install prerequisites
         run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install $DEPS
+          apt-get -qq update
+          apt-get -qq install -y --no-install-recommends make
+          sage -pip install --upgrade pytest traitlets nbmake nbclient sphinxcontrib-jupyter sphinx
       - name: Test
         run: |
-          export DOT_SAGE=$HOME/.sage/
-          pip install --upgrade pytest traitlets nbmake nbclient sphinxcontrib-jupyter
-          # TODO: for some strange reason it hangs otherwise
-          pip install --upgrade nbmake
-          # make jupyter notebooks
-          make jupyter
-          # We have to manually copy over those notebooks we want check
-          cp docs/_build/jupyter/prompt.ipynb .
-          cp docs/_build/jupyter/algorithms/*.ipynb .
-          # sage wants it
-          sudo mkdir -p /usr/share/sagemath/build/pkgs
-          # run tests
-          PYTHONIOENCODING=UTF-8 PYTHONPATH=`pwd` python -m pytest
+          # `sage -sh` sets up Sage's environment (PATH, PYTHONPATH, its own
+          # Python interpreter), which is what the tests need.
+          sage -sh -c "
+            cd \"\$GITHUB_WORKSPACE\"
+            export DOT_SAGE=\$HOME/.sage/
+            export PYTHONPATH=\"\$GITHUB_WORKSPACE\"
+            # make jupyter notebooks
+            make jupyter
+            # We have to manually copy over those notebooks we want check
+            cp docs/_build/jupyter/prompt.ipynb .
+            cp docs/_build/jupyter/algorithms/*.ipynb .
+            # sage wants it
+            mkdir -p /usr/share/sagemath/build/pkgs
+            # run tests
+            PYTHONIOENCODING=UTF-8 python -m pytest
+          "
           
