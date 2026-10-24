@@ -23,7 +23,9 @@ jobs:
         run: |
           apt-get -qq update
           apt-get -qq install -y --no-install-recommends make
-          sage -pip install --upgrade pytest traitlets nbmake nbclient sphinxcontrib-jupyter sphinx
+          # `pkg_resources` (imported by sphinxcontrib-jupyter) was removed from
+          # setuptools in v81, so pin below that to keep it available.
+          sage -pip install --upgrade "setuptools<81" pytest traitlets nbmake nbclient sphinxcontrib-jupyter sphinx
       - name: Test
         run: |
           # `sage -sh` sets up Sage's environment (PATH, PYTHONPATH, its own
