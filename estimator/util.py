@@ -31,14 +31,14 @@ def ball_log_vol(n):
     return RR((n/2.) * log(pi) - lgamma(n/2. + 1))
 
 
-def log_gh(d, logvol=0, use_constant=True):
+def log_gh(d, logvol=0):
     """
     return natural logarithm of an estimate of what the length is of the shortest vector in a
     lattice of rank `d` and determinant `e**logvol`.
 
     (used in LWE.primal_hybrid, RC.ZGSA and NTRU.primal_dsd)
     """
-    if use_constant and d < 49:
+    if d < 49:
         return RR(gh_constant[d] + logvol/d)
 
     return RR(1./d * (logvol - ball_log_vol(d)))

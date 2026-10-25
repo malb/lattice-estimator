@@ -320,7 +320,7 @@ class PrimalHybrid:
         # log_proj_vol = log(Vol(Lambda(b_{d-eta}, b_{d-eta+1}, ..., b_{d-1}))) (+log(D.stddev))
 
         def success():
-            return D.stddev**2 * eta <= exp(2.0 * log_gh(eta, log_proj_vol, False))
+            return D.stddev**2 * eta <= exp(2.0 * log_gh(eta, log_proj_vol))
 
         # Find smallest eta ∈ [2, d] satisfying the success condition from [USENIX:ADPS16]_.
         # Namely, given tau = stddev(D), we look for the smallest `eta` such that (pi_{d-eta}(e), tau) is a shortest
