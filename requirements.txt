@@ -1,3 +1,4 @@
+setuptools<81
 black
 flake8
 pyproject-flake8
