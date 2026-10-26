@@ -18,7 +18,7 @@ jobs:
       options: --user root
     steps:
       - name: Check Out
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: Install prerequisites
         run: |
           apt-get -qq update
