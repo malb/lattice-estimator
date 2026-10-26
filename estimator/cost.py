@@ -85,14 +85,14 @@ class Cost(UserDict):
                     vv = "%7s" % ("≈2^%.1f" % log(v, 2))
             except TypeError:  # strings and such
                 vv = "%8s" % v
-            if compact is True:
+            if compact:
                 kk = kk.strip()
                 vv = vv.strip()
             return f"{kk}: {vv}"
 
         # we store the problem instance in a cost object for reference
         s = [value_str(k, v) for k, v in self.items() if k != "problem"]
-        delimiter = "\n" if newline is True else ", "
+        delimiter = "\n" if newline else ", "
         return delimiter.join(s)
 
     def reorder(self, *args):
@@ -190,7 +190,7 @@ class Cost(UserDict):
         return Cost(**cost)
 
     def __bool__(self):
-        return self.get("rop", oo) < oo
+        return bool(self.get("rop", oo) < oo)
 
     def __add__(self, other):
         return self.combine(self, other)
