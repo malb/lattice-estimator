@@ -8,10 +8,11 @@ See :ref:`LWE Primal Attacks` for an introduction what is available.
 
 from functools import partial
 
-from sage.all import oo, ceil, sqrt, log, RR, ZZ, cached_function
+from sage.all import oo, ceil, exp, sqrt, log, RR, cached_function
 from .reduction import delta as deltaf
 from .reduction import cost as costf
 from .util import local_minimum
+from .util import log_gh
 from .cost import Cost
 from .lwe_parameters import LWEParameters
 from .simulator import normalize as simulator_normalize
@@ -297,108 +298,54 @@ class PrimalHybrid:
         return Cost(rop=max(d, 1) ** 2)
 
     @classmethod
-    def svp_dimension(cls, r, D, is_homogeneous=False):
+    def svp_dimension(cls, r, beta, D, is_homogeneous=False):
         """
-        Return required svp dimension for a given lattice shape and distance.
+        Return required SVP dimension for a given lattice shape and distance,
+        using the success condition specified in [USENIX:ADPS16]_.
 
         :param r: squared Gram-Schmidt norms
-
+        :param beta: block size used to get this basis profile
+        :param D: error distribution
+        :param is_homogeneous: whether to perform Kannan's embedding
+        :return: required SVP dimension to obtain a shortest vector in the (embedding) lattice.
         """
-        from math import lgamma, log, pi
+        d, eta = len(r), beta
+        if not is_homogeneous:
+            d += 1  # Kannan embedding
 
-        def ball_log_vol(n):
-            return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
+        log_proj_vol = sum(0.5 * log(r_i) for r_i in r[d - eta:])
+        if not is_homogeneous:
+            log_proj_vol += log(D.stddev)  # Kannan embedding
+        # Loop invariant:
+        # log_proj_vol = log(Vol(Lambda(b_{d-eta}, b_{d-eta+1}, ..., b_{d-1}))) (+log(D.stddev))
 
-        # If B is a basis with GSO profiles r, this returns an estimate for the shortest vector in the lattice
-        # [ B | * ]
-        # [ 0 |tau]
-        # if the tau is None, the instance is homogeneous, and we omit the final row/column.
-        def svp_gaussian_heuristic_log_input(r, tau):
-            if tau is None:
-                n = len(list(r))
-                log_vol = sum(r)
-            else:
-                n = len(list(r)) + 1
-                log_vol = sum(r) + 2 * log(tau)
-            log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
-            return log_gh
+        def success():
+            return D.stddev**2 * eta <= exp(2.0 * log_gh(eta, log_proj_vol))
 
-        d = len(r)
-        r = [log(x) for x in r]
-
-        if d > 4096:
-            # cap the svp dimension at max_beta
-            min_i = max(0, d - max_beta_global)
+        # Find smallest eta ∈ [2, d] satisfying the success condition from [USENIX:ADPS16]_.
+        # Namely, given tau = stddev(D), we look for the smallest `eta` such that (pi_{d-eta}(e), tau) is a shortest
+        # lattice vector in the embedding lattice given by the basis:
+        # [pi_{d-eta}(B) | * ]
+        # [       0      |tau],
+        # where B is a basis of a random lattice.
+        # If `is_homogeneous`, the basis is simply [pi_{d-eta}(B)].
+        if success():
+            # It appears the size of our SVP call can be even smaller than beta. Now, we iteratively decrease eta as
+            # long as the success condition still holds.
+            # Note: we cannot try eta = 2,3,... until success, because this gives issues in extremely low dimensions.
+            while eta >= 2 and success():
+                # Decrease eta by one, and update the volume.
+                log_proj_vol -= 0.5 * log(r[d - eta])
+                eta -= 1
+            eta += 1  # eta >= 2
         else:
-            min_i = 0
-
-        if is_homogeneous:
-            tau = None
-            for i in range(min_i, d):
-                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i)):
-                    return ZZ(d - (i - 1))
-            return ZZ(2)
-
-        else:
-            # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
-            # [pi_i(B) | * ]
-            # [   0    |tau]
-            tau = D.stddev
-            for i in range(min_i, d):
-                if svp_gaussian_heuristic_log_input(r[i:], tau) < log(D.stddev**2 * (d - i) + tau ** 2):
-                    return ZZ(d - (i - 1) + 1)
-            return ZZ(2)
-
-    @classmethod
-    def svp_dimension_gsa(cls, d, log_total_vol, log_delta, D, is_homogeneous=False):
-        """
-        Return required svp dimension assuming the GSA on a lattice with a given volume and rank.
-
-        """
-        from math import lgamma, log, pi
-
-        def log_projected_vol(i):
-            return (d - i) / d * log_total_vol - i * (d - i) * log_delta
-
-        def ball_log_vol(n):
-            return (n / 2.0) * log(pi) - lgamma(n / 2.0 + 1)
-
-        # If B is a BKZ reduced basis, this returns an estimate for the shortest vector in the lattice
-        # [ B | * ]
-        # [ 0 |tau]
-        # under the GSA assumption, where total_vol is the volume of B, and delta is the root Hermite factor.
-        # if the tau is None, the instance is homogeneous, and we omit the final row/column.
-        def svp_gaussian_heuristic_gsa(i, tau):
-            if tau is None:
-                n = d - i
-                log_vol = 2 * log_projected_vol(i)
-            else:
-                n = d - i + 1
-                log_vol = 2 * log_projected_vol(i) + 2 * log(tau)
-            log_gh = 1.0 / n * (log_vol - 2 * ball_log_vol(n))
-            return log_gh
-
-        if d > 4096:
-            # cap the svp dimension at max_beta
-            min_i = max(0, d - max_beta_global)
-        else:
-            min_i = 0
-
-        if is_homogeneous:
-            tau = None
-            for i in range(min_i, d):
-                if svp_gaussian_heuristic_gsa(i, tau) < log(D.stddev**2 * (d - i)):
-                    return ZZ(d - (i - 1))
-            return ZZ(2)
-        else:
-            # we look for the largest i such that (pi_i(e), tau) is shortest in the embedding lattice
-            # [pi_i(B) | * ]
-            # [   0    |tau]
-            tau = D.stddev
-            for i in range(min_i, d):
-                if svp_gaussian_heuristic_gsa(i, tau) < log(D.stddev**2 * (d - i) + tau**2):
-                    return ZZ(d - (i - 1) + 1)
-            return ZZ(2)
+            # It appears we need to increase eta until we have success.
+            while eta < d + 1 and eta < max_beta_global and not success():
+                # Increase eta by one, and update the volume.
+                eta += 1
+                log_proj_vol += 0.5 * log(r[d - eta])
+            # Note: if eta = d + 1, then it's impossible, so stronger lattice reduction is needed (higher `beta`).
+        return eta
 
     @classmethod
     @cached_function
@@ -467,12 +414,7 @@ class PrimalHybrid:
             svp_cost = PrimalHybrid.babai_cost(d)
         else:
             # we scaled the lattice so that χ_e is what we want
-            if simulator == GSA:
-                log_vol = RR((d - (params.n - zeta)) * log(params.q) + (params.n - zeta) * log(xi))
-                log_delta = RR(log(deltaf(beta)))
-                svp_dim = PrimalHybrid.svp_dimension_gsa(d, log_vol, log_delta, params.Xe, params._homogeneous)
-            else:
-                svp_dim = PrimalHybrid.svp_dimension(r, params.Xe, is_homogeneous=params._homogeneous)
+            svp_dim = PrimalHybrid.svp_dimension(r, beta, params.Xe, params._homogeneous)
             eta = svp_dim if params._homogeneous else svp_dim - 1
             if eta > d:
                 # Lattice reduction was not strong enough to "reveal" the LWE solution.
@@ -760,13 +702,13 @@ class PrimalHybrid:
             >>> from estimator import *
             >>> params = schemes.Kyber512.updated(Xs=ND.SparseTernary(16))
             >>> LWE.primal_hybrid(params, mitm=False, babai=False)
-            rop: ≈2^87.9, red: ≈2^87.2, svp: ≈2^86.5, β: 127, η: 18, ζ: 303, |S|: ≈2^45.9, d: 409, prob: ≈2^-19.4, ↻...
+            rop: ≈2^87.7, red: ≈2^87.0, svp: ≈2^86.3, β: 127, η: 18, ζ: 302, |S|: ≈2^45.9, d: 410, prob: ≈2^-19.2, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=False, babai=True)
             rop: ≈2^88.2, red: ≈2^87.3, svp: ≈2^87.1, β: 119, η: 2, ζ: 304, |S|: ≈2^45.9, d: 401, prob: ≈2^-21.6, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=False)
-            rop: ≈2^72.1, red: ≈2^70.8, svp: ≈2^71.4, β: 106, η: 18, ζ: 321, |S|: ≈2^82.8, d: 373, prob: 0.002, ↻...
+            rop: ≈2^72.0, red: ≈2^70.7, svp: ≈2^71.3, β: 106, η: 18, ζ: 320, |S|: ≈2^82.8, d: 374, prob: 0.002, ↻: 1...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=True)
             rop: ≈2^85.4, red: ≈2^83.6, svp: ≈2^84.9, β: 111, η: 2, ζ: 366, |S|: ≈2^90.9, d: 330, prob: ≈2^-20.5, ↻...
@@ -777,7 +719,7 @@ class PrimalHybrid:
 
             >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
             >>> LWE.primal_bdd(params)
-            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^21.9, β: 40, η: 2, d: 1511, tag: bdd
+            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^22.1, β: 40, η: 1, d: 1512, tag: bdd
 
         We also test a LWE instance with a large error (coming from issue #106)::
 
