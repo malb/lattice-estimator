@@ -23,8 +23,6 @@ jobs:
         run: |
           apt-get -qq update
           apt-get -qq install -y --no-install-recommends make
-          # `pkg_resources` (imported by sphinxcontrib-jupyter) was removed from
-          # setuptools in v81, so pin below that to keep it available.
           sage -pip install --upgrade -r requirements.txt
       - name: Test
         run: |
