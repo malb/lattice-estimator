@@ -702,13 +702,13 @@ class PrimalHybrid:
             >>> from estimator import *
             >>> params = schemes.Kyber512.updated(Xs=ND.SparseTernary(16))
             >>> LWE.primal_hybrid(params, mitm=False, babai=False)
-            rop: ≈2^87.9, red: ≈2^87.2, svp: ≈2^86.5, β: 127, η: 18, ζ: 303, |S|: ≈2^45.9, d: 409, prob: ≈2^-19.4, ↻...
+            rop: ≈2^87.7, red: ≈2^87.0, svp: ≈2^86.3, β: 127, η: 18, ζ: 302, |S|: ≈2^45.9, d: 410, prob: ≈2^-19.2, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=False, babai=True)
             rop: ≈2^88.2, red: ≈2^87.3, svp: ≈2^87.1, β: 119, η: 2, ζ: 304, |S|: ≈2^45.9, d: 401, prob: ≈2^-21.6, ↻...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=False)
-            rop: ≈2^72.1, red: ≈2^70.8, svp: ≈2^71.4, β: 106, η: 18, ζ: 321, |S|: ≈2^82.8, d: 373, prob: 0.002, ↻...
+            rop: ≈2^72.0, red: ≈2^70.7, svp: ≈2^71.3, β: 106, η: 18, ζ: 320, |S|: ≈2^82.8, d: 374, prob: 0.002, ↻: 1...
 
             >>> LWE.primal_hybrid(params, mitm=True, babai=True)
             rop: ≈2^85.4, red: ≈2^83.6, svp: ≈2^84.9, β: 111, η: 2, ζ: 366, |S|: ≈2^90.9, d: 330, prob: ≈2^-20.5, ↻...
@@ -719,7 +719,7 @@ class PrimalHybrid:
 
             >>> params = LWE.Parameters(2**10, 2**100, ND.DiscreteGaussian(3.19), ND.DiscreteGaussian(3.19))
             >>> LWE.primal_bdd(params)
-            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^21.9, β: 40, η: 2, d: 1511, tag: bdd
+            rop: ≈2^43.6, red: ≈2^43.6, svp: ≈2^22.1, β: 40, η: 1, d: 1512, tag: bdd
 
         We also test a LWE instance with a large error (coming from issue #106)::
 
