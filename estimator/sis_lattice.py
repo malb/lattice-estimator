@@ -5,6 +5,7 @@ Estimate cost of solving SIS using lattice reduction attacks.
 See :ref:`SIS Lattice Attacks` for an introduction what is available.
 
 """
+
 from functools import partial
 import warnings
 
@@ -101,9 +102,7 @@ class SISLattice:
             lb = RR(sqrt(params.n * log(params.q)))
         else:
             lb = RR(sqrt(d) * params.q ** (params.n / d))
-        return costf(
-            red_cost_model, beta, d, predicate=params.length_bound > lb and reduction_possible
-        )
+        return costf(red_cost_model, beta, d, predicate=params.length_bound > lb and reduction_possible)
 
     @staticmethod
     @cached_function
@@ -177,14 +176,10 @@ class SISLattice:
             gaussian_coords = max(idx_end - idx_start + 1, sieve_dim)
             sigma = vector_length / sqrt(gaussian_coords)
 
-            log_trial_prob = RR(
-                log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2) * (gaussian_coords)
-            )
+            log_trial_prob = RR(log(1 - 2 * gaussian_cdf(0, sigma, -params.length_bound), 2) * (gaussian_coords))
             log_trial_prob += RR(log((2 * params.length_bound + 1) / params.q, 2) * (idx_start))
 
-        probability = 2 ** min(
-            0, log_trial_prob + RR(log(N, 2))
-        )  # expected number of solutions (max 1)
+        probability = 2 ** min(0, log_trial_prob + RR(log(N, 2)))  # expected number of solutions (max 1)
         ret = Cost()
         ret["rop"] = cost_red
         ret["red"] = bkz_cost["rop"]
@@ -231,9 +226,7 @@ class SISLattice:
         """
         # step 0. establish baseline cost using worst case euclidean norm estimate
         # length_bound =1 makes sense when norm=∞, but we take logs and divide
-        params_baseline = params.updated(
-            norm=2, length_bound=2 if params.length_bound == 1 else params.length_bound
-        )
+        params_baseline = params.updated(norm=2, length_bound=2 if params.length_bound == 1 else params.length_bound)
         baseline_cost = self(
             params_baseline,
             ignore_qary=ignore_qary,
@@ -257,9 +250,7 @@ class SISLattice:
         )
 
         # step 1. optimize β
-        with local_minimum(
-            40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1
-        ) as it:
+        with local_minimum(40, baseline_cost["beta"] + 1, precision=2, log_level=log_level + 1) as it:
             for beta in it:
                 it.update(f(beta))
             for beta in it.neighborhood:
@@ -339,9 +330,7 @@ class SISLattice:
         elif params.norm == oo:
             tag = "infinity"
         else:
-            raise NotImplementedError(
-                "SIS attack estimation currently only supports euclidean and infinity norms"
-            )
+            raise NotImplementedError("SIS attack estimation currently only supports euclidean and infinity norms")
 
         if tag == "infinity":
             f = partial(
