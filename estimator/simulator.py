@@ -99,7 +99,7 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
     :param xi: Scaling factor ξ for identity part.
     :param tau: Kannan factor τ.
     :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
-           applying it to the primal.
+                 applying it to the primal.
     :returns: squared Gram-Schmidt norms
 
     """
@@ -122,14 +122,15 @@ def GSA(d, n, q, beta, xi=1, tau=1, dual=False):
 def ZGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     """
     Reduced lattice Z-shape following the Geometric Series Assumption as specified in
-    NTRU fatrigue [DucWoe21]_
+    NTRU fatrigue [AC:DucWoe21]_
+
     :param d: Lattice dimension.
     :param n: The number of `q` vectors is `d-n`.
     :param q: Modulus `q`
     :param beta: Block size β.
     :param xi: Scaling factor ξ for identity part.
     :param dual: ignored, since GSA is self-dual: applying the GSA to the dual is equivalent to
-           applying it to the primal.
+                 applying it to the primal.
     :returns: Squared Gram-Schmidt norms
 
     EXAMPLES:
@@ -231,7 +232,7 @@ def LGSA(d, n, q, beta, xi=1, tau=1, dual=False):
     :param xi: Scaling factor ξ for identity part.
     :param tau: Kannan factor τ.
     :param dual: ignored, since LGSA is self-dual: applying the GSA to the dual is equivalent to
-           applying it to the primal.
+                 applying it to the primal.
     :returns: squared Gram-Schmidt norms
 
     EXAMPLES:

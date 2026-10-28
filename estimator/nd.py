@@ -86,6 +86,7 @@ class NoiseDistribution:
     **without** specifying the dimension `n` and `m` for secret/error respectively!
     These are initialized, when constructing the LWEParameters object.
     """
+
     n: int = None  # dimension of noise
     mean: float = 0  # expectation value
     stddev: float = 0  # standard deviation (square root of variance)
@@ -234,6 +235,7 @@ class DiscreteGaussian(NoiseDistribution):
         >>> ND.DiscreteGaussian(3.0, 1.0)
         D(σ=3.00, μ=1.00)
     """
+
     # cut-off for Gaussian distributions
     gaussian_tail_bound: int = 2
     # probability that a coefficient falls within the cut-off
@@ -269,12 +271,10 @@ class DiscreteGaussian(NoiseDistribution):
         p = self.gaussian_tail_prob
 
         if p**n < fraction:
-            raise NotImplementedError(
-                f"TODO(DiscreteGaussian.support_size): raise t. {RR(p ** n)}, {n}, {fraction}"
-            )
+            raise NotImplementedError(f"TODO(DiscreteGaussian.support_size): raise t. {RR(p ** n)}, {n}, {fraction}")
 
         b = 2 * t * sigmaf(self.stddev) + 1
-        return RR(2.0 * b + 1)**n
+        return RR(2.0 * b + 1) ** n
 
 
 def DiscreteGaussianAlpha(alpha, q, mean=0, n=None):
@@ -303,6 +303,7 @@ class CenteredBinomial(NoiseDistribution):
         >>> ND.CenteredBinomial(8)
         D(σ=2.00)
     """
+
     def __init__(self, eta, n=None):
         density = 1 - binomial(2 * eta, eta) * 2 ** (-2 * eta)
 
@@ -329,7 +330,7 @@ class CenteredBinomial(NoiseDistribution):
         """
         # TODO: this might be suboptimal/inaccurate for binomial distribution
         a, b = self.bounds
-        return ceil(RR(fraction) * (b - a + 1)**len(self))
+        return ceil(RR(fraction) * (b - a + 1) ** len(self))
 
 
 class Uniform(NoiseDistribution):
@@ -344,6 +345,7 @@ class Uniform(NoiseDistribution):
         >>> ND.Uniform(-4, 3)
         D(σ=2.29, μ=-0.50)
     """
+
     def __init__(self, a, b, n=None):
         a, b = int(ceil(a)), int(floor(b))
         if b < a:
@@ -380,7 +382,7 @@ class Uniform(NoiseDistribution):
         """
         # TODO: this might be suboptimal/inaccurate for binomial distribution
         a, b = self.bounds
-        return ceil(RR(fraction) * (b - a + 1)**len(self))
+        return ceil(RR(fraction) * (b - a + 1) ** len(self))
 
 
 def UniformMod(q, n=None):
@@ -419,15 +421,16 @@ class TUniform(NoiseDistribution):
         >>> ND.TUniform(10)
         D(σ=591.21)
     """
+
     def __init__(self, b, n=None):
         b = int(ceil(b))
 
         super().__init__(
             n=n,
             mean=RR(0),
-            stddev=RR(sqrt((2**(2*b+1) + 1)/6)),
-            bounds=(-2**b, 2**b),
-            _density=(1 - 1 / 2**(b+1)),
+            stddev=RR(sqrt((2 ** (2 * b + 1) + 1) / 6)),
+            bounds=(-(2**b), 2**b),
+            _density=(1 - 1 / 2 ** (b + 1)),
         )
 
     def __hash__(self):
@@ -451,7 +454,7 @@ class TUniform(NoiseDistribution):
             3399346982089587232319333203968
         """
         a, b = self.bounds
-        return ceil(RR(fraction) * (b - a + 1)**len(self))
+        return ceil(RR(fraction) * (b - a + 1) ** len(self))
 
 
 class SparseTernary(NoiseDistribution):
@@ -470,6 +473,7 @@ class SparseTernary(NoiseDistribution):
         >>> ND.SparseTernary(0, 0, 0).support_size()
         1
     """
+
     def __init__(self, p, m=None, n=None):
         p, m = int(p), int(p if m is None else m)
         self.p, self.m = p, m
@@ -519,14 +523,11 @@ class SparseTernary(NoiseDistribution):
         n, hw = len(self), self.hamming_weight
         if new_hw is None:
             # Most likely split has same density: new_hw / new_n = hw / n.
-            new_hw = int(QQ(hw * new_n / n).round('down'))
+            new_hw = int(QQ(hw * new_n / n).round("down"))
 
-        new_p = int((QQ(new_hw * self.p) / hw).round('down'))
+        new_p = int((QQ(new_hw * self.p) / hw).round("down"))
         new_m = new_hw - new_p
-        return (
-            SparseTernary(new_p, new_m, new_n),
-            SparseTernary(self.p - new_p, self.m - new_m, n - new_n)
-        )
+        return (SparseTernary(new_p, new_m, new_n), SparseTernary(self.p - new_p, self.m - new_m, n - new_n))
 
     def split_probability(self, new_n, new_hw=None):
         """
@@ -610,6 +611,7 @@ class SparseBinomial(NoiseDistribution):
         >>> ND.SparseBinomial(1, 10, 20).bounds
         (-1, 1)
     """
+
     def __init__(self, eta, hw, n=None):
         eta, hw = int(eta), int(hw)
         self.eta, self.hw = eta, hw
@@ -657,11 +659,8 @@ class SparseBinomial(NoiseDistribution):
         n, hw = len(self), self.hamming_weight
         if new_hw is None:
             # Most likely split has same density: new_hw / new_n = hw / n.
-            new_hw = int(QQ(hw * new_n / n).round('down'))
-        return (
-            SparseBinomial(self.eta, new_hw, new_n),
-            SparseBinomial(self.eta, hw - new_hw, n - new_n)
-        )
+            new_hw = int(QQ(hw * new_n / n).round("down"))
+        return (SparseBinomial(self.eta, new_hw, new_n), SparseBinomial(self.eta, hw - new_hw, n - new_n))
 
     def split_probability(self, new_n, new_hw=None):
         """
@@ -691,12 +690,12 @@ class SparseBinomial(NoiseDistribution):
 
         EXAMPLE:::
 
-        >>> from estimator import ND
-        >>> ND.SparseBinomial(1, 10, 20).support_size() - binomial(20, 10) * 2**10
-        0
+            >>> from estimator import ND
+            >>> ND.SparseBinomial(1, 10, 20).support_size() - binomial(20, 10) * 2**10
+            0
         """
         # TODO: this might be suboptimal/inaccurate for sparse binomial distribution
-        return ceil(RR(fraction) * (2 * self.eta)**self.hw * binomial(self.n, self.hw))
+        return ceil(RR(fraction) * (2 * self.eta) ** self.hw * binomial(self.n, self.hw))
 
 
 """
