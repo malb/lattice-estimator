@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 EXAMPLES::
-        >>> from estimator import prob
+    >>> from estimator import prob
     >>> from estimator.nd import SparseTernary
     >>> # guess no coordinates: we will do one guess, and hit with probability 1
     >>> prob.guessing_set_and_hit_probability(0, SparseTernary(16, 16, 512), 0)
