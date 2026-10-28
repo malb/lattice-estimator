@@ -313,7 +313,7 @@ class PrimalHybrid:
         if not is_homogeneous:
             d += 1  # Kannan embedding
 
-        log_proj_vol = sum(0.5 * log(r_i) for r_i in r[d - eta:])
+        log_proj_vol = sum(0.5 * log(r_i) for r_i in r[d - eta :])
         if not is_homogeneous:
             log_proj_vol += log(D.stddev)  # Kannan embedding
         # Loop invariant:
@@ -646,9 +646,7 @@ class PrimalHybrid:
 
         # step 2. optimize d
         if cost and cost.get("tag", "XXX") != "usvp" and optimize_d:
-            with local_minimum(
-                params.n - zeta, cost["d"] + 1, log_level=log_level + 1
-            ) as it:
+            with local_minimum(params.n - zeta, cost["d"] + 1, log_level=log_level + 1) as it:
                 for d in it:
                     it.update(f(beta=cost["beta"], d=d))
                 cost = it.y

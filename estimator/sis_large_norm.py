@@ -5,6 +5,7 @@ Estimate cost of the attack of [C:DucEspPos23]_ on q-ary lattices (the small mod
 See :ref:`SIS Lattice Attacks` for an introduction to what is available.
 
 """
+
 from functools import partial
 from math import log as mlog, sqrt as msqrt, exp as mexp, pi, erf
 
@@ -76,7 +77,7 @@ def log2_lift_proportion_exact(n_q, sq_radius, q):
     for _ in range(n_q):
         nxt = coeffs[0] * p
         for j, c in zip(exps[1:], coeffs[1:]):
-            nxt[int(j):] += c * p[: -int(j)]
+            nxt[int(j) :] += c * p[: -int(j)]
         p = nxt
     total = float(p.sum())
     return RR(log2(total)) if total > 0 else RR(-oo)
@@ -114,7 +115,7 @@ def log2_lift_proportion(n_q, sq_radius, q):
     """
     a = float(sq_radius)
     h = q / 2.0  # a lifted coordinate is modelled as uniform on [-q/2, q/2], with E[U^2] = h^2 / 3
-    if a >= n_q * h ** 2 / 3:
+    if a >= n_q * h**2 / 3:
         # past the mean cube length the saddle-point's lower-tail regime ends; the proportion is ≥ 1/2
         # there and we round it up to 1, which is conservative and does not move the optimum, since the
         # number of lifts then saturates the per-attempt success probability (validated, see tests)
@@ -132,12 +133,12 @@ def log2_lift_proportion(n_q, sq_radius, q):
         # K'(t), K''(t) of K(t) = log E[e^{t U^2}] via I_k = ∫_0^h u^k e^{t u^2} du for one coordinate
         s = -t
         if s < small_s_cutoff:
-            I0, I2, I4 = h, h ** 3 / 3, h ** 5 / 5
+            I0, I2, I4 = h, h**3 / 3, h**5 / 5
         else:
-            decay = mexp(-s * h ** 2)
+            decay = mexp(-s * h**2)
             I0 = msqrt(pi / s) / 2 * erf(h * msqrt(s))
             I2 = (I0 - h * decay) / (2 * s)
-            I4 = (3 * I2 - h ** 3 * decay) / (2 * s)
+            I4 = (3 * I2 - h**3 * decay) / (2 * s)
         return I0, I2 / I0, I4 / I0 - (I2 / I0) ** 2
 
     # saddle point t < 0: the tilted mean n_q ⋅ K'(t) matches the squared radius
@@ -218,7 +219,7 @@ class SISLargeNorm:
                 # the projected vectors alone are already too long to lift to a solution
                 continue
             # squared lifting radius: the lifted entries must absorb the remaining length, Eq. 2
-            sq_radius = floor(RR(params.length_bound) ** 2 - proj_length ** 2)
+            sq_radius = floor(RR(params.length_bound) ** 2 - proj_length**2)
             log2_p = log2_density * sieve_dim + lift_proportion(n_q, sq_radius, params.q)
             log2_solutions = log2_p if log2_solutions is None else max(log2_solutions, log2_p)
 
@@ -309,9 +310,7 @@ class SISLargeNorm:
 
         """
         if params.norm != 2:
-            raise NotImplementedError(
-                "This attack is only available for the euclidean norm."
-            )
+            raise NotImplementedError("This attack is only available for the euclidean norm.")
 
         # the attack targets the regime where the length bound exceeds the modulus [C:DucEspPos23]_
         if params.length_bound <= params.q:
