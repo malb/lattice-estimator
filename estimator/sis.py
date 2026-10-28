@@ -102,7 +102,7 @@ class Estimate:
         EXAMPLE ::
             >>> from estimator import *
             >>> _ = SIS.estimate(schemes.Dilithium2_MSIS_StrUnf)
-            lattice  :: rop: ≈2^150.6, red: ≈2^149.6, sieve: ≈2^149.6, β: 421, η: 428, ζ: 0, d: 2304, ...
+            lattice  :: rop: ≈2^149.3, red: ≈2^148.3, sieve: ≈2^148.4, β: 417, η: 424, ζ: 0, d: 2048, ...
 
             >>> params = SIS.Parameters(n=113, q=2048, length_bound=512, norm=2)
             >>> _ = SIS.estimate(params)

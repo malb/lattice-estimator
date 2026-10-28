@@ -127,12 +127,16 @@ NTRUHRSS701Enc = NTRUParameters(
 #
 # https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf
 # Table 1, Page 8
+#
+# q, d, τ, γ1, γ2, (k, ℓ), β from Table 2, Page 15; MSIS instances from Eq. (6) and App. C.3.
+# WkUnf:  [A | t'], m = 256·(k+ℓ+1), ζ  = max(γ1 − β, 2γ2 + 1 + 2^(d−1)·τ), Eq. (7)
+# StrUnf: A,        m = 256·(k+ℓ),   ζ' = max(2(γ1 − β), 4γ2 + 2), Eq. (8)
 
 Dilithium2_MSIS_WkUnf = SISParameters(
     n=256*4,
     q=8380417,
-    length_bound=350209,
-    m=256*9,
+    length_bound=max(2**17 - 78, 2*((8380417-1)//88) + 1 + 2**12*39),
+    m=256*(4+4+1),
     norm=oo,
     tag="Dilithium2_MSIS_WkUnf"
 )
@@ -140,8 +144,8 @@ Dilithium2_MSIS_WkUnf = SISParameters(
 Dilithium2_MSIS_StrUnf = SISParameters(
     n=256*4,
     q=8380417,
-    length_bound=380929,
-    m=256*9,
+    length_bound=max(2*(2**17 - 78), 4*((8380417-1)//88) + 2),
+    m=256*(4+4),
     norm=oo,
     tag="Dilithium2_MSIS_StrUnf"
 )
@@ -149,8 +153,8 @@ Dilithium2_MSIS_StrUnf = SISParameters(
 Dilithium3_MSIS_WkUnf = SISParameters(
     n=256*6,
     q=8380417,
-    length_bound=724481,
-    m=256*6*2,
+    length_bound=max(2**19 - 196, 2*((8380417-1)//32) + 1 + 2**12*49),
+    m=256*(6+5+1),
     norm=oo,
     tag="Dilithium3_MSIS_WkUnf"
 )
@@ -158,8 +162,8 @@ Dilithium3_MSIS_WkUnf = SISParameters(
 Dilithium3_MSIS_StrUnf = SISParameters(
     n=256*6,
     q=8380417,
-    length_bound=1048576,
-    m=256*6*2,
+    length_bound=max(2*(2**19 - 196), 4*((8380417-1)//32) + 2),
+    m=256*(6+5),
     norm=oo,
     tag="Dilithium3_MSIS_StrUnf"
 )
@@ -167,8 +171,8 @@ Dilithium3_MSIS_StrUnf = SISParameters(
 Dilithium5_MSIS_WkUnf = SISParameters(
     n=256*8,
     q=8380417,
-    length_bound=769537,
-    m=256*8*2,
+    length_bound=max(2**19 - 120, 2*((8380417-1)//32) + 1 + 2**12*60),
+    m=256*(8+7+1),
     norm=oo,
     tag="Dilithium5_MSIS_WkUnf"
 )
@@ -176,8 +180,8 @@ Dilithium5_MSIS_WkUnf = SISParameters(
 Dilithium5_MSIS_StrUnf = SISParameters(
     n=256*8,
     q=8380417,
-    length_bound=1048576,
-    m=256*8*2,
+    length_bound=max(2*(2**19 - 120), 4*((8380417-1)//32) + 2),
+    m=256*(8+7),
     norm=oo,
     tag="Dilithium5_MSIS_StrUnf"
 )
