@@ -330,9 +330,9 @@ Concrete_TFHE586 = LWEParameters(
     Xe=DiscreteGaussian(stddev=2 ** (-13.4) * 2**32),
     tag="Concrete_TFHE586",
 )
-# - Bootstrapping key (Ring-LWE)
+# - Bootstrapping key (GLWE with k = 2, N = 512, i.e. LWE in dimension k·N)
 Concrete_TFHE512 = LWEParameters(
-    n=512,
+    n=2 * 512,
     q=2**32,
     Xs=Binary,
     Xe=DiscreteGaussian(stddev=2 ** (-24.8) * 2**32),
