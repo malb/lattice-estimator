@@ -517,7 +517,7 @@ HElib120_1024 = LWEParameters(
     q=2**38,
     Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
-    tag="HElib80_1024",
+    tag="HElib120_1024",
 )
 
 HElib120_2048 = LWEParameters(
@@ -525,7 +525,7 @@ HElib120_2048 = LWEParameters(
     q=2**70,
     Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
-    tag="HElib80_2048",
+    tag="HElib120_2048",
 )
 
 HElib120_4096 = LWEParameters(
@@ -533,7 +533,7 @@ HElib120_4096 = LWEParameters(
     q=2**134,
     Xs=SparseTernary(32),
     Xe=DiscreteGaussian(stddev=3.2),
-    tag="HElib80_4096",
+    tag="HElib120_4096",
 )
 
 
