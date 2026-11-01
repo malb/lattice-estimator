@@ -3,3 +3,4 @@
 venv/
 __pycache__
 /lattice_estimator.egg-info/
+/uv.lock
