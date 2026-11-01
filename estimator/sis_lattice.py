@@ -226,11 +226,11 @@ class SISLattice:
         """
         # step 0. establish baseline cost using worst case euclidean norm estimate
         # length_bound =1 makes sense when norm=∞, but we take logs and divide
+        # the shape model is ignored for euclidean estimates, so don't pass it on here
         params_baseline = params.updated(norm=2, length_bound=2 if params.length_bound == 1 else params.length_bound)
         baseline_cost = self(
             params_baseline,
             ignore_qary=ignore_qary,
-            red_shape_model=red_shape_model,
             red_cost_model=red_cost_model,
             log_level=log_level + 1,
             **kwds,

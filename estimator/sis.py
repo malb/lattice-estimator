@@ -49,7 +49,12 @@ class Estimate:
         """
         algorithms = {}
 
-        algorithms["lattice"] = partial(lattice, red_cost_model=RC.ADPS16, red_shape_model="lgsa")
+        # the shape model is ignored for euclidean norm bounds, where the required block
+        # size is derived directly from the length bound, so only request LGSA for infinity norms
+        if params.norm == oo:
+            algorithms["lattice"] = partial(lattice, red_cost_model=RC.ADPS16, red_shape_model="lgsa")
+        else:
+            algorithms["lattice"] = partial(lattice, red_cost_model=RC.ADPS16)
 
         # the attack of [C:DucEspPos23]_ on q-ary lattices applies to euclidean instances with
         # ν > q; it needs the q-vectors, so we give it the Z-shape simulator rather than the default
