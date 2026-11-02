@@ -405,8 +405,8 @@ class DualHybrid:
             >>> LWE.dual(schemes.CHHS_4096_67)
             rop: ≈2^206.8, mem: ≈2^137.5, m: ≈2^11.8, β: 616, d: 7779, ↻: 1, tag: dual
 
-            >>> dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21, fft=True)
-            rop: ≈2^149.8, mem: ≈2^92.1, m: 510, t: 75, β: 400, d: 1000, ↻: 1, ζ: 22, tag: dual_hybrid
+            >>> dual_hybrid(schemes.Kyber512, red_cost_model=RC.GJ21)
+            rop: ≈2^151.4, mem: ≈2^145.8, m: 512, β: 406, d: 1002, ↻: 1, ζ: 22, tag: dual_hybrid
 
             # small n examples (Issue #178)
             >>> params = LWE.Parameters(n=8, q=2**128, Xs=ND.UniformMod(2**128), Xe=ND.UniformMod(2**124))

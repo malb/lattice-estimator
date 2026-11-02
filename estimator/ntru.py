@@ -52,7 +52,8 @@ class Estimate:
             usvp                 :: rop: ≈2^109.2, red: ≈2^109.2, δ: 1.004171, β: 374, d: 643, tag: usvp
             bdd_hybrid           :: rop: ≈2^108.6, red: ≈2^107.7, svp: ≈2^107.5, β: 369, η: 368, ζ: 0, |S|: 1, ...
 
-            >>> _ = NTRU.estimate.rough(schemes.NTRUHPS2048509Enc, quiet=True)
+            >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
+            >>> _ = NTRU.estimate.rough(params, quiet=True)
 
         """
         params = params.normalize()
@@ -122,11 +123,11 @@ class Estimate:
         EXAMPLE ::
 
             >>> from estimator import *
-            >>> _ = NTRU.estimate(schemes.NTRUHRSS701Enc)
-            usvp                 :: rop: ≈2^162.1, red: ≈2^162.1, δ: 1.003557, β: 470, d: 1317, tag: usvp
-            bdd                  :: rop: ≈2^158.6, red: ≈2^157.6, svp: ≈2^157.6, β: 454, η: 489, d: 1306, tag: bdd
-            bdd_hybrid           :: rop: ≈2^158.6, red: ≈2^157.7, svp: ≈2^157.6, β: 454, η: 489, ζ: 0, |S|: 1, d: ...
-            bdd_mitm_hybrid      :: rop: ≈2^233.8, red: ≈2^229.7, svp: ≈2^233.8, β: 471, η: 2, ζ: 184, |S|: ...
+            >>> _ = NTRU.estimate(schemes.NTRUHPS2048509Enc, deny_list=("dsd",))
+            usvp                 :: rop: ≈2^134.5, red: ≈2^134.5, δ: 1.004179, β: 373, d: 923, tag: usvp
+            bdd                  :: rop: ≈2^130.8, red: ≈2^129.8, svp: ≈2^129.8, β: 356, η: 389, d: 917, tag: bdd
+            bdd_hybrid           :: rop: ≈2^130.9, red: ≈2^129.9, svp: ≈2^129.8, β: 356, η: 389, ζ: 0, |S|: 1, ...
+            bdd_mitm_hybrid      :: rop: ≈2^185.6, red: ≈2^183.6, svp: ≈2^185.1, β: 373, η: 2, ζ: 163, |S|: ≈2^232...
 
             >>> params = NTRU.Parameters(n=113, q=512, Xs=ND.UniformMod(3), Xe=ND.UniformMod(3))
             >>> _ = NTRU.estimate(params, catch_exceptions=False)
