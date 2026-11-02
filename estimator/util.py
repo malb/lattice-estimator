@@ -67,13 +67,25 @@ small_slope_t8 = {2: 0.04473, 3: 0.04472, 4: 0.04402, 5: 0.04407, 6: 0.04334, 7:
 
 @dataclass
 class LazyEvaluation:
+    """
+    A memoised lookup table that only evaluates the entries that are actually requested.
+
+    Entries are computed on first access and stored in ``eval``, which is grown on demand up to
+    index ``max_n_cache``.  This matters for example for :func:`zeta_precomputed`, where eagerly
+    evaluating all ``max_n_cache + 1`` values takes tens of seconds while typical callers only
+    touch a few hundred of them.
+    """
+
     f: Callable
     max_n_cache: int
     eval: list = field(default_factory=lambda: [])
 
     def __getitem__(self, key):
-        if not self.eval:
-            self.eval = [self.f(i) for i in range(self.max_n_cache + 1)]
+        if key < 0 or key > self.max_n_cache:
+            raise IndexError(f"{key} is outside of the cached range [0, {self.max_n_cache}]")
+
+        for i in range(len(self.eval), key + 1):
+            self.eval.append(self.f(i))
 
         return self.eval[key]
 
