@@ -113,9 +113,9 @@ class Estimate:
             >>> _ = SIS.estimate(params)
             lattice  :: rop: ≈2^47.0, red: ≈2^47.0, δ: 1.011391, β: 61, d: 276, tag: euclidean
 
-            >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo), red_shape_model="cn11")
-            lattice  :: rop: ≈2^65.8, red: ≈2^64.8, sieve: ≈2^64.9, β: 113, η: 142, ζ: 0, d: 2486, ...
-            >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo), quiet=True)
+            >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo, m=None), red_shape_model="cn11")
+            lattice  :: rop: ≈2^74.7, red: ≈2^73.6, sieve: ≈2^73.8, β: 158, η: 172, ζ: 136, d: 358, prob: 1, ...
+            >>> _ = SIS.estimate(params.updated(length_bound=16, norm=oo, m=None), quiet=True)
 
         """
 
