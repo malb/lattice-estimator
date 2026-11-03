@@ -79,7 +79,7 @@ Usage examples:
     bdd_mitm_hybrid      :: rop: ≈2^347.8, red: ≈2^347.8, svp: ≈2^202.7, β: 483, η: 2, ζ: 0, |S|: 1, d: 1024, prob: ≈2^-180.5, ↻: ≈2^182.7, tag: hybrid
 
     >>> schemes.Falcon512_Unf
-    SISParameters(n=512, q=12289, length_bound=5833.9072, m=1024, norm=2, tag='Falcon512_Unf')
+    SISParameters(n=512, q=12289, length_bound=5833.928864838857, m=1024, norm=2, tag='Falcon512_Unf')
    
     >>> r = SIS.estimate.rough(schemes.Falcon512_Unf)
     lattice  :: rop: ≈2^121.2, red: ≈2^121.2, δ: 1.003882, β: 415, d: 1024, tag: euclidean
