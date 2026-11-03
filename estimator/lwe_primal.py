@@ -235,8 +235,15 @@ class PrimalUSVP:
         simulator = simulator_normalize(red_shape_model)
         if simulator == GSA:
             precision = 5
-            max_beta = max(min(max_beta_global, m), 40 + precision)
-            with local_minimum(40, max_beta, precision=precision) as it:
+            step = precision**2
+            max_beta = max(min(max_beta_global, m), 40 + step)
+            # initial search: coarse scan with step size `step` to land in the correct zone
+            seed = min(
+                range(40, max_beta, step),
+                key=lambda b: self.cost_gsa(beta=b, params=params, m=m, red_cost_model=red_cost_model, **kwds)["rop"],
+            )
+            # second search: refine to the minimum over [seed - step, seed + step] ∩ [40, max_beta]
+            with local_minimum(max(40, seed - step), min(seed + step + 1, max_beta)) as it:
                 for beta in it:
                     cost = self.cost_gsa(beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds)
                     it.update(cost)
