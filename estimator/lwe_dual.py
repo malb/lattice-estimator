@@ -138,7 +138,8 @@ class DualHybrid:
             it merely reports costs.
 
         """
-        Logging.log("dual", log_level, f"β={beta}, ζ={zeta}, h1={h1}")
+        if Logging.enabled("dual", log_level):
+            Logging.log("dual", log_level, f"β={beta}, ζ={zeta}, h1={h1}")
 
         delta = deltaf(beta)
 
@@ -148,7 +149,8 @@ class DualHybrid:
         params_slv, m_ = DualHybrid.dual_reduce(
             delta, params, zeta, h1, rho, t, log_level=log_level + 1
         )
-        Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
+        if Logging.enabled("dual", log_level + 1):
+            Logging.log("dual", log_level + 1, f"red LWE instance: {repr(params_slv)}")
 
         if t:
             cost = DualHybrid.fft_solver(params_slv, success_probability, t)
@@ -161,7 +163,8 @@ class DualHybrid:
 
         d = m_ + params.n - zeta
         _, cost_red, N, sieve_dim = red_cost_model.short_vectors(beta, d, cost["m"])
-        Logging.log("dual", log_level + 2, f"red: {Cost(rop=cost_red)!r}")
+        if Logging.enabled("dual", log_level + 2):
+            Logging.log("dual", log_level + 2, f"red: {Cost(rop=cost_red)!r}")
 
         # Add the runtime cost of sieving in dimension `sieve_dim` possibly multiple times.
         cost["rop"] += cost_red
@@ -176,7 +179,8 @@ class DualHybrid:
             raise RuntimeError(f"{d} < {params.n - zeta}, {params.n}, {zeta}, {m_}")
         cost["d"] = d
 
-        Logging.log("dual", log_level, f"{repr(cost)}")
+        if Logging.enabled("dual", log_level):
+            Logging.log("dual", log_level, f"{repr(cost)}")
 
         rep = 1
         if params.Xs.is_sparse:
@@ -430,7 +434,8 @@ class DualHybrid:
             t=False,
         )
 
-        Logging.log("dual", log_level, f"costing LWE instance: {repr(params)}")
+        if Logging.enabled("dual", log_level):
+            Logging.log("dual", log_level, f"costing LWE instance: {repr(params)}")
 
         params = params.normalize()
 
@@ -451,7 +456,8 @@ class DualHybrid:
                 h1_max = min(zeta, h)
                 if h1_min == h1_max:
                     h1_max = h1_min + 1
-                Logging.log("dual", log_level, f"h1 ∈ [{h1_min},{h1_max}] (zeta={zeta})")
+                if Logging.enabled("dual", log_level):
+                    Logging.log("dual", log_level, f"h1 ∈ [{h1_min},{h1_max}] (zeta={zeta})")
                 with local_minimum(h1_min, h1_max, log_level=log_level + 1) as it:
                     for h1 in it:
                         # ignoring fft on purpose for sparse secrets
@@ -669,20 +675,24 @@ class MATZOV:
                                 red_cost_model=red_cost_model,
                             )
                             it.update(cost)
-                        Logging.log(
-                            "dual",
-                            log_level + 3,
-                            f"t: {k_fft[0]}, {repr(it.y)}",
-                        )
+                        if Logging.enabled("dual", log_level + 3):
+                            Logging.log(
+                                "dual",
+                                log_level + 3,
+                                f"t: {k_fft[0]}, {repr(it.y)}",
+                            )
                         k_fft[1].update(it.y)
-                Logging.log("dual", log_level + 2, f"ζ: {k_enum[0]}, {repr(k_fft[1].y)}")
+                if Logging.enabled("dual", log_level + 2):
+                    Logging.log("dual", log_level + 2, f"ζ: {k_enum[0]}, {repr(k_fft[1].y)}")
                 k_enum[1].update(k_fft[1].y)
-            Logging.log("dual", log_level + 1, f"p:{p[0]}, {repr(k_enum[1].y)}")
+            if Logging.enabled("dual", log_level + 1):
+                Logging.log("dual", log_level + 1, f"p:{p[0]}, {repr(k_enum[1].y)}")
             p[1].update(k_enum[1].y)
             # if t == 0 then p is irrelevant, so we early abort that loop if that's the case once we hit t==0 twice.
             if p[1].y["t"] == 0 and p[0] > 2:
                 break
-        Logging.log("dual", log_level, f"{repr(p[1].y)}")
+        if Logging.enabled("dual", log_level):
+            Logging.log("dual", log_level, f"{repr(p[1].y)}")
         return p[1].y
 
 
