@@ -175,7 +175,8 @@ class local_minimum_base:
             msg = (
                 f'warning: "optimal" solution {self._best.low} matches a bound ∈ {self._initial_bounds}.',
             )
-            Logging.log("bins", self._log_level, msg)
+            if Logging.enabled("bins", self._log_level):
+                Logging.log("bins", self._log_level, msg)
 
         raise StopIteration
 
@@ -202,7 +203,8 @@ class local_minimum_base:
 
         """
 
-        Logging.log("bins", self._log_level, f"({self._last_x}, {repr(res)})")
+        if Logging.enabled("bins", self._log_level):
+            Logging.log("bins", self._log_level, f"({self._last_x}, {repr(res)})")
 
         self._all_x.add(self._last_x)
 
@@ -375,7 +377,8 @@ class early_abort_range:
 
     def update(self, res):
         """ """
-        Logging.log("lins", self._log_level, f"({self._last_x}, {repr(res)})")
+        if Logging.enabled("lins", self._log_level):
+            Logging.log("lins", self._log_level, f"({self._last_x}, {repr(res)})")
 
         if self._best.low is None:
             self._best = Bounds(self._last_x, res)
@@ -429,9 +432,12 @@ def _batch_estimatef(f, x, log_level=0, f_repr=None, catch_exceptions=True):
     if f_repr is None:
         f_repr = repr(f)
 
-    Logging.log("batch", log_level, f"f: {f_repr}")
-    Logging.log("batch", log_level, f"x: {x}")
-    Logging.log("batch", log_level, f"f(x): {y!r}")
+    if Logging.enabled("batch", log_level):
+        Logging.log("batch", log_level, f"f: {f_repr}")
+    if Logging.enabled("batch", log_level):
+        Logging.log("batch", log_level, f"x: {x}")
+    if Logging.enabled("batch", log_level):
+        Logging.log("batch", log_level, f"f(x): {y!r}")
 
     return y
 
