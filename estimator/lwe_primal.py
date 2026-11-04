@@ -261,7 +261,8 @@ class PrimalUSVP:
             red_cost_model=red_cost_model,
             red_shape_model="gsa",
         )
-        Logging.log("usvp", log_level + 1, f"GSA: {repr(cost_gsa)}")
+        if Logging.enabled("usvp", log_level + 1):
+            Logging.log("usvp", log_level + 1, f"GSA: {repr(cost_gsa)}")
 
         f = partial(
             self.cost_simulator,
@@ -279,7 +280,8 @@ class PrimalUSVP:
             for beta in it:
                 it.update(f(beta=beta, **kwds))
             cost = it.y
-        Logging.log("usvp", log_level, f"Opt-β: {repr(cost)}")
+        if Logging.enabled("usvp", log_level):
+            Logging.log("usvp", log_level, f"Opt-β: {repr(cost)}")
 
         if cost and optimize_d:
             # step 2. find d
@@ -287,7 +289,8 @@ class PrimalUSVP:
                 for d in it:
                     it.update(f(d=d, beta=cost["beta"], **kwds))
                 cost = it.y
-            Logging.log("usvp", log_level + 1, f"Opt-d: {repr(cost)}")
+            if Logging.enabled("usvp", log_level + 1):
+                Logging.log("usvp", log_level + 1, f"Opt-d: {repr(cost)}")
 
         cost["tag"] = "usvp"
         cost["problem"] = params
@@ -604,7 +607,8 @@ class PrimalHybrid:
             log_level=log_level + 1,
             **kwds,
         )
-        Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
+        if Logging.enabled("bdd", log_level):
+            Logging.log("bdd", log_level, f"H0: {repr(baseline_cost)}")
 
         f = partial(
             cls.cost,
@@ -649,7 +653,8 @@ class PrimalHybrid:
                 break
             else:
                 cost = new_cost
-        Logging.log("bdd", log_level, f"H1: {cost!r}")
+        if Logging.enabled("bdd", log_level):
+            Logging.log("bdd", log_level, f"H1: {cost!r}")
 
         # step 2. optimize d
         if cost and cost.get("tag", "XXX") != "usvp" and optimize_d:
@@ -657,7 +662,8 @@ class PrimalHybrid:
                 for d in it:
                     it.update(f(beta=cost["beta"], d=d))
                 cost = it.y
-            Logging.log("bdd", log_level, f"H2: {cost!r}")
+            if Logging.enabled("bdd", log_level):
+                Logging.log("bdd", log_level, f"H2: {cost!r}")
 
         if cost is None:
             return Cost(rop=oo)

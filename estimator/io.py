@@ -72,6 +72,10 @@ class Logging:
             logging.getLogger(logger).setLevel(lvl)
 
     @classmethod
+    def enabled(cls, logger, level):
+        return logging.getLogger(logger).isEnabledFor(cls.INFO - 2 * int(level))
+
+    @classmethod
     def log(cls, logger, level, msg, *args, **kwds):
         """
         Log `msg` indicating level.
