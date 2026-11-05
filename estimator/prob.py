@@ -127,6 +127,12 @@ def babai(r, norm):
     return prod(probs)
 
 
+@cached_function
+def _binomial(n, k):
+    # we cache these, as drop() re-uses the same two binomials across the hw search
+    return binomial(n, k)
+
+
 def drop(n, h, k, fail=0, rotations=False):
     """
     Probability that ``k`` randomly sampled components have ``fail`` non-zero components amongst
@@ -144,13 +150,15 @@ def drop(n, h, k, fail=0, rotations=False):
     K = n - h  # number of success states in the population
     n = k  # number of draws
     k = n - fail  # number of observed successes
-    prob_drop = binomial(K, k) * binomial(N - K, n - k) / binomial(N, n)
+    # C(h, fail) and C(N, draws) are re-used across the search, so we cache them. C(K, k) varies, so we don't
+    prob_drop = binomial(K, k) * _binomial(N - K, n - k) / _binomial(N, n)
     if rotations:
         return 1 - (1 - prob_drop) ** N
     else:
         return prob_drop
 
 
+@cached_function
 def amplify(target_success_probability, success_probability, majority=False):
     """
     Return the number of trials needed to amplify current `success_probability` to
