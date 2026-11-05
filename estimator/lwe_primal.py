@@ -251,6 +251,10 @@ class PrimalUSVP:
                     cost = self.cost_gsa(beta=beta, params=params, m=m, red_cost_model=red_cost_model, **kwds)
                     it.update(cost)
                 cost = it.y
+            # check against seed cost, and take the lowest
+            seed_cost = self.cost_gsa(beta=seed, params=params, m=m, red_cost_model=red_cost_model, **kwds)
+            if seed_cost["rop"] < cost["rop"]:
+                cost = seed_cost
             cost["tag"] = "usvp"
             cost["problem"] = params
             return cost.sanity_check()
