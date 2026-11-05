@@ -516,7 +516,8 @@ class PrimalHybrid:
         # TODO: this is rather clumsy as a model
         def ssf(x):
             if mitm:
-                return RR(sqrt(x))
+                # we sqrt a float here, as a symbolic sqrt of the (large) integer search space is slow
+                return sqrt(RR(x))
             else:
                 return x
 
