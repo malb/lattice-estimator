@@ -328,6 +328,7 @@ class early_abort_range:
         smallerf=lambda x, best: x <= best,
         suppress_bounds_warning=False,
         log_level=5,
+        patience=1,
     ):
         """
         Create a fresh local minimum search context.
@@ -337,11 +338,30 @@ class early_abort_range:
         :param step:  step size
         :param smallerf: a function to decide if ``lhs`` is smaller than ``rhs``.
         :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
+        :param patience: stop after this many consecutive values rejected by ``smallerf`` (with
+            the default ``smallerf`` a tie is accepted); the default stops at the first one.
+
+        EXAMPLE::
+
+            >>> from estimator.util import early_abort_range
+            >>> f = {0: 5, 1: 6, 2: 4, 3: 7, 4: 8, 5: 1}
+            >>> it = early_abort_range(0, 6)
+            >>> for x, ctx in it:
+            ...     ctx.update(f[x])
+            >>> it.x, it.y
+            (0, 5)
+            >>> it = early_abort_range(0, 6, patience=2)
+            >>> for x, ctx in it:
+            ...     ctx.update(f[x])
+            >>> it.x, it.y
+            (2, 4)
 
         """
 
         if stop < start:
             raise ValueError(f"Incorrect bounds {start} > {stop}.")
+        if patience < 1:
+            raise ValueError(f"patience must be at least 1, got {patience}.")
 
         self._suppress_bounds_warning = suppress_bounds_warning
         self._log_level = log_level
@@ -352,6 +372,8 @@ class early_abort_range:
         self._last_x = None
         self._next_x = self._start
         self._best = Bounds(None, None)
+        self._patience = patience
+        self._stale = 0
 
     def __iter__(self):
         """ """
@@ -388,8 +410,11 @@ class early_abort_range:
             self._next_x = None
         elif self._smallerf(res, self._best.high):
             self._best = Bounds(self._last_x, res)
+            self._stale = 0
         else:
-            self._next_x = None
+            self._stale += 1
+            if self._stale >= self._patience:
+                self._next_x = None
 
 
 def binary_search(

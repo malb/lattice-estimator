@@ -634,6 +634,7 @@ class MATZOV:
     # Search over the FFT modulus `p`, see ``__call__``.
     p_stddev_factor = 8  # every candidate below this multiple of the secret's standard deviation is tried
     p_patience = 3  # beyond that, stop after this many consecutive candidates without improvement
+    walk_patience = 3  # rejected steps in a row before the walks over ζ and t stop
 
     @staticmethod
     def fft_moduli(q):
@@ -713,8 +714,8 @@ class MATZOV:
         p_wide = self.p_stddev_factor * params.Xs.stddev
         best, stale = None, 0
         for p in self.fft_moduli(params.q):
-            for k_enum in early_abort_range(0, params.n, 10):
-                for k_fft in early_abort_range(0, params.n - k_enum[0], 10):
+            for k_enum in early_abort_range(0, params.n, 10, patience=self.walk_patience):
+                for k_fft in early_abort_range(0, params.n - k_enum[0], 10, patience=self.walk_patience):
                     precision = 1
                     max_beta = max(min(params.m - k_enum[0] - k_fft[0], max_beta_global), 40 + precision)
                     with local_minimum(40, max_beta, precision=precision, log_level=log_level + 4) as it:
