@@ -631,6 +631,31 @@ class MATZOV:
         cost.register_impermanent({"β'": False, "ζ": False, "t": False}, rop=True, p=False, N=False)
         return cost
 
+    # Search over the FFT modulus `p`, see ``__call__``.
+    p_stddev_factor = 8  # every candidate below this multiple of the secret's standard deviation is tried
+    p_patience = 3  # beyond that, stop after this many consecutive candidates without improvement
+
+    @staticmethod
+    def fft_moduli(q):
+        """
+        Candidate FFT moduli below `q`: every integer up to 20, then steps of 10%.
+
+        :param q: LWE modulus
+
+        EXAMPLE::
+
+            >>> from estimator.lwe_dual import MATZOV
+            >>> list(MATZOV.fft_moduli(12))
+            [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            >>> list(MATZOV.fft_moduli(64))[18:]
+            [20, 22, 24, 26, 28, 30, 33, 36, 39, 42, 46, 50, 55, 60]
+
+        """
+        p = 2
+        while p < q:
+            yield p
+            p += max(1, p // 10)
+
     def __call__(
         self,
         params: LWEParameters,
@@ -656,10 +681,38 @@ class MATZOV:
         - ``t``: Number of coordinates in FFT part mod `p`.
         - ``d``: Lattice dimension.
 
+        The search over `p` does not stop at the first candidate that fails to improve. The number
+        of short vectors required carries a factor `exp(t⋅(σπ/p)²/3)` for a secret of standard
+        deviation `σ`. On wide secrets the best choice at small `p` has `t = 0`, where the cost does
+        not depend on `p`, and the minimum is found at larger `p`. We try every candidate of
+        ``fft_moduli`` below ``p_stddev_factor⋅σ`` and from there on stop after ``p_patience``
+        consecutive candidates without improvement. This is a heuristic bound on the search.
+
+        EXAMPLES::
+
+            >>> from estimator import *
+            >>> from estimator.lwe_dual import matzov
+            >>> params = LWE.Parameters(n=768, q=7681, Xs=ND.CenteredBinomial(6), Xe=ND.CenteredBinomial(6), m=1280)
+            >>> matzov(params)
+            rop: ≈2^205.2, red: ≈2^204.7, guess: ≈2^203.6, β: 619, p: 8, ζ: 20, t: 40, β': 611, N: ≈2^126.5, m: 768
+
+        The key-recovery problem of ML-DSA-65, without rounding::
+
+            >>> params = LWE.Parameters(n=1280, q=8380417, Xs=ND.Uniform(-4, 4), Xe=ND.Uniform(-4, 4), m=1536)
+            >>> matzov(params)
+            rop: ≈2^204.0, red: ≈2^204.0, guess: ≈2^197.9, β: 613, p: 11, ζ: 10, t: 40, β': 608, N: ≈2^125.8, m: 1280
+
+        A narrow secret::
+
+            >>> matzov(schemes.Kyber512)
+            rop: ≈2^139.7, red: ≈2^139.5, guess: ≈2^135.9, β: 387, p: 5, ζ: 0, t: 50, β': 391, N: ≈2^81.1, m: 512
+
         """
         params = params.normalize()
 
-        for p in early_abort_range(2, params.q):
+        p_wide = self.p_stddev_factor * params.Xs.stddev
+        best, stale = None, 0
+        for p in self.fft_moduli(params.q):
             for k_enum in early_abort_range(0, params.n, 10):
                 for k_fft in early_abort_range(0, params.n - k_enum[0], 10):
                     precision = 1
@@ -669,7 +722,7 @@ class MATZOV:
                             cost = self.cost(
                                 beta,
                                 params,
-                                p=p[0],
+                                p=p,
                                 k_enum=k_enum[0],
                                 k_fft=k_fft[0],
                                 red_cost_model=red_cost_model,
@@ -686,14 +739,18 @@ class MATZOV:
                     Logging.log("dual", log_level + 2, f"ζ: {k_enum[0]}, {repr(k_fft[1].y)}")
                 k_enum[1].update(k_fft[1].y)
             if Logging.enabled("dual", log_level + 1):
-                Logging.log("dual", log_level + 1, f"p:{p[0]}, {repr(k_enum[1].y)}")
-            p[1].update(k_enum[1].y)
-            # if t == 0 then p is irrelevant, so we early abort that loop if that's the case once we hit t==0 twice.
-            if p[1].y["t"] == 0 and p[0] > 2:
-                break
+                Logging.log("dual", log_level + 1, f"p:{p}, {repr(k_enum[1].y)}")
+            if best is None or k_enum[1].y["rop"] < best["rop"]:
+                best, stale = k_enum[1].y, 0
+            elif p >= p_wide:
+                stale += 1
+                if stale >= self.p_patience:
+                    break
+        if best is None:
+            raise OutOfBoundsError(f"No FFT modulus 2 ≤ p < q for q = {params.q}.")
         if Logging.enabled("dual", log_level):
-            Logging.log("dual", log_level, f"{repr(p[1].y)}")
-        return p[1].y
+            Logging.log("dual", log_level, f"{repr(best)}")
+        return best
 
 
 matzov = MATZOV()
