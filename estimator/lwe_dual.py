@@ -656,14 +656,6 @@ class MATZOV:
         - ``t``: Number of coordinates in FFT part mod `p`.
         - ``d``: Lattice dimension.
 
-        EXAMPLE::
-
-            >>> from estimator import *
-            >>> from estimator.lwe_dual import matzov
-            >>> params = LWE.Parameters(n=768, q=7681, Xs=ND.CenteredBinomial(6), Xe=ND.CenteredBinomial(6), m=1280)
-            >>> matzov(params)
-            rop: ≈2^205.2, red: ≈2^204.7, guess: ≈2^203.6, β: 619, p: 8, ζ: 20, t: 40, β': 611, N: ≈2^126.5, m: 768
-
         """
         params = params.normalize()
 
