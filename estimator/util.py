@@ -329,17 +329,18 @@ class early_abort_range:
         suppress_bounds_warning=False,
         log_level=5,
         patience=1,
+        abort_from=-oo,
     ):
         """
         Create a fresh local minimum search context.
 
         :param start: starting point
         :param stop:  end point (exclusive, optional)
-        :param step:  step size
+        :param step:  step size, or a function mapping the current value to the step size
         :param smallerf: a function to decide if ``lhs`` is smaller than ``rhs``.
         :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
-        :param patience: stop after this many consecutive values rejected by ``smallerf`` (with
-            the default ``smallerf`` a tie is accepted); the default stops at the first one.
+        :param patience: stop after this many consecutive values rejected by ``smallerf``
+        :param abort_from: values below this bound do not count towards ``patience``
 
         EXAMPLE::
 
@@ -355,13 +356,16 @@ class early_abort_range:
             ...     ctx.update(f[x])
             >>> it.x, it.y
             (2, 4)
+            >>> it = early_abort_range(0, 6, abort_from=5)
+            >>> for x, ctx in it:
+            ...     ctx.update(f[x])
+            >>> it.x, it.y
+            (5, 1)
 
         """
 
         if stop < start:
             raise ValueError(f"Incorrect bounds {start} > {stop}.")
-        if patience < 1:
-            raise ValueError(f"patience must be at least 1, got {patience}.")
 
         self._suppress_bounds_warning = suppress_bounds_warning
         self._log_level = log_level
@@ -373,6 +377,7 @@ class early_abort_range:
         self._next_x = self._start
         self._best = Bounds(None, None)
         self._patience = patience
+        self._abort_from = abort_from
         self._stale = 0
 
     def __iter__(self):
@@ -386,7 +391,7 @@ class early_abort_range:
             raise StopIteration
 
         self._last_x = self._next_x
-        self._next_x += self._step
+        self._next_x += self._step(self._last_x) if callable(self._step) else self._step
         return self._last_x, self
 
     @property
@@ -411,7 +416,7 @@ class early_abort_range:
         elif self._smallerf(res, self._best.high):
             self._best = Bounds(self._last_x, res)
             self._stale = 0
-        else:
+        elif self._last_x >= self._abort_from:
             self._stale += 1
             if self._stale >= self._patience:
                 self._next_x = None
