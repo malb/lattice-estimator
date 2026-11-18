@@ -656,9 +656,6 @@ class MATZOV:
         - ``t``: Number of coordinates in FFT part mod `p`.
         - ``d``: Lattice dimension.
 
-        The search over `p` tries every candidate below eight standard deviations of the secret and
-        then stops after three candidates in a row without improvement.
-
         EXAMPLE::
 
             >>> from estimator import *
