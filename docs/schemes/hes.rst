@@ -7,7 +7,7 @@ Import a selection of parameters used in applications of Homomorphic Encryption,
     >>> from estimator import *
     >>> from estimator.schemes import TFHErs_LWE
     >>> LWE.dual_hybrid(TFHErs_LWE)
-    rop: ≈2^134.9, red: ≈2^134.9, guess: ≈2^128.0, β: 366, p: 2, ζ: 0, t: 110, β': 375, N: ≈2^77.1, m: 918
+    rop: ≈2^134.6, red: ≈2^134.6, guess: ≈2^128.5, β: 365, p: 2, ζ: 20, t: 80, β': 374, N: ≈2^76.3, m: 918
 
 ::
 
