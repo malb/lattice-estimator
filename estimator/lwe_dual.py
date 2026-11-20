@@ -659,9 +659,16 @@ class MATZOV:
         """
         params = params.normalize()
 
-        for p in early_abort_range(2, params.q):
-            for k_enum in early_abort_range(0, params.n, 10):
-                for k_fft in early_abort_range(0, params.n - k_enum[0], 10):
+        for p in early_abort_range(
+            2,
+            params.q,
+            step=lambda x: max(1, x // 10),
+            smallerf=lambda x, best: x < best,
+            patience=3,
+            abort_from=8 * params.Xs.stddev,
+        ):
+            for k_enum in early_abort_range(0, params.n, 10, patience=3):
+                for k_fft in early_abort_range(0, params.n - k_enum[0], 10, patience=3):
                     precision = 1
                     max_beta = max(min(params.m - k_enum[0] - k_fft[0], max_beta_global), 40 + precision)
                     with local_minimum(40, max_beta, precision=precision, log_level=log_level + 4) as it:
@@ -688,9 +695,6 @@ class MATZOV:
             if Logging.enabled("dual", log_level + 1):
                 Logging.log("dual", log_level + 1, f"p:{p[0]}, {repr(k_enum[1].y)}")
             p[1].update(k_enum[1].y)
-            # if t == 0 then p is irrelevant, so we early abort that loop if that's the case once we hit t==0 twice.
-            if p[1].y["t"] == 0 and p[0] > 2:
-                break
         if Logging.enabled("dual", log_level):
             Logging.log("dual", log_level, f"{repr(p[1].y)}")
         return p[1].y

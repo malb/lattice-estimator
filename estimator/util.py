@@ -328,15 +328,39 @@ class early_abort_range:
         smallerf=lambda x, best: x <= best,
         suppress_bounds_warning=False,
         log_level=5,
+        patience=1,
+        abort_from=-oo,
     ):
         """
         Create a fresh local minimum search context.
 
         :param start: starting point
         :param stop:  end point (exclusive, optional)
-        :param step:  step size
+        :param step:  step size, or a function mapping the current value to the step size
         :param smallerf: a function to decide if ``lhs`` is smaller than ``rhs``.
         :param suppress_bounds_warning: do not warn if a boundary is picked as optimal
+        :param patience: stop after this many consecutive values rejected by ``smallerf``
+        :param abort_from: values below this bound do not count towards ``patience``
+
+        EXAMPLE::
+
+            >>> from estimator.util import early_abort_range
+            >>> f = {0: 5, 1: 6, 2: 4, 3: 7, 4: 8, 5: 1}
+            >>> it = early_abort_range(0, 6)
+            >>> for x, ctx in it:
+            ...     ctx.update(f[x])
+            >>> it.x, it.y
+            (0, 5)
+            >>> it = early_abort_range(0, 6, patience=2)
+            >>> for x, ctx in it:
+            ...     ctx.update(f[x])
+            >>> it.x, it.y
+            (2, 4)
+            >>> it = early_abort_range(0, 6, abort_from=5)
+            >>> for x, ctx in it:
+            ...     ctx.update(f[x])
+            >>> it.x, it.y
+            (5, 1)
 
         """
 
@@ -352,6 +376,9 @@ class early_abort_range:
         self._last_x = None
         self._next_x = self._start
         self._best = Bounds(None, None)
+        self._patience = patience
+        self._abort_from = abort_from
+        self._stale = 0
 
     def __iter__(self):
         """ """
@@ -364,7 +391,7 @@ class early_abort_range:
             raise StopIteration
 
         self._last_x = self._next_x
-        self._next_x += self._step
+        self._next_x += self._step(self._last_x) if callable(self._step) else self._step
         return self._last_x, self
 
     @property
@@ -388,8 +415,11 @@ class early_abort_range:
             self._next_x = None
         elif self._smallerf(res, self._best.high):
             self._best = Bounds(self._last_x, res)
-        else:
-            self._next_x = None
+            self._stale = 0
+        elif self._last_x >= self._abort_from:
+            self._stale += 1
+            if self._stale >= self._patience:
+                self._next_x = None
 
 
 def binary_search(
