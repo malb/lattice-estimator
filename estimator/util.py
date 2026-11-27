@@ -127,8 +127,8 @@ class local_minimum_base:
 
         """
 
-        if stop < start:
-            raise ValueError(f"Incorrect bounds {start} > {stop}.")
+        if stop <= start:
+            raise ValueError(f"Incorrect bounds {start} >= {stop}.")
 
         self._suppress_bounds_warning = suppress_bounds_warning
         self._log_level = log_level
@@ -288,7 +288,7 @@ class local_minimum(local_minimum_base):
         self._precision = precision
         self._orig_bounds = (start, stop)
         start = ceil(start / precision)
-        stop = floor(stop / precision)
+        stop = floor((stop + precision - 1) / precision)
         local_minimum_base.__init__(self, start, stop, smallerf, suppress_bounds_warning, log_level)
 
     def __next__(self):
