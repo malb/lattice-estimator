@@ -22,9 +22,9 @@ class CodedBKW:
         Return `N_i` for the `i`-th `[N_i, b]` linear code.
 
         :param i: index
-        :param sigma_set: target noise level
+        :param sigma_set: target noise level, ``None`` if there is no coding step
         """
-        return floor(b / (1 - log(12 * sigma_set**2 / 2**i, q) / 2))
+        return floor(b / (1 - log(12 * sigma_set**2 / 2**i, q) / 2)) if sigma_set is not None else 0
 
     @staticmethod
     @cached_function
@@ -137,6 +137,7 @@ class CodedBKW:
             sigma_set = sqrt(params.q ** (2 * (1 - ell / ntest)) / 12)
             ncod = sum(CodedBKW.N(i, sigma_set, b, params.q) for i in range(1, t2 + 1))
         else:
+            sigma_set = None
             ncod = 0
 
         ntot = ncod + ntest
@@ -148,7 +149,7 @@ class CodedBKW:
         cost.register_impermanent({"#cod": False, "#top": False, "#test": False})
 
         # Theorem 1: quantization noise + addition noise
-        coding_variance = params.Xs.stddev**2 * sigma_set**2 * ntot
+        coding_variance = params.Xs.stddev**2 * sigma_set**2 * ntot if sigma_set else 0
         sigma_final = float(sqrt(2 ** (t1 + t2) * params.Xe.stddev**2 + coding_variance))
 
         M = amplify_sigma(success_probability, sigmaf(sigma_final), params.q)
@@ -181,6 +182,8 @@ class CodedBKW:
         )
         C2 = float(C2_)
         for i in range(1, t2 + 1):
+            if ntop + ntest == 0:  # no coordinates in any step: skip, as 0 * inf = nan if q^b overflows
+                break
             C2 += float(
                 ntop + ntest + sum(CodedBKW.N(j, sigma_set, b, params.q) for j in range(1, i + 1))
             ) * (M + (i - 1) * ZZ(params.q**b - 1) / 2)
@@ -290,6 +293,9 @@ class CodedBKW:
 
             >>> LWE.coded_bkw(schemes.TFHE630)
             rop: ≈2^144.7, m: ≈2^131.8, mem: ≈2^132.8, b: 4, t1: 0, t2: 27, ℓ: 3, #cod: 559, #top: 0, #test: 71, ...
+
+            >>> LWE.coded_bkw(LWE.Parameters(n=8, q=2**128, Xs=ND.UniformMod(2**128), Xe=ND.UniformMod(2**124)))
+            rop: ≈2^392.6, m: ≈2^384.0, mem: ≈2^385.0, b: 3, t1: 2, t2: 0, ℓ: 2, #cod: 0, #top: 0, #test: 2, ...
 
         .. note :: See also [C:KirFou15]_.
 
